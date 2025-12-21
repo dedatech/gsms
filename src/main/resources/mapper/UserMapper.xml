@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsms.gsms.mapper.UserMapper">
+    <!-- 结果映射 -->
+    <resultMap id="UserResultMap" type="com.gsms.gsms.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="department_id" property="departmentId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询所有字段 -->
+    <sql id="selectAllFields">
+        id, username, password, nickname, email, phone, department_id, status, create_time, update_time
+    </sql>
+
+    <!-- 根据ID查询用户 -->
+    <select id="selectById" parameterType="long" resultMap="UserResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM user
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户名查询用户 -->
+    <select id="selectByUsername" parameterType="string" resultMap="UserResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM user
+        WHERE username = #{username}
+    </select>
+
+    <!-- 查询所有用户 -->
+    <select id="selectAll" resultMap="UserResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM user
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.gsms.gsms.entity.User">
+        INSERT INTO user(username, password, nickname, email, phone, department_id, status)
+        VALUES(#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{departmentId}, #{status})
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update" parameterType="com.gsms.gsms.entity.User">
+        UPDATE user
+        <set>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+</mapper>

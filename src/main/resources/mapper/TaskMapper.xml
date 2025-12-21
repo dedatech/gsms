@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsms.gsms.mapper.TaskMapper">
+    <!-- 结果映射 -->
+    <resultMap id="TaskResultMap" type="com.gsms.gsms.entity.Task">
+        <id column="id" property="id"/>
+        <result column="project_id" property="projectId"/>
+        <result column="iteration_id" property="iterationId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="type" property="type"/>
+        <result column="priority" property="priority"/>
+        <result column="assignee_id" property="assigneeId"/>
+        <result column="status" property="status"/>
+        <result column="plan_start_date" property="planStartDate"/>
+        <result column="plan_end_date" property="planEndDate"/>
+        <result column="actual_start_date" property="actualStartDate"/>
+        <result column="actual_end_date" property="actualEndDate"/>
+        <result column="estimate_hours" property="estimateHours"/>
+        <result column="create_user_id" property="createUserId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询所有字段 -->
+    <sql id="selectAllFields">
+        id, project_id, iteration_id, title, description, type, priority, assignee_id, status, 
+        plan_start_date, plan_end_date, actual_start_date, actual_end_date, estimate_hours, 
+        create_user_id, create_time, update_time
+    </sql>
+
+    <!-- 根据ID查询任务 -->
+    <select id="selectById" parameterType="long" resultMap="TaskResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM task
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据项目ID查询任务 -->
+    <select id="selectByProjectId" parameterType="long" resultMap="TaskResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM task
+        WHERE project_id = #{projectId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据条件查询任务 -->
+    <select id="selectByCondition" resultMap="TaskResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM task
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="assigneeId != null">
+                AND assignee_id = #{assigneeId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 插入任务 -->
+    <insert id="insert" parameterType="com.gsms.gsms.entity.Task">
+        INSERT INTO task(project_id, iteration_id, title, description, type, priority, assignee_id, 
+                        status, plan_start_date, plan_end_date, estimate_hours, create_user_id)
+        VALUES(#{projectId}, #{iterationId}, #{title}, #{description}, #{type}, #{priority}, #{assigneeId},
+               #{status}, #{planStartDate}, #{planEndDate}, #{estimateHours}, #{createUserId})
+    </insert>
+
+    <!-- 更新任务 -->
+    <update id="update" parameterType="com.gsms.gsms.entity.Task">
+        UPDATE task
+        <set>
+            <if test="projectId != null">project_id = #{projectId},</if>
+            <if test="iterationId != null">iteration_id = #{iterationId},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="assigneeId != null">assignee_id = #{assigneeId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="planStartDate != null">plan_start_date = #{planStartDate},</if>
+            <if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
+            <if test="actualStartDate != null">actual_start_date = #{actualStartDate},</if>
+            <if test="actualEndDate != null">actual_end_date = #{actualEndDate},</if>
+            <if test="estimateHours != null">estimate_hours = #{estimateHours},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除任务 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM task WHERE id = #{id}
+    </delete>
+</mapper>

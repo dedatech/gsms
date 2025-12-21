@@ -1,0 +1,42 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# 日志配置
+logging:
+  level:
+    com.gsms.gsms: INFO
+    org.springframework: WARN
+    org.mybatis: DEBUG
+  file:
+    path: ./logs
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.gsms.gsms.entity
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.gsms.gsms.controller
+  paths-to-match: /api/**

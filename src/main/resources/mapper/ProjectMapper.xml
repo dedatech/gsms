@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsms.gsms.mapper.ProjectMapper">
+    <!-- 结果映射 -->
+    <resultMap id="ProjectResultMap" type="com.gsms.gsms.entity.Project">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="description" property="description"/>
+        <result column="manager_id" property="managerId"/>
+        <result column="status" property="status"/>
+        <result column="plan_start_date" property="planStartDate"/>
+        <result column="plan_end_date" property="planEndDate"/>
+        <result column="actual_start_date" property="actualStartDate"/>
+        <result column="actual_end_date" property="actualEndDate"/>
+        <result column="create_user_id" property="createUserId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询所有字段 -->
+    <sql id="selectAllFields">
+        id, name, code, description, manager_id, status, plan_start_date, plan_end_date, 
+        actual_start_date, actual_end_date, create_user_id, create_time, update_time
+    </sql>
+
+    <!-- 根据ID查询项目 -->
+    <select id="selectById" parameterType="long" resultMap="ProjectResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM project
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有项目 -->
+    <select id="selectAll" resultMap="ProjectResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM project
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据条件查询项目 -->
+    <select id="selectByCondition" resultMap="ProjectResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM project
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 插入项目 -->
+    <insert id="insert" parameterType="com.gsms.gsms.entity.Project">
+        INSERT INTO project(name, code, description, manager_id, status, plan_start_date, plan_end_date, create_user_id)
+        VALUES(#{name}, #{code}, #{description}, #{managerId}, #{status}, #{planStartDate}, #{planEndDate}, #{createUserId})
+    </insert>
+
+    <!-- 更新项目 -->
+    <update id="update" parameterType="com.gsms.gsms.entity.Project">
+        UPDATE project
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="planStartDate != null">plan_start_date = #{planStartDate},</if>
+            <if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
+            <if test="actualStartDate != null">actual_start_date = #{actualStartDate},</if>
+            <if test="actualEndDate != null">actual_end_date = #{actualEndDate},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除项目 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM project WHERE id = #{id}
+    </delete>
+</mapper>

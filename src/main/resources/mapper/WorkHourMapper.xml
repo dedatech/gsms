@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsms.gsms.mapper.WorkHourMapper">
+    <!-- 结果映射 -->
+    <resultMap id="WorkHourResultMap" type="com.gsms.gsms.entity.WorkHour">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="work_date" property="workDate"/>
+        <result column="hours" property="hours"/>
+        <result column="content" property="content"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询所有字段 -->
+    <sql id="selectAllFields">
+        id, user_id, project_id, task_id, work_date, hours, content, status, create_time, update_time
+    </sql>
+
+    <!-- 根据ID查询工时记录 -->
+    <select id="selectById" parameterType="long" resultMap="WorkHourResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM work_hour
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询工时记录 -->
+    <select id="selectByUserId" parameterType="long" resultMap="WorkHourResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM work_hour
+        WHERE user_id = #{userId}
+        ORDER BY work_date DESC, create_time DESC
+    </select>
+
+    <!-- 根据项目ID查询工时记录 -->
+    <select id="selectByProjectId" parameterType="long" resultMap="WorkHourResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM work_hour
+        WHERE project_id = #{projectId}
+        ORDER BY work_date DESC, create_time DESC
+    </select>
+
+    <!-- 根据条件查询工时记录 -->
+    <select id="selectByCondition" resultMap="WorkHourResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM work_hour
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="startDate != null">
+                AND work_date >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND work_date &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY work_date DESC, create_time DESC
+    </select>
+
+    <!-- 插入工时记录 -->
+    <insert id="insert" parameterType="com.gsms.gsms.entity.WorkHour">
+        INSERT INTO work_hour(user_id, project_id, task_id, work_date, hours, content, status)
+        VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, #{status})
+    </insert>
+
+    <!-- 更新工时记录 -->
+    <update id="update" parameterType="com.gsms.gsms.entity.WorkHour">
+        UPDATE work_hour
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="projectId != null">project_id = #{projectId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="workDate != null">work_date = #{workDate},</if>
+            <if test="hours != null">hours = #{hours},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除工时记录 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM work_hour WHERE id = #{id}
+    </delete>
+</mapper>
