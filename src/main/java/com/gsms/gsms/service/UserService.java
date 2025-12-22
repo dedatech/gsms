@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.User;
+import com.gsms.gsms.domain.entity.User;
 
 import java.util.List;
 
@@ -31,29 +31,32 @@ public interface UserService {
     /**
      * 创建用户
      * @param user 用户实体
-     * @return 是否成功
+     * @return 创建成功的用户实体
+     * @throws BusinessException 用户名已存在时抛出异常
      */
-    boolean createUser(User user);
+    User createUser(User user);
 
     /**
      * 更新用户
      * @param user 用户实体
-     * @return 是否成功
+     * @return 更新后的用户实体
+     * @throws BusinessException 用户不存在时抛出异常
      */
-    boolean updateUser(User user);
+    User updateUser(User user);
 
     /**
      * 删除用户
      * @param id 用户ID
-     * @return 是否成功
+     * @throws BusinessException 用户不存在时抛出异常
      */
-    boolean deleteUser(Long id);
+    void deleteUser(Long id);
 
     /**
      * 用户登录
      * @param username 用户名
      * @param password 密码
-     * @return 登录成功的用户实体，失败返回null
+     * @return 登录成功的用户实体
+     * @throws BusinessException 用户不存在或密码错误时抛出异常
      */
     User login(String username, String password);
 }

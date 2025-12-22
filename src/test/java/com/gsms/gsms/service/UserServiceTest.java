@@ -1,7 +1,8 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.User;
-import com.gsms.gsms.mapper.UserMapper;
+import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class UserServiceTest {
         testUser.setNickname("测试用户");
         testUser.setEmail("test@example.com");
         testUser.setPhone("13800138000");
-        testUser.setStatus(1);
+        testUser.setStatus(UserStatus.NORMAL);
     }
 
     @Test
@@ -89,39 +90,44 @@ class UserServiceTest {
     @Test
     void testCreateUser() {
         // Given
+        when(userMapper.selectByUsername("testuser")).thenReturn(null);
         when(userMapper.insert(any(User.class))).thenReturn(1);
 
         // When
-        boolean result = userService.createUser(testUser);
+        User result = userService.createUser(testUser);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
+        assertEquals("testuser", result.getUsername());
         verify(userMapper, times(1)).insert(testUser);
     }
 
     @Test
     void testUpdateUser() {
         // Given
+        when(userMapper.selectById(1L)).thenReturn(testUser);
         when(userMapper.update(any(User.class))).thenReturn(1);
 
         // When
-        boolean result = userService.updateUser(testUser);
+        User result = userService.updateUser(testUser);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(userMapper, times(1)).update(testUser);
+        verify(userMapper, times(2)).selectById(1L); // 查询两次：检查存在 + 返回结果
     }
 
     @Test
     void testDeleteUser() {
         // Given
+        when(userMapper.selectById(1L)).thenReturn(testUser);
         when(userMapper.deleteById(1L)).thenReturn(1);
 
         // When
-        boolean result = userService.deleteUser(1L);
+        userService.deleteUser(1L);
 
         // Then
-        assertTrue(result);
+        verify(userMapper, times(1)).selectById(1L);
         verify(userMapper, times(1)).deleteById(1L);
     }
 

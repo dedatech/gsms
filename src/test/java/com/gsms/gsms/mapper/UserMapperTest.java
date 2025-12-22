@@ -1,6 +1,8 @@
 package com.gsms.gsms.mapper;
 
-import com.gsms.gsms.entity.User;
+import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.repository.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +32,7 @@ class UserMapperTest {
         user.setNickname("测试用户");
         user.setEmail("test@example.com");
         user.setPhone("13800138000");
-        user.setStatus(1);
+        user.setStatus(UserStatus.NORMAL);
         
         // 插入测试数据
         userMapper.insert(user);
@@ -54,7 +56,7 @@ class UserMapperTest {
         user.setNickname("测试用户");
         user.setEmail("test@example.com");
         user.setPhone("13800138000");
-        user.setStatus(1);
+        user.setStatus(UserStatus.NORMAL);
         
         // 插入测试数据
         userMapper.insert(user);
@@ -76,7 +78,7 @@ class UserMapperTest {
         user1.setNickname("测试用户1");
         user1.setEmail("test1@example.com");
         user1.setPhone("13800138001");
-        user1.setStatus(1);
+        user1.setStatus(UserStatus.NORMAL);
         
         User user2 = new User();
         user2.setUsername("testuser_mapper_2");
@@ -84,7 +86,7 @@ class UserMapperTest {
         user2.setNickname("测试用户2");
         user2.setEmail("test2@example.com");
         user2.setPhone("13800138002");
-        user2.setStatus(1);
+        user2.setStatus(UserStatus.NORMAL);
         
         // 插入测试数据
         userMapper.insert(user1);
@@ -107,7 +109,7 @@ class UserMapperTest {
         user.setNickname("插入测试用户");
         user.setEmail("insert@example.com");
         user.setPhone("13800138003");
-        user.setStatus(1);
+        user.setStatus(UserStatus.NORMAL);
 
         // When
         int result = userMapper.insert(user);
@@ -127,7 +129,7 @@ class UserMapperTest {
         user.setNickname("更新前用户");
         user.setEmail("before@example.com");
         user.setPhone("13800138004");
-        user.setStatus(1);
+        user.setStatus(UserStatus.NORMAL);
         
         // 插入测试数据
         userMapper.insert(user);
@@ -157,7 +159,7 @@ class UserMapperTest {
         user.setNickname("删除测试用户");
         user.setEmail("delete@example.com");
         user.setPhone("13800138005");
-        user.setStatus(1);
+        user.setStatus(UserStatus.NORMAL);
         
         // 插入测试数据
         userMapper.insert(user);

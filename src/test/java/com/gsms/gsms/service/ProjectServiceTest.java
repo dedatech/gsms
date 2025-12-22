@@ -1,7 +1,7 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.Project;
-import com.gsms.gsms.mapper.ProjectMapper;
+import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.service.impl.ProjectServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,18 +1,22 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.common.Result;
-import com.gsms.gsms.entity.User;
+import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.dto.user.UserConverter;
+import com.gsms.gsms.dto.user.UserInfoResp;
+import com.gsms.gsms.dto.user.UserLoginReq;
+import com.gsms.gsms.dto.user.UserRegisterReq;
+import com.gsms.gsms.infra.common.Result;
+import com.gsms.gsms.infra.utils.JwtUtil;
 import com.gsms.gsms.service.UserService;
-import com.gsms.gsms.utils.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -32,18 +36,12 @@ public class UserController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询用户")
-    public Result<User> getUserById(
-            @Parameter(description = "用户ID")
-            @PathVariable Long id) {
+    public Result<UserInfoResp> getUserById(@PathVariable Long id) {
         logger.info("根据ID查询用户: {}", id);
         User user = userService.getUserById(id);
-        if (user != null) {
-            logger.info("成功查询到用户: {}", user.getUsername());
-            return Result.success(user);
-        } else {
-            logger.warn("未找到ID为{}的用户", id);
-            return Result.error("用户不存在");
-        }
+        UserInfoResp resp = UserConverter.toUserInfoResp(user);
+        logger.info("成功查询到用户: {}", user.getUsername());
+        return Result.success(resp);
     }
 
     /**
@@ -51,11 +49,14 @@ public class UserController {
      */
     @GetMapping
     @Operation(summary = "查询所有用户")
-    public Result<List<User>> getAllUsers() {
+    public Result<List<UserInfoResp>> getAllUsers() {
         logger.info("查询所有用户");
         List<User> users = userService.getAllUsers();
+        List<UserInfoResp> respList = users.stream()
+                .map(UserConverter::toUserInfoResp)
+                .collect(java.util.stream.Collectors.toList());
         logger.info("成功查询到{}个用户", users.size());
-        return Result.success(users);
+        return Result.success(respList);
     }
 
     /**
@@ -63,18 +64,12 @@ public class UserController {
      */
     @PostMapping
     @Operation(summary = "创建用户")
-    public Result<String> createUser(
-            @Parameter(description = "用户信息")
-            @RequestBody User user) {
+    public Result<UserInfoResp> createUser(@RequestBody @Valid User user) {
         logger.info("创建用户: {}", user.getUsername());
-        boolean success = userService.createUser(user);
-        if (success) {
-            logger.info("用户创建成功: {}", user.getUsername());
-            return Result.success("用户创建成功");
-        } else {
-            logger.error("用户创建失败: {}", user.getUsername());
-            return Result.error("用户创建失败");
-        }
+        User createdUser = userService.createUser(user);
+        UserInfoResp resp = UserConverter.toUserInfoResp(createdUser);
+        logger.info("用户创建成功: {}", createdUser.getUsername());
+        return Result.success(resp);
     }
 
     /**
@@ -82,18 +77,12 @@ public class UserController {
      */
     @PutMapping
     @Operation(summary = "更新用户")
-    public Result<String> updateUser(
-            @Parameter(description = "用户信息")
-            @RequestBody User user) {
+    public Result<UserInfoResp> updateUser(@RequestBody @Valid User user) {
         logger.info("更新用户: {}", user.getId());
-        boolean success = userService.updateUser(user);
-        if (success) {
-            logger.info("用户更新成功: {}", user.getId());
-            return Result.success("用户更新成功");
-        } else {
-            logger.error("用户更新失败: {}", user.getId());
-            return Result.error("用户更新失败");
-        }
+        User updatedUser = userService.updateUser(user);
+        UserInfoResp resp = UserConverter.toUserInfoResp(updatedUser);
+        logger.info("用户更新成功: {}", updatedUser.getId());
+        return Result.success(resp);
     }
 
     /**
@@ -101,18 +90,11 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除用户")
-    public Result<String> deleteUser(
-            @Parameter(description = "用户ID")
-            @PathVariable Long id) {
+    public Result<String> deleteUser(@PathVariable Long id) {
         logger.info("删除用户: {}", id);
-        boolean success = userService.deleteUser(id);
-        if (success) {
-            logger.info("用户删除成功: {}", id);
-            return Result.success("用户删除成功");
-        } else {
-            logger.error("用户删除失败: {}", id);
-            return Result.error("用户删除失败");
-        }
+        userService.deleteUser(id);
+        logger.info("用户删除成功: {}", id);
+        return Result.success("用户删除成功");
     }
 
     /**
@@ -120,46 +102,30 @@ public class UserController {
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录")
-    public Result<String> login(
-            @Parameter(description = "登录请求参数")
-            @RequestBody LoginRequest loginRequest) {
-        logger.info("用户登录: {}", loginRequest.getUsername());
-        User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
-        if (user != null) {
-            // 生成JWT Token
-            String token = JwtUtil.generateToken(user.getId(), user.getUsername());
-            logger.info("用户登录成功: {}", user.getUsername());
-            return Result.success("登录成功", token);
-        } else {
-            logger.warn("用户登录失败: {}", loginRequest.getUsername());
-            return Result.error("用户名或密码错误");
-        }
+    public Result<String> login(@Valid @RequestBody UserLoginReq req) {
+        logger.info("用户登录: {}", req.getUsername());
+        User user = userService.login(req.getUsername(), req.getPassword());
+        // 生成JWT Token
+        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+        logger.info("用户登录成功: {}", user.getUsername());
+        return Result.success("登录成功", token);
     }
 
     /**
-     * 登录请求体
+     * 用户注册
      */
-    @Schema(description = "用户登录请求体")
-    public static class LoginRequest {
-        @Schema(description = "用户名")
-        private String username;
-        @Schema(description = "密码")
-        private String password;
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
+    @PostMapping("/register")
+    @Operation(summary = "用户注册")
+    public Result<UserInfoResp> register(@Valid @RequestBody UserRegisterReq req) {
+        logger.info("用户注册: {}", req.getUsername());
+        
+        // 使用转换工具将 DTO 转为 Entity
+        User user = UserConverter.toUser(req);
+        user.setStatus(UserStatus.NORMAL); // 默认状态为正常
+        
+        User createdUser = userService.createUser(user);
+        UserInfoResp resp = UserConverter.toUserInfoResp(createdUser);
+        logger.info("用户注册成功: {}", createdUser.getUsername());
+        return Result.success(resp);
     }
 }

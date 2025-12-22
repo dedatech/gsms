@@ -7,16 +7,13 @@ server:
       force: true
 
 spring:
+  profiles:
+    active: dev  # 默认使用开发环境，生产环境改为 prod
   datasource:
     url: jdbc:mysql://localhost:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-  http:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
 
 # 日志配置
 logging:

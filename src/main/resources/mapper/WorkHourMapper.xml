@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.gsms.gsms.mapper.WorkHourMapper">
+<mapper namespace="com.gsms.gsms.repository.WorkHourMapper">
     <!-- 结果映射 -->
-    <resultMap id="WorkHourResultMap" type="com.gsms.gsms.entity.WorkHour">
+    <resultMap id="WorkHourResultMap" type="com.gsms.gsms.domain.entity.WorkHour">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="project_id" property="projectId"/>
@@ -11,13 +11,15 @@
         <result column="hours" property="hours"/>
         <result column="content" property="content"/>
         <result column="status" property="status"/>
+        <result column="create_user_id" property="createUserId"/>
+        <result column="update_user_id" property="updateUserId"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, user_id, project_id, task_id, work_date, hours, content, status, create_time, update_time
+        id, user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id, create_time, update_time
     </sql>
 
     <!-- 根据ID查询工时记录 -->
@@ -65,13 +67,13 @@
     </select>
 
     <!-- 插入工时记录 -->
-    <insert id="insert" parameterType="com.gsms.gsms.entity.WorkHour">
-        INSERT INTO work_hour(user_id, project_id, task_id, work_date, hours, content, status)
-        VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, #{status})
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.WorkHour">
+        INSERT INTO work_hour(user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id)
+        VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, #{status}, #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新工时记录 -->
-    <update id="update" parameterType="com.gsms.gsms.entity.WorkHour">
+    <update id="update" parameterType="com.gsms.gsms.domain.entity.WorkHour">
         UPDATE work_hour
         <set>
             <if test="userId != null">user_id = #{userId},</if>
@@ -81,6 +83,7 @@
             <if test="hours != null">hours = #{hours},</if>
             <if test="content != null and content != ''">content = #{content},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
             update_time = CURRENT_TIMESTAMP
         </set>
         WHERE id = #{id}

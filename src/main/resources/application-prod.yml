@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: your_production_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 生产环境日志级别
+logging:
+  level:
+    com.gsms.gsms: INFO
+    org.springframework: WARN
+    org.mybatis: WARN

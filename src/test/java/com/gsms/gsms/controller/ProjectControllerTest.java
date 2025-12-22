@@ -1,7 +1,7 @@
 package com.gsms.gsms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gsms.gsms.entity.Project;
+import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.service.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

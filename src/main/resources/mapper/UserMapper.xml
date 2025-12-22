@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.gsms.gsms.mapper.UserMapper">
+<mapper namespace="com.gsms.gsms.repository.UserMapper">
     <!-- 结果映射 -->
-    <resultMap id="UserResultMap" type="com.gsms.gsms.entity.User">
+    <resultMap id="UserResultMap" type="com.gsms.gsms.domain.entity.User">
         <id column="id" property="id"/>
         <result column="username" property="username"/>
         <result column="password" property="password"/>
@@ -41,13 +41,13 @@
     </select>
 
     <!-- 插入用户 -->
-    <insert id="insert" parameterType="com.gsms.gsms.entity.User">
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.User">
         INSERT INTO user(username, password, nickname, email, phone, department_id, status)
         VALUES(#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{departmentId}, #{status})
     </insert>
 
     <!-- 更新用户 -->
-    <update id="update" parameterType="com.gsms.gsms.entity.User">
+    <update id="update" parameterType="com.gsms.gsms.domain.entity.User">
         UPDATE user
         <set>
             <if test="username != null and username != ''">username = #{username},</if>

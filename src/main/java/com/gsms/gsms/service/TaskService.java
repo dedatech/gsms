@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.Task;
+import com.gsms.gsms.domain.entity.Task;
 
 import java.util.List;
 
@@ -34,21 +34,23 @@ public interface TaskService {
     /**
      * 创建任务
      * @param task 任务实体
-     * @return 是否成功
+     * @return 创建成功的任务实体
+     * @throws BusinessException 任务信息无效时抛出异常
      */
-    boolean createTask(Task task);
+    Task createTask(Task task);
 
     /**
      * 更新任务
      * @param task 任务实体
-     * @return 是否成功
+     * @return 更新后的任务实体
+     * @throws BusinessException 任务不存在时抛出异常
      */
-    boolean updateTask(Task task);
+    Task updateTask(Task task);
 
     /**
      * 删除任务
      * @param id 任务ID
-     * @return 是否成功
+     * @throws BusinessException 任务不存在时抛出异常
      */
-    boolean deleteTask(Long id);
+    void deleteTask(Long id);
 }

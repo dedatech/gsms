@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Spring Boot 启动类
  */
 @SpringBootApplication
-@MapperScan("com.gsms.gsms.mapper")
+@MapperScan("com.gsms.gsms.repository")
 public class GsmsApplication {
 
     public static void main(String[] args) {

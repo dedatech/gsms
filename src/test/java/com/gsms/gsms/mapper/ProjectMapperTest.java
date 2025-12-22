@@ -1,6 +1,6 @@
-package com.gsms.gsms.mapper;
+package com.gsms.gsms.repository;
 
-import com.gsms.gsms.entity.Project;
+import com.gsms.gsms.domain.entity.Project;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

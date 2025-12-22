@@ -1,4 +1,4 @@
-package com.gsms.gsms.utils;
+package com.gsms.gsms.infra.utils;
 
 import org.junit.jupiter.api.Test;
 

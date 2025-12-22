@@ -1,6 +1,6 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.common.Result;
+import com.gsms.gsms.infra.common.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;

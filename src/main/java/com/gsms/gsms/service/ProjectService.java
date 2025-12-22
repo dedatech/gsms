@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.Project;
+import com.gsms.gsms.domain.entity.Project;
 
 import java.util.List;
 
@@ -32,21 +32,23 @@ public interface ProjectService {
     /**
      * 创建项目
      * @param project 项目实体
-     * @return 是否成功
+     * @return 创建成功的项目实体
+     * @throws BusinessException 项目名称或编码已存在时抛出异常
      */
-    boolean createProject(Project project);
+    Project createProject(Project project);
 
     /**
      * 更新项目
      * @param project 项目实体
-     * @return 是否成功
+     * @return 更新后的项目实体
+     * @throws BusinessException 项目不存在时抛出异常
      */
-    boolean updateProject(Project project);
+    Project updateProject(Project project);
 
     /**
      * 删除项目
-     * @param id 项目ID
-     * @return 是否成功
+     * @param id 项目 ID
+     * @throws BusinessException 项目不存在时抛出异常
      */
-    boolean deleteProject(Long id);
+    void deleteProject(Long id);
 }

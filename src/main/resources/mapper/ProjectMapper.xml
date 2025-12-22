@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.gsms.gsms.mapper.ProjectMapper">
+<mapper namespace="com.gsms.gsms.repository.ProjectMapper">
     <!-- 结果映射 -->
-    <resultMap id="ProjectResultMap" type="com.gsms.gsms.entity.Project">
+    <resultMap id="ProjectResultMap" type="com.gsms.gsms.domain.entity.Project">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="code" property="code"/>
@@ -14,6 +14,7 @@
         <result column="actual_start_date" property="actualStartDate"/>
         <result column="actual_end_date" property="actualEndDate"/>
         <result column="create_user_id" property="createUserId"/>
+        <result column="update_user_id" property="updateUserId"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -21,7 +22,7 @@
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
         id, name, code, description, manager_id, status, plan_start_date, plan_end_date, 
-        actual_start_date, actual_end_date, create_user_id, create_time, update_time
+        actual_start_date, actual_end_date, create_user_id, update_user_id, create_time, update_time
     </sql>
 
     <!-- 根据ID查询项目 -->
@@ -54,13 +55,13 @@
     </select>
 
     <!-- 插入项目 -->
-    <insert id="insert" parameterType="com.gsms.gsms.entity.Project">
-        INSERT INTO project(name, code, description, manager_id, status, plan_start_date, plan_end_date, create_user_id)
-        VALUES(#{name}, #{code}, #{description}, #{managerId}, #{status}, #{planStartDate}, #{planEndDate}, #{createUserId})
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Project">
+        INSERT INTO project(name, code, description, manager_id, status, plan_start_date, plan_end_date, create_user_id, update_user_id)
+        VALUES(#{name}, #{code}, #{description}, #{managerId}, #{status}, #{planStartDate}, #{planEndDate}, #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新项目 -->
-    <update id="update" parameterType="com.gsms.gsms.entity.Project">
+    <update id="update" parameterType="com.gsms.gsms.domain.entity.Project">
         UPDATE project
         <set>
             <if test="name != null and name != ''">name = #{name},</if>
@@ -72,6 +73,7 @@
             <if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
             <if test="actualStartDate != null">actual_start_date = #{actualStartDate},</if>
             <if test="actualEndDate != null">actual_end_date = #{actualEndDate},</if>
+            <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
             update_time = CURRENT_TIMESTAMP
         </set>
         WHERE id = #{id}

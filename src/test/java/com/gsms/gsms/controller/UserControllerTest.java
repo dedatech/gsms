@@ -1,7 +1,9 @@
 package com.gsms.gsms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gsms.gsms.entity.User;
+import com.gsms.gsms.dto.user.UserLoginReq;
+import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.domain.enums.UserStatus;
 import com.gsms.gsms.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,7 +48,7 @@ public class UserControllerTest {
         testUser.setNickname("测试用户");
         testUser.setEmail("test@example.com");
         testUser.setPhone("13800138000");
-        testUser.setStatus(1);
+        testUser.setStatus(UserStatus.NORMAL);
     }
 
     @Test
@@ -90,7 +93,7 @@ public class UserControllerTest {
     @Test
     void testCreateUser_Success() throws Exception {
         // Given
-        when(userService.createUser(any(User.class))).thenReturn(true);
+        when(userService.createUser(any(User.class))).thenReturn(testUser);
 
         // When & Then
         mockMvc.perform(post("/api/users")
@@ -98,13 +101,13 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("用户创建成功"));
+                .andExpect(jsonPath("$.data.username").value("testuser"));
     }
 
     @Test
     void testUpdateUser_Success() throws Exception {
         // Given
-        when(userService.updateUser(any(User.class))).thenReturn(true);
+        when(userService.updateUser(any(User.class))).thenReturn(testUser);
 
         // When & Then
         mockMvc.perform(put("/api/users")
@@ -112,13 +115,13 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("用户更新成功"));
+                .andExpect(jsonPath("$.data.username").value("testuser"));
     }
 
     @Test
     void testDeleteUser_Success() throws Exception {
         // Given
-        when(userService.deleteUser(1L)).thenReturn(true);
+        doNothing().when(userService).deleteUser(1L);
 
         // When & Then
         mockMvc.perform(delete("/api/users/1"))
@@ -130,16 +133,16 @@ public class UserControllerTest {
     @Test
     void testLogin_Success() throws Exception {
         // Given
-        UserController.LoginRequest loginRequest = new UserController.LoginRequest();
-        loginRequest.setUsername("testuser");
-        loginRequest.setPassword("password");
+        UserLoginReq loginReq = new UserLoginReq();
+        loginReq.setUsername("testuser");
+        loginReq.setPassword("password");
 
         when(userService.login("testuser", "password")).thenReturn(testUser);
 
         // When & Then
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("登录成功"));
@@ -148,16 +151,16 @@ public class UserControllerTest {
     @Test
     void testLogin_Failure() throws Exception {
         // Given
-        UserController.LoginRequest loginRequest = new UserController.LoginRequest();
-        loginRequest.setUsername("testuser");
-        loginRequest.setPassword("wrongpassword");
+        UserLoginReq loginReq = new UserLoginReq();
+        loginReq.setUsername("testuser");
+        loginReq.setPassword("wrongpassword");
 
         when(userService.login("testuser", "wrongpassword")).thenReturn(null);
 
         // When & Then
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("用户名或密码错误"));

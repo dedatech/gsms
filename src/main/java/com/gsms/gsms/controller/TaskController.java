@@ -1,7 +1,11 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.common.Result;
-import com.gsms.gsms.entity.Task;
+import com.gsms.gsms.dto.task.TaskConverter;
+import com.gsms.gsms.dto.task.TaskCreateReq;
+import com.gsms.gsms.dto.task.TaskQueryReq;
+import com.gsms.gsms.dto.task.TaskUpdateReq;
+import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -30,18 +35,11 @@ public class TaskController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询任务")
-    public Result<Task> getTaskById(
-            @Parameter(description = "任务ID")
-            @PathVariable Long id) {
+    public Result<Task> getTaskById(@PathVariable Long id) {
         logger.info("根据ID查询任务: {}", id);
         Task task = taskService.getTaskById(id);
-        if (task != null) {
-            logger.info("成功查询到任务: {}", task.getTitle());
-            return Result.success(task);
-        } else {
-            logger.warn("未找到ID为{}的任务", id);
-            return Result.error("任务不存在");
-        }
+        logger.info("成功查询到任务: {}", task.getTitle());
+        return Result.success(task);
     }
 
     /**
@@ -49,9 +47,7 @@ public class TaskController {
      */
     @GetMapping("/project/{projectId}")
     @Operation(summary = "根据项目ID查询任务")
-    public Result<List<Task>> getTasksByProjectId(
-            @Parameter(description = "项目ID")
-            @PathVariable Long projectId) {
+    public Result<List<Task>> getTasksByProjectId(@PathVariable Long projectId) {
         logger.info("根据项目ID查询任务: {}", projectId);
         List<Task> tasks = taskService.getTasksByProjectId(projectId);
         logger.info("根据项目ID查询到{}个任务", tasks.size());
@@ -63,15 +59,11 @@ public class TaskController {
      */
     @GetMapping("/search")
     @Operation(summary = "根据条件查询任务")
-    public Result<List<Task>> getTasksByCondition(
-            @Parameter(description = "项目ID")
-            @RequestParam(required = false) Long projectId,
-            @Parameter(description = "负责人ID")
-            @RequestParam(required = false) Long assigneeId,
-            @Parameter(description = "任务状态")
-            @RequestParam(required = false) Integer status) {
-        logger.info("根据条件查询任务: projectId={}, assigneeId={}, status={}", projectId, assigneeId, status);
-        List<Task> tasks = taskService.getTasksByCondition(projectId, assigneeId, status);
+    public Result<List<Task>> getTasksByCondition(TaskQueryReq req) {
+        logger.info("根据条件查询任务: projectId={}, assigneeId={}, status={}", 
+                    req.getProjectId(), req.getAssigneeId(), req.getStatus());
+        Integer statusCode = req.getStatus() != null ? req.getStatus().getCode() : null;
+        List<Task> tasks = taskService.getTasksByCondition(req.getProjectId(), req.getAssigneeId(), statusCode);
         logger.info("根据条件查询到{}个任务", tasks.size());
         return Result.success(tasks);
     }
@@ -81,18 +73,12 @@ public class TaskController {
      */
     @PostMapping
     @Operation(summary = "创建任务")
-    public Result<String> createTask(
-            @Parameter(description = "任务信息")
-            @RequestBody Task task) {
-        logger.info("创建任务: {}", task.getTitle());
-        boolean success = taskService.createTask(task);
-        if (success) {
-            logger.info("任务创建成功: {}", task.getTitle());
-            return Result.success("任务创建成功");
-        } else {
-            logger.error("任务创建失败: {}", task.getTitle());
-            return Result.error("任务创建失败");
-        }
+    public Result<Task> createTask(@RequestBody @Valid TaskCreateReq req) {
+        logger.info("创建任务: {}", req.getTitle());
+        Task task = TaskConverter.toTask(req);
+        Task createdTask = taskService.createTask(task);
+        logger.info("任务创建成功: {}", createdTask.getTitle());
+        return Result.success(createdTask);
     }
 
     /**
@@ -100,18 +86,12 @@ public class TaskController {
      */
     @PutMapping
     @Operation(summary = "更新任务")
-    public Result<String> updateTask(
-            @Parameter(description = "任务信息")
-            @RequestBody Task task) {
-        logger.info("更新任务: {}", task.getId());
-        boolean success = taskService.updateTask(task);
-        if (success) {
-            logger.info("任务更新成功: {}", task.getId());
-            return Result.success("任务更新成功");
-        } else {
-            logger.error("任务更新失败: {}", task.getId());
-            return Result.error("任务更新失败");
-        }
+    public Result<Task> updateTask(@RequestBody @Valid TaskUpdateReq req) {
+        logger.info("更新任务: {}", req.getId());
+        Task task = TaskConverter.toTask(req);
+        Task updatedTask = taskService.updateTask(task);
+        logger.info("任务更新成功: {}", updatedTask.getId());
+        return Result.success(updatedTask);
     }
 
     /**
@@ -119,17 +99,10 @@ public class TaskController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除任务")
-    public Result<String> deleteTask(
-            @Parameter(description = "任务ID")
-            @PathVariable Long id) {
+    public Result<String> deleteTask(@PathVariable Long id) {
         logger.info("删除任务: {}", id);
-        boolean success = taskService.deleteTask(id);
-        if (success) {
-            logger.info("任务删除成功: {}", id);
-            return Result.success("任务删除成功");
-        } else {
-            logger.error("任务删除失败: {}", id);
-            return Result.error("任务删除失败");
-        }
+        taskService.deleteTask(id);
+        logger.info("任务删除成功: {}", id);
+        return Result.success("任务删除成功");
     }
 }

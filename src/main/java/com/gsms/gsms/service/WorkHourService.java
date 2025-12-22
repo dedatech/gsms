@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.entity.WorkHour;
+import com.gsms.gsms.domain.entity.WorkHour;
 
 import java.util.Date;
 import java.util.List;
@@ -43,21 +43,23 @@ public interface WorkHourService {
     /**
      * 创建工时记录
      * @param workHour 工时记录实体
-     * @return 是否成功
+     * @return 创建成功的工时记录实体
+     * @throws BusinessException 工时信息无效时抛出异常
      */
-    boolean createWorkHour(WorkHour workHour);
+    WorkHour createWorkHour(WorkHour workHour);
 
     /**
      * 更新工时记录
      * @param workHour 工时记录实体
-     * @return 是否成功
+     * @return 更新后的工时记录实体
+     * @throws BusinessException 工时记录不存在时抛出异常
      */
-    boolean updateWorkHour(WorkHour workHour);
+    WorkHour updateWorkHour(WorkHour workHour);
 
     /**
      * 删除工时记录
      * @param id 工时记录ID
-     * @return 是否成功
+     * @throws BusinessException 工时记录不存在时抛出异常
      */
-    boolean deleteWorkHour(Long id);
+    void deleteWorkHour(Long id);
 }
