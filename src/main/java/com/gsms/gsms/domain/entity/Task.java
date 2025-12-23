@@ -1,5 +1,8 @@
 package com.gsms.gsms.domain.entity;
 
+import com.gsms.gsms.domain.enums.TaskPriority;
+import com.gsms.gsms.domain.enums.TaskStatus;
+import com.gsms.gsms.domain.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -40,16 +43,16 @@ public class Task {
     private String description;
 
     /**
-     * 任务类型 1:任务 2:需求 3:缺陷
+     * 任务类型
      */
-    @Schema(description = "任务类型 1:任务 2:需求 3:缺陷")
-    private Integer type;
+    @Schema(description = "任务类型")
+    private TaskType type;
 
     /**
-     * 优先级 1:高 2:中 3:低
+     * 优先级
      */
-    @Schema(description = "优先级 1:高 2:中 3:低")
-    private Integer priority;
+    @Schema(description = "优先级")
+    private TaskPriority priority;
 
     /**
      * 负责人ID
@@ -58,10 +61,10 @@ public class Task {
     private Long assigneeId;
 
     /**
-     * 任务状态 1:待处理 2:进行中 3:已完成
+     * 任务状态
      */
-    @Schema(description = "任务状态 1:待处理 2:进行中 3:已完成")
-    private Integer status;
+    @Schema(description = "任务状态")
+    private TaskStatus status;
 
     /**
      * 计划开始日期
@@ -158,19 +161,19 @@ public class Task {
         this.description = description;
     }
 
-    public Integer getType() {
+    public TaskType getType() {
         return type;
     }
 
-    public void setType(Integer type) {
+    public void setType(TaskType type) {
         this.type = type;
     }
 
-    public Integer getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(Integer priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 
@@ -182,11 +185,11 @@ public class Task {
         this.assigneeId = assigneeId;
     }
 
-    public Integer getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

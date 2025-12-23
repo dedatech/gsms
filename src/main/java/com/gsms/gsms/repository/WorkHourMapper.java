@@ -1,5 +1,6 @@
 package com.gsms.gsms.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.domain.entity.WorkHour;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -11,7 +12,7 @@ import java.util.List;
  * 工时记录Mapper接口
  */
 @Mapper
-public interface WorkHourMapper {
+public interface WorkHourMapper extends BaseMapper<WorkHour> {
     /**
      * 根据ID查询工时记录
      * @param id 工时记录ID

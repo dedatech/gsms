@@ -1,5 +1,6 @@
 package com.gsms.gsms.domain.entity;
 
+import com.gsms.gsms.domain.enums.WorkHourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -52,10 +53,10 @@ public class WorkHour {
     private String content;
 
     /**
-     * 状态 1:已保存 2:已提交 3:已确认
+     * 状态
      */
-    @Schema(description = "状态 1:已保存 2:已提交 3:已确认")
-    private Integer status;
+    @Schema(description = "状态")
+    private WorkHourStatus status;
 
     /**
      * 更新人id
@@ -132,11 +133,11 @@ public class WorkHour {
         this.content = content;
     }
 
-    public Integer getStatus() {
+    public WorkHourStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(WorkHourStatus status) {
         this.status = status;
     }
 

@@ -1,5 +1,6 @@
 package com.gsms.gsms.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.domain.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,7 +11,7 @@ import java.util.List;
  * 用户Mapper接口
  */
 @Mapper
-public interface UserMapper {
+public interface UserMapper extends BaseMapper<User> {
     /**
      * 根据ID查询用户
      * @param id 用户ID

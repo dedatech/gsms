@@ -1,6 +1,9 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.domain.enums.TaskPriority;
+import com.gsms.gsms.domain.enums.TaskStatus;
+import com.gsms.gsms.domain.enums.TaskType;
 import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.service.impl.TaskServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,10 +41,10 @@ class TaskServiceTest {
         testTask.setProjectId(1L);
         testTask.setTitle("测试任务");
         testTask.setDescription("这是一个测试任务");
-        testTask.setType(1);
-        testTask.setPriority(2);
+        testTask.setType(TaskType.TASK);
+        testTask.setPriority(TaskPriority.MEDIUM);
         testTask.setAssigneeId(1L);
-        testTask.setStatus(1);
+        testTask.setStatus(TaskStatus.IN_PROGRESS);
         testTask.setEstimateHours(new BigDecimal("8.00"));
         testTask.setCreateUserId(1L);
     }
@@ -98,36 +101,38 @@ class TaskServiceTest {
         when(taskMapper.insert(any(Task.class))).thenReturn(1);
 
         // When
-        boolean result = taskService.createTask(testTask);
+        Task result = taskService.createTask(testTask);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(taskMapper, times(1)).insert(testTask);
     }
 
     @Test
     void testUpdateTask() {
         // Given
+        when(taskMapper.selectById(1L)).thenReturn(testTask);
         when(taskMapper.update(any(Task.class))).thenReturn(1);
+        when(taskMapper.selectById(1L)).thenReturn(testTask);
 
         // When
-        boolean result = taskService.updateTask(testTask);
+        Task result = taskService.updateTask(testTask);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(taskMapper, times(1)).update(testTask);
     }
 
     @Test
     void testDeleteTask() {
         // Given
+        when(taskMapper.selectById(1L)).thenReturn(testTask);
         when(taskMapper.deleteById(1L)).thenReturn(1);
 
         // When
-        boolean result = taskService.deleteTask(1L);
+        taskService.deleteTask(1L);
 
         // Then
-        assertTrue(result);
         verify(taskMapper, times(1)).deleteById(1L);
     }
 }

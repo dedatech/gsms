@@ -1,9 +1,13 @@
 package com.gsms.gsms.repository;
 
 import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.config.TestMyBatisConfig;
+import com.gsms.gsms.domain.enums.ProjectStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -15,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * 注意：此测试需要真实的数据库连接，会在事务中执行并回滚
  */
 @SpringBootTest
+@Import(TestMyBatisConfig.class)
+@ActiveProfiles("test")
 @Transactional
 class ProjectMapperTest {
 
@@ -29,7 +35,7 @@ class ProjectMapperTest {
         project.setCode("TEST-MAPPER-001");
         project.setDescription("这是一个Mapper测试项目");
         project.setManagerId(1L);
-        project.setStatus(1);
+        project.setStatus(ProjectStatus.SUSPENDED);
         project.setCreateUserId(1L);
         
         // 插入测试数据
@@ -53,7 +59,7 @@ class ProjectMapperTest {
         project1.setCode("TEST-MAPPER-001");
         project1.setDescription("第一个Mapper测试项目");
         project1.setManagerId(1L);
-        project1.setStatus(1);
+        project1.setStatus(ProjectStatus.IN_PROGRESS);
         project1.setCreateUserId(1L);
         
         Project project2 = new Project();
@@ -61,7 +67,7 @@ class ProjectMapperTest {
         project2.setCode("TEST-MAPPER-002");
         project2.setDescription("第二个Mapper测试项目");
         project2.setManagerId(1L);
-        project2.setStatus(1);
+        project2.setStatus(ProjectStatus.IN_PROGRESS);
         project2.setCreateUserId(1L);
         
         // 插入测试数据
@@ -84,7 +90,7 @@ class ProjectMapperTest {
         project.setCode("TEST-CONDITION-001");
         project.setDescription("条件查询测试");
         project.setManagerId(1L);
-        project.setStatus(1);
+        project.setStatus(ProjectStatus.IN_PROGRESS);
         project.setCreateUserId(1L);
         
         // 插入测试数据
@@ -107,7 +113,7 @@ class ProjectMapperTest {
         project.setCode("INSERT-TEST-001");
         project.setDescription("插入测试");
         project.setManagerId(1L);
-        project.setStatus(1);
+        project.setStatus(ProjectStatus.SUSPENDED);
         project.setCreateUserId(1L);
 
         // When
@@ -127,7 +133,7 @@ class ProjectMapperTest {
         project.setCode("UPDATE-BEFORE-001");
         project.setDescription("更新前描述");
         project.setManagerId(1L);
-        project.setStatus(1);
+        project.setStatus(ProjectStatus.IN_PROGRESS);
         project.setCreateUserId(1L);
         
         // 插入测试数据
@@ -157,7 +163,7 @@ class ProjectMapperTest {
         project.setCode("DELETE-TEST-001");
         project.setDescription("删除测试");
         project.setManagerId(1L);
-        project.setStatus(1);
+        project.setStatus(ProjectStatus.SUSPENDED);
         project.setCreateUserId(1L);
         
         // 插入测试数据

@@ -1,6 +1,7 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.domain.enums.WorkHourStatus;
 import com.gsms.gsms.repository.WorkHourMapper;
 import com.gsms.gsms.service.impl.WorkHourServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ class WorkHourServiceTest {
         testWorkHour.setWorkDate(new Date());
         testWorkHour.setHours(new BigDecimal("8.00"));
         testWorkHour.setContent("开发任务");
-        testWorkHour.setStatus(1);
+        testWorkHour.setStatus(WorkHourStatus.CONFIRMED);
     }
 
     @Test
@@ -114,36 +115,38 @@ class WorkHourServiceTest {
         when(workHourMapper.insert(any(WorkHour.class))).thenReturn(1);
 
         // When
-        boolean result = workHourService.createWorkHour(testWorkHour);
+        WorkHour result = workHourService.createWorkHour(testWorkHour);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(workHourMapper, times(1)).insert(testWorkHour);
     }
 
     @Test
     void testUpdateWorkHour() {
         // Given
+        when(workHourMapper.selectById(1L)).thenReturn(testWorkHour);
         when(workHourMapper.update(any(WorkHour.class))).thenReturn(1);
+        when(workHourMapper.selectById(1L)).thenReturn(testWorkHour);
 
         // When
-        boolean result = workHourService.updateWorkHour(testWorkHour);
+        WorkHour result = workHourService.updateWorkHour(testWorkHour);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(workHourMapper, times(1)).update(testWorkHour);
     }
 
     @Test
     void testDeleteWorkHour() {
         // Given
+        when(workHourMapper.selectById(1L)).thenReturn(testWorkHour);
         when(workHourMapper.deleteById(1L)).thenReturn(1);
 
         // When
-        boolean result = workHourService.deleteWorkHour(1L);
+        workHourService.deleteWorkHour(1L);
 
         // Then
-        assertTrue(result);
         verify(workHourMapper, times(1)).deleteById(1L);
     }
 }

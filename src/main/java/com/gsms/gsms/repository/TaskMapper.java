@@ -1,5 +1,6 @@
 package com.gsms.gsms.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.domain.entity.Task;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,7 +11,7 @@ import java.util.List;
  * 任务Mapper接口
  */
 @Mapper
-public interface TaskMapper {
+public interface TaskMapper extends BaseMapper<Task> {
     /**
      * 根据ID查询任务
      * @param id 任务ID

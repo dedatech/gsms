@@ -21,7 +21,7 @@ public class ProjectConverter {
         project.setCode(req.getCode());
         project.setDescription(req.getDescription());
         project.setManagerId(req.getManagerId());
-        project.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+        project.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换
         project.setPlanStartDate(req.getPlanStartDate());
         project.setPlanEndDate(req.getPlanEndDate());
         return project;
@@ -40,7 +40,7 @@ public class ProjectConverter {
         project.setCode(req.getCode());
         project.setDescription(req.getDescription());
         project.setManagerId(req.getManagerId());
-        project.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+        project.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换
         project.setPlanStartDate(req.getPlanStartDate());
         project.setPlanEndDate(req.getPlanEndDate());
         project.setActualStartDate(req.getActualStartDate());

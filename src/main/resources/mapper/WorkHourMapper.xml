@@ -10,7 +10,8 @@
         <result column="work_date" property="workDate"/>
         <result column="hours" property="hours"/>
         <result column="content" property="content"/>
-        <result column="status" property="status"/>
+        <result column="status" property="status" 
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="create_user_id" property="createUserId"/>
         <result column="update_user_id" property="updateUserId"/>
         <result column="create_time" property="createTime"/>
@@ -67,9 +68,12 @@
     </select>
 
     <!-- 插入工时记录 -->
-    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.WorkHour">
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.WorkHour" 
+            useGeneratedKeys="true" keyProperty="id">
         INSERT INTO work_hour(user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id)
-        VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, #{status}, #{createUserId}, #{updateUserId})
+        VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, 
+               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新工时记录 -->
@@ -82,7 +86,7 @@
             <if test="workDate != null">work_date = #{workDate},</if>
             <if test="hours != null">hours = #{hours},</if>
             <if test="content != null and content != ''">content = #{content},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="status != null">status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
             <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
             update_time = CURRENT_TIMESTAMP
         </set>

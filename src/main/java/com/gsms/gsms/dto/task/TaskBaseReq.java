@@ -158,10 +158,10 @@ public abstract class TaskBaseReq {
             task.setIterationId(req.getIterationId());
             task.setTitle(req.getTitle());
             task.setDescription(req.getDescription());
-            task.setType(req.getType() != null ? req.getType().getCode() : null);
-            task.setPriority(req.getPriority() != null ? req.getPriority().getCode() : null);
+            task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换
+            task.setPriority(req.getPriority());
             task.setAssigneeId(req.getAssigneeId());
-            task.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+            task.setStatus(req.getStatus());
             task.setPlanStartDate(req.getPlanStartDate());
             task.setPlanEndDate(req.getPlanEndDate());
             task.setEstimateHours(req.getEstimateHours());
@@ -181,10 +181,10 @@ public abstract class TaskBaseReq {
             task.setIterationId(req.getIterationId());
             task.setTitle(req.getTitle());
             task.setDescription(req.getDescription());
-            task.setType(req.getType() != null ? req.getType().getCode() : null);
-            task.setPriority(req.getPriority() != null ? req.getPriority().getCode() : null);
+            task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换
+            task.setPriority(req.getPriority());
             task.setAssigneeId(req.getAssigneeId());
-            task.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+            task.setStatus(req.getStatus());
             task.setPlanStartDate(req.getPlanStartDate());
             task.setPlanEndDate(req.getPlanEndDate());
             task.setActualStartDate(req.getActualStartDate());

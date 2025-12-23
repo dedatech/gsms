@@ -1,6 +1,7 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.domain.enums.ProjectStatus;
 import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.service.impl.ProjectServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,7 @@ class ProjectServiceTest {
         testProject.setCode("TEST-001");
         testProject.setDescription("这是一个测试项目");
         testProject.setManagerId(1L);
-        testProject.setStatus(1);
+        testProject.setStatus(ProjectStatus.IN_PROGRESS);
         testProject.setCreateUserId(1L);
     }
 
@@ -94,36 +95,38 @@ class ProjectServiceTest {
         when(projectMapper.insert(any(Project.class))).thenReturn(1);
 
         // When
-        boolean result = projectService.createProject(testProject);
+        Project result = projectService.createProject(testProject);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(projectMapper, times(1)).insert(testProject);
     }
 
     @Test
     void testUpdateProject() {
         // Given
+        when(projectMapper.selectById(1L)).thenReturn(testProject);
         when(projectMapper.update(any(Project.class))).thenReturn(1);
+        when(projectMapper.selectById(1L)).thenReturn(testProject);
 
         // When
-        boolean result = projectService.updateProject(testProject);
+        Project result = projectService.updateProject(testProject);
 
         // Then
-        assertTrue(result);
+        assertNotNull(result);
         verify(projectMapper, times(1)).update(testProject);
     }
 
     @Test
     void testDeleteProject() {
         // Given
+        when(projectMapper.selectById(1L)).thenReturn(testProject);
         when(projectMapper.deleteById(1L)).thenReturn(1);
 
         // When
-        boolean result = projectService.deleteProject(1L);
+        projectService.deleteProject(1L);
 
         // Then
-        assertTrue(result);
         verify(projectMapper, times(1)).deleteById(1L);
     }
 }

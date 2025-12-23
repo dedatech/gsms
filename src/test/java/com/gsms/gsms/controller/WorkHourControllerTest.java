@@ -2,9 +2,15 @@ package com.gsms.gsms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.domain.enums.WorkHourStatus;
+import com.gsms.gsms.dto.workhour.WorkHourCreateReq;
+import com.gsms.gsms.dto.workhour.WorkHourUpdateReq;
+import com.gsms.gsms.infra.config.JwtInterceptor;
+import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.service.WorkHourService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -18,7 +24,8 @@ import java.util.Date;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,14 +41,18 @@ public class WorkHourControllerTest {
     @MockBean
     private WorkHourService workHourService;
 
+    @MockBean
+    private JwtInterceptor jwtInterceptor;
+
     @Autowired
     private ObjectMapper objectMapper;
 
     private WorkHour testWorkHour;
     private SimpleDateFormat dateFormat;
+    private String testToken;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         testWorkHour = new WorkHour();
         testWorkHour.setId(1L);
         testWorkHour.setUserId(1L);
@@ -50,9 +61,15 @@ public class WorkHourControllerTest {
         testWorkHour.setWorkDate(new Date());
         testWorkHour.setHours(new BigDecimal("8.00"));
         testWorkHour.setContent("开发任务");
-        testWorkHour.setStatus(1);
+        testWorkHour.setStatus(WorkHourStatus.SAVED);
         
         dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        
+        // 生成测试用的JWT Token
+        testToken = "test.jwt.token";
+        
+        // Mock JWT拦截器，让所有请求通过
+        when(jwtInterceptor.preHandle(any(), any(), any())).thenReturn(true);
     }
 
     @Test
@@ -61,7 +78,8 @@ public class WorkHourControllerTest {
         when(workHourService.getWorkHourById(1L)).thenReturn(testWorkHour);
 
         // When & Then
-        mockMvc.perform(get("/api/work-hours/1"))
+        mockMvc.perform(get("/api/work-hours/1")
+                .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.id").value(1));
@@ -70,13 +88,13 @@ public class WorkHourControllerTest {
     @Test
     void testGetWorkHourById_NotFound() throws Exception {
         // Given
-        when(workHourService.getWorkHourById(1L)).thenReturn(null);
+        when(workHourService.getWorkHourById(1L)).thenThrow(new RuntimeException("工时记录不存在"));
 
         // When & Then
-        mockMvc.perform(get("/api/work-hours/1"))
+        mockMvc.perform(get("/api/work-hours/1")
+                .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("工时记录不存在"));
+                .andExpect(jsonPath("$.code").value(500));
     }
 
     @Test
@@ -86,7 +104,8 @@ public class WorkHourControllerTest {
         when(workHourService.getWorkHoursByUserId(1L)).thenReturn(workHours);
 
         // When & Then
-        mockMvc.perform(get("/api/work-hours/user/1"))
+        mockMvc.perform(get("/api/work-hours/user/1")
+                .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.length()").value(1));
@@ -99,7 +118,8 @@ public class WorkHourControllerTest {
         when(workHourService.getWorkHoursByProjectId(1L)).thenReturn(workHours);
 
         // When & Then
-        mockMvc.perform(get("/api/work-hours/project/1"))
+        mockMvc.perform(get("/api/work-hours/project/1")
+                .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.length()").value(1));
@@ -113,6 +133,7 @@ public class WorkHourControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/work-hours/search")
+                .header("Authorization", "Bearer " + testToken)
                 .param("userId", "1")
                 .param("projectId", "1"))
                 .andExpect(status().isOk())
@@ -123,40 +144,67 @@ public class WorkHourControllerTest {
     @Test
     void testCreateWorkHour_Success() throws Exception {
         // Given
-        when(workHourService.createWorkHour(any(WorkHour.class))).thenReturn(true);
+        WorkHourCreateReq req = new WorkHourCreateReq();
+        req.setProjectId(1L);
+        req.setTaskId(1L);
+        req.setWorkDate(new Date());
+        req.setHours(new BigDecimal("8.00"));
+        req.setContent("开发任务");
+        
+        when(workHourService.createWorkHour(any(WorkHour.class))).thenReturn(testWorkHour);
 
         // When & Then
-        mockMvc.perform(post("/api/work-hours")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testWorkHour)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("工时记录创建成功"));
+        try (MockedStatic<UserContext> mockedContext = mockStatic(UserContext.class)) {
+            mockedContext.when(UserContext::getCurrentUserId).thenReturn(1L);
+            
+            mockMvc.perform(post("/api/work-hours")
+                    .header("Authorization", "Bearer " + testToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.id").value(1));
+        }
     }
 
     @Test
     void testUpdateWorkHour_Success() throws Exception {
         // Given
-        when(workHourService.updateWorkHour(any(WorkHour.class))).thenReturn(true);
+        WorkHourUpdateReq req = new WorkHourUpdateReq();
+        req.setId(1L);
+        req.setProjectId(1L);
+        req.setTaskId(1L);
+        req.setWorkDate(new Date());
+        req.setHours(new BigDecimal("8.00"));
+        req.setContent("开发任务");
+        req.setStatus(WorkHourStatus.SAVED);
+        
+        when(workHourService.updateWorkHour(any(WorkHour.class))).thenReturn(testWorkHour);
 
         // When & Then
-        mockMvc.perform(put("/api/work-hours")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testWorkHour)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("工时记录更新成功"));
+        try (MockedStatic<UserContext> mockedContext = mockStatic(UserContext.class)) {
+            mockedContext.when(UserContext::getCurrentUserId).thenReturn(1L);
+            
+            mockMvc.perform(put("/api/work-hours")
+                    .header("Authorization", "Bearer " + testToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.id").value(1));
+        }
     }
 
     @Test
     void testDeleteWorkHour_Success() throws Exception {
         // Given
-        when(workHourService.deleteWorkHour(1L)).thenReturn(true);
+        doNothing().when(workHourService).deleteWorkHour(1L);
 
         // When & Then
-        mockMvc.perform(delete("/api/work-hours/1"))
+        mockMvc.perform(delete("/api/work-hours/1")
+                .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("工时记录删除成功"));
+                .andExpect(jsonPath("$.data").value("工时记录删除成功"));
     }
 }

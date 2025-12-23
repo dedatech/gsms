@@ -8,7 +8,8 @@
         <result column="code" property="code"/>
         <result column="description" property="description"/>
         <result column="manager_id" property="managerId"/>
-        <result column="status" property="status"/>
+        <result column="status" property="status" 
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="plan_start_date" property="planStartDate"/>
         <result column="plan_end_date" property="planEndDate"/>
         <result column="actual_start_date" property="actualStartDate"/>
@@ -55,9 +56,12 @@
     </select>
 
     <!-- 插入项目 -->
-    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Project">
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Project" 
+            useGeneratedKeys="true" keyProperty="id">
         INSERT INTO project(name, code, description, manager_id, status, plan_start_date, plan_end_date, create_user_id, update_user_id)
-        VALUES(#{name}, #{code}, #{description}, #{managerId}, #{status}, #{planStartDate}, #{planEndDate}, #{createUserId}, #{updateUserId})
+        VALUES(#{name}, #{code}, #{description}, #{managerId}, 
+               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{planStartDate}, #{planEndDate}, #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新项目 -->
@@ -68,7 +72,7 @@
             <if test="code != null and code != ''">code = #{code},</if>
             <if test="description != null and description != ''">description = #{description},</if>
             <if test="managerId != null">manager_id = #{managerId},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="status != null">status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
             <if test="planStartDate != null">plan_start_date = #{planStartDate},</if>
             <if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
             <if test="actualStartDate != null">actual_start_date = #{actualStartDate},</if>

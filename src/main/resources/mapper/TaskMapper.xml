@@ -8,10 +8,13 @@
         <result column="iteration_id" property="iterationId"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
-        <result column="type" property="type"/>
-        <result column="priority" property="priority"/>
+        <result column="type" property="type" 
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
+        <result column="priority" property="priority" 
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="assignee_id" property="assigneeId"/>
-        <result column="status" property="status"/>
+        <result column="status" property="status" 
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="plan_start_date" property="planStartDate"/>
         <result column="plan_end_date" property="planEndDate"/>
         <result column="actual_start_date" property="actualStartDate"/>
@@ -64,11 +67,16 @@
     </select>
 
     <!-- 插入任务 -->
-    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Task">
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Task" 
+            useGeneratedKeys="true" keyProperty="id">
         INSERT INTO task(project_id, iteration_id, title, description, type, priority, assignee_id, 
                         status, plan_start_date, plan_end_date, estimate_hours, create_user_id, update_user_id)
-        VALUES(#{projectId}, #{iterationId}, #{title}, #{description}, #{type}, #{priority}, #{assigneeId},
-               #{status}, #{planStartDate}, #{planEndDate}, #{estimateHours}, #{createUserId}, #{updateUserId})
+        VALUES(#{projectId}, #{iterationId}, #{title}, #{description}, 
+               #{type, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{priority, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{assigneeId},
+               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{planStartDate}, #{planEndDate}, #{estimateHours}, #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新任务 -->
@@ -79,10 +87,10 @@
             <if test="iterationId != null">iteration_id = #{iterationId},</if>
             <if test="title != null and title != ''">title = #{title},</if>
             <if test="description != null and description != ''">description = #{description},</if>
-            <if test="type != null">type = #{type},</if>
-            <if test="priority != null">priority = #{priority},</if>
+            <if test="type != null">type = #{type, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
+            <if test="priority != null">priority = #{priority, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
             <if test="assigneeId != null">assignee_id = #{assigneeId},</if>
-            <if test="status != null">status = #{status},</if>
+            <if test="status != null">status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
             <if test="planStartDate != null">plan_start_date = #{planStartDate},</if>
             <if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
             <if test="actualStartDate != null">actual_start_date = #{actualStartDate},</if>

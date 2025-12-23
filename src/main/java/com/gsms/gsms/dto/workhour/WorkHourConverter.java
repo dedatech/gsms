@@ -22,7 +22,7 @@ public class WorkHourConverter {
         workHour.setWorkDate(req.getWorkDate());
         workHour.setHours(req.getHours());
         workHour.setContent(req.getContent());
-        workHour.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+        workHour.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换
         return workHour;
     }
     
@@ -40,7 +40,7 @@ public class WorkHourConverter {
         workHour.setWorkDate(req.getWorkDate());
         workHour.setHours(req.getHours());
         workHour.setContent(req.getContent());
-        workHour.setStatus(req.getStatus() != null ? req.getStatus().getCode() : null);
+        workHour.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换
         return workHour;
     }
 }

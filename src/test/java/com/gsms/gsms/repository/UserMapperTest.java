@@ -1,11 +1,13 @@
-package com.gsms.gsms.mapper;
+package com.gsms.gsms.repository;
 
+import com.gsms.gsms.config.TestMyBatisConfig;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.UserStatus;
-import com.gsms.gsms.repository.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * 注意：此测试需要真实的数据库连接，会在事务中执行并回滚
  */
 @SpringBootTest
+@Import(TestMyBatisConfig.class)
+@ActiveProfiles("test")
 @Transactional
 class UserMapperTest {
 
@@ -86,7 +90,7 @@ class UserMapperTest {
         user2.setNickname("测试用户2");
         user2.setEmail("test2@example.com");
         user2.setPhone("13800138002");
-        user2.setStatus(UserStatus.NORMAL);
+        user2.setStatus(UserStatus.DISABLED);
         
         // 插入测试数据
         userMapper.insert(user1);

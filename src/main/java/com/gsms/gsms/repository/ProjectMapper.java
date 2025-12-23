@@ -1,5 +1,6 @@
 package com.gsms.gsms.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.domain.entity.Project;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,7 +11,7 @@ import java.util.List;
  * 项目Mapper接口
  */
 @Mapper
-public interface ProjectMapper {
+public interface ProjectMapper extends BaseMapper<Project> {
     /**
      * 根据ID查询项目
      * @param id 项目ID

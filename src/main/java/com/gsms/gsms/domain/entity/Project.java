@@ -1,5 +1,6 @@
 package com.gsms.gsms.domain.entity;
 
+import com.gsms.gsms.domain.enums.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 
@@ -39,10 +40,10 @@ public class Project {
     private Long managerId;
 
     /**
-     * 项目状态 1:未开始 2:进行中 3:已挂起 4:已归档
+     * 项目状态
      */
-    @Schema(description = "项目状态 1:未开始 2:进行中 3:已挂起 4:已归档")
-    private Integer status;
+    @Schema(description = "项目状态")
+    private ProjectStatus status;
 
     /**
      * 计划开始日期
@@ -133,11 +134,11 @@ public class Project {
         this.managerId = managerId;
     }
 
-    public Integer getStatus() {
+    public ProjectStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(ProjectStatus status) {
         this.status = status;
     }
 

@@ -1,5 +1,6 @@
 package com.gsms.gsms.domain.enums;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
@@ -10,6 +11,7 @@ public enum WorkHourStatus {
     SUBMITTED(2, "已提交"),
     CONFIRMED(3, "已确认");
 
+    @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final Integer code;
     private final String desc;
 
@@ -18,7 +20,7 @@ public enum WorkHourStatus {
         this.desc = desc;
     }
 
-    @JsonValue
+    @JsonValue  // Jackson 序列化为JSON时输出的值
     public Integer getCode() {
         return code;
     }
