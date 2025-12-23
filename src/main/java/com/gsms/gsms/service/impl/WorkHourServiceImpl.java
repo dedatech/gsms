@@ -43,8 +43,8 @@ public class WorkHourServiceImpl implements WorkHourService {
     }
 
     @Override
-    public List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Date startDate, Date endDate) {
-        return workHourMapper.selectByCondition(userId, projectId, startDate, endDate);
+    public List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, Date startDate, Date endDate) {
+        return workHourMapper.selectByCondition(userId, projectId, taskId, startDate, endDate);
     }
 
     @Override

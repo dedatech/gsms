@@ -34,11 +34,12 @@ public interface WorkHourService {
      * 根据条件查询工时记录
      * @param userId 用户ID
      * @param projectId 项目ID
+     * @param taskId 任务ID
      * @param startDate 开始日期
      * @param endDate 结束日期
      * @return 工时记录列表
      */
-    List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Date startDate, Date endDate);
+    List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, Date startDate, Date endDate);
 
     /**
      * 创建工时记录

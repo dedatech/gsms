@@ -72,10 +72,10 @@ public class WorkHourController {
     @GetMapping("/search")
     @Operation(summary = "根据条件查询工时记录")
     public Result<List<WorkHour>> getWorkHoursByCondition(WorkHourQueryReq req) {
-        logger.info("根据条件查询工时记录: userId={}, projectId={}, startDate={}, endDate={}", 
-                    req.getUserId(), req.getProjectId(), req.getStartDate(), req.getEndDate());
+        logger.info("根据条件查询工时记录: userId={}, projectId={}, taskId={}, startDate={}, endDate={}", 
+                    req.getUserId(), req.getProjectId(), req.getTaskId(), req.getStartDate(), req.getEndDate());
         List<WorkHour> workHours = workHourService.getWorkHoursByCondition(
-                req.getUserId(), req.getProjectId(), req.getStartDate(), req.getEndDate());
+                req.getUserId(), req.getProjectId(), req.getTaskId(), req.getStartDate(), req.getEndDate());
         logger.info("根据条件查询到{}条工时记录", workHours.size());
         return Result.success(workHours);
     }

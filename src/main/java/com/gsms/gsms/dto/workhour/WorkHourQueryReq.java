@@ -17,6 +17,9 @@ public class WorkHourQueryReq {
     @Schema(description = "项目ID", example = "1")
     private Long projectId;
     
+    @Schema(description = "任务ID", example = "1")
+    private Long taskId;
+    
     @Schema(description = "开始日期", example = "2025-01-01")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startDate;
@@ -40,6 +43,14 @@ public class WorkHourQueryReq {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     public Date getStartDate() {
