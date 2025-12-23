@@ -9,16 +9,16 @@ public enum IterationErrorCode implements ErrorCode {
     ITERATION_DELETE_FAILED(5004, "迭代删除失败"),
     ITERATION_HAS_TASKS(5005, "迭代下存在任务，无法删除");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 
-    IterationErrorCode(Integer code, String message) {
+    IterationErrorCode(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
     @Override
-    public Integer getCode() {
+    public int getCode() {
         return code;
     }
 

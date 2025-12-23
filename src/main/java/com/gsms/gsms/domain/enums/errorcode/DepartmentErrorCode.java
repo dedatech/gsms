@@ -10,16 +10,16 @@ public enum DepartmentErrorCode implements ErrorCode {
     DEPARTMENT_HAS_CHILDREN(4005, "部门下存在子部门，无法删除"),
     DEPARTMENT_HAS_USERS(4006, "部门下存在用户，无法删除");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 
-    DepartmentErrorCode(Integer code, String message) {
+    DepartmentErrorCode(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
     @Override
-    public Integer getCode() {
+    public int getCode() {
         return code;
     }
 
