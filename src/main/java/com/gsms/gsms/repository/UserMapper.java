@@ -52,4 +52,11 @@ public interface UserMapper extends BaseMapper<User> {
      * @return 影响行数
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 根据部门ID查询用户列表
+     * @param departmentId 部门ID
+     * @return 用户列表
+     */
+    List<User> selectByDepartmentId(@Param("departmentId") Long departmentId);
 }

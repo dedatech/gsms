@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gsms.gsms.repository.DepartmentMapper">
+
+    <resultMap id="DepartmentResultMap" type="com.gsms.gsms.domain.entity.Department">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="level" property="level"/>
+        <result column="sort" property="sort"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="selectAllFields">
+        id, name, parent_id, level, sort, remark, create_time, update_time
+    </sql>
+
+    <select id="selectById" parameterType="long" resultMap="DepartmentResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM department
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="DepartmentResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM department
+        ORDER BY level, sort
+    </select>
+
+    <select id="selectByParentId" parameterType="long" resultMap="DepartmentResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM department
+        WHERE parent_id = #{parentId}
+        ORDER BY sort
+    </select>
+
+    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Department" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO department(name, parent_id, level, sort, remark)
+        VALUES(#{name}, #{parentId}, #{level}, #{sort}, #{remark})
+    </insert>
+
+    <update id="update" parameterType="com.gsms.gsms.domain.entity.Department">
+        UPDATE department
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM department WHERE id = #{id}
+    </delete>
+
+</mapper>

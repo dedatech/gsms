@@ -35,15 +35,24 @@ public interface WorkHourMapper extends BaseMapper<WorkHour> {
     List<WorkHour> selectByProjectId(@Param("projectId") Long projectId);
 
     /**
+     * 根据任务ID查询工时记录
+     * @param taskId 任务ID
+     * @return 工时记录列表
+     */
+    List<WorkHour> selectByTaskId(@Param("taskId") Long taskId);
+
+    /**
      * 根据条件查询工时记录
      * @param userId 用户ID
      * @param projectId 项目ID
+     * @param taskId 任务ID
      * @param startDate 开始日期
      * @param endDate 结束日期
      * @return 工时记录列表
      */
     List<WorkHour> selectByCondition(@Param("userId") Long userId, @Param("projectId") Long projectId, 
-                                   @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+                                   @Param("taskId") Long taskId, @Param("startDate") Date startDate, 
+                                   @Param("endDate") Date endDate);
 
     /**
      * 插入工时记录

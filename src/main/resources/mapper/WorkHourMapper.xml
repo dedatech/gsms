@@ -46,6 +46,14 @@
         ORDER BY work_date DESC, create_time DESC
     </select>
 
+    <!-- 根据任务ID查询工时记录 -->
+    <select id="selectByTaskId" parameterType="long" resultMap="WorkHourResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM work_hour
+        WHERE task_id = #{taskId}
+        ORDER BY work_date DESC, create_time DESC
+    </select>
+
     <!-- 根据条件查询工时记录 -->
     <select id="selectByCondition" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
@@ -56,6 +64,9 @@
             </if>
             <if test="projectId != null">
                 AND project_id = #{projectId}
+            </if>
+            <if test="taskId != null">
+                AND task_id = #{taskId}
             </if>
             <if test="startDate != null">
                 AND work_date >= #{startDate}
