@@ -16,27 +16,28 @@
         <result column="actual_end_date" property="actualEndDate"/>
         <result column="create_user_id" property="createUserId"/>
         <result column="update_user_id" property="updateUserId"/>
-        <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
         id, name, code, description, manager_id, status, plan_start_date, plan_end_date, 
-        actual_start_date, actual_end_date, create_user_id, update_user_id, create_time, update_time
+        actual_start_date, actual_end_date, create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
 
     <!-- 根据ID查询项目 -->
     <select id="selectById" parameterType="long" resultMap="ProjectResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM project
-        WHERE id = #{id}
+        WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <!-- 查询所有项目 -->
     <select id="selectAll" resultMap="ProjectResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM project
+        WHERE is_deleted = 0
         ORDER BY create_time DESC
     </select>
 
@@ -45,6 +46,7 @@
         SELECT <include refid="selectAllFields"/>
         FROM project
         <where>
+            AND is_deleted = 0
             <if test="name != null and name != ''">
                 AND name LIKE CONCAT('%', #{name}, '%')
             </if>
@@ -83,8 +85,8 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据ID删除项目 -->
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM project WHERE id = #{id}
-    </delete>
+    <!-- 根据ID逻辑删除项目 -->
+    <update id="deleteById" parameterType="long">
+        UPDATE project SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+    </update>
 </mapper>

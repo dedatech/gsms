@@ -101,25 +101,31 @@ public class Task {
      */
     @Schema(description = "创建人ID")
     private Long createUserId;
-
+    
     /**
      * 更新人ID
      */
     @Schema(description = "更新人ID")
     private Long updateUserId;
-
+    
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
     private Date createTime;
-
+    
     /**
      * 更新时间
      */
     @Schema(description = "更新时间")
     private Date updateTime;
-
+    
+    /**
+     * 是否删除
+     */
+    @Schema(description = "是否删除")
+    private Integer isDeleted;
+    
     // Getter和Setter方法
     public Long getId() {
         return id;
@@ -260,8 +266,16 @@ public class Task {
     public Date getUpdateTime() {
         return updateTime;
     }
-
+    
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+    
+    public Integer getIsDeleted() {
+        return isDeleted;
+    }
+    
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

@@ -14,27 +14,27 @@
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="create_user_id" property="createUserId"/>
         <result column="update_user_id" property="updateUserId"/>
-        <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id, create_time, update_time
+        id, user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
 
     <!-- 根据ID查询工时记录 -->
     <select id="selectById" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM work_hour
-        WHERE id = #{id}
+        WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <!-- 根据用户ID查询工时记录 -->
     <select id="selectByUserId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM work_hour
-        WHERE user_id = #{userId}
+        WHERE user_id = #{userId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
 
@@ -42,7 +42,7 @@
     <select id="selectByProjectId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM work_hour
-        WHERE project_id = #{projectId}
+        WHERE project_id = #{projectId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
 
@@ -50,7 +50,7 @@
     <select id="selectByTaskId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM work_hour
-        WHERE task_id = #{taskId}
+        WHERE task_id = #{taskId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
 
@@ -104,8 +104,8 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据ID删除工时记录 -->
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM work_hour WHERE id = #{id}
-    </delete>
+    <!-- 根据ID逻辑删除工时记录 -->
+    <update id="deleteById" parameterType="long">
+        UPDATE work_hour SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+    </update>
 </mapper>

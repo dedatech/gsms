@@ -9,30 +9,31 @@
         <result column="level" property="level"/>
         <result column="sort" property="sort"/>
         <result column="remark" property="remark"/>
-        <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <sql id="selectAllFields">
-        id, name, parent_id, level, sort, remark, create_time, update_time
+        id, name, parent_id, level, sort, remark, create_time, update_time, is_deleted
     </sql>
 
     <select id="selectById" parameterType="long" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM department
-        WHERE id = #{id}
+        WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <select id="selectAll" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM department
+        WHERE is_deleted = 0
         ORDER BY level, sort
     </select>
 
     <select id="selectByParentId" parameterType="long" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM department
-        WHERE parent_id = #{parentId}
+        WHERE parent_id = #{parentId} AND is_deleted = 0
         ORDER BY sort
     </select>
 
@@ -54,8 +55,8 @@
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM department WHERE id = #{id}
-    </delete>
+    <update id="deleteById" parameterType="long">
+        UPDATE department SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+    </update>
 
 </mapper>

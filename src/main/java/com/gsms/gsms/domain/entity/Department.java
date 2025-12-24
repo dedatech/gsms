@@ -28,7 +28,10 @@ public class Department {
 
     @Schema(description = "更新时间")
     private Date updateTime;
-
+    
+    @Schema(description = "是否删除")
+    private Integer isDeleted;
+    
     public Long getId() {
         return id;
     }
@@ -88,8 +91,16 @@ public class Department {
     public Date getUpdateTime() {
         return updateTime;
     }
-
+    
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+    
+    public Integer getIsDeleted() {
+        return isDeleted;
+    }
+    
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

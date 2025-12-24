@@ -22,29 +22,29 @@
         <result column="estimate_hours" property="estimateHours"/>
         <result column="create_user_id" property="createUserId"/>
         <result column="update_user_id" property="updateUserId"/>
-        <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
         id, project_id, iteration_id, title, description, type, priority, assignee_id, status, 
         plan_start_date, plan_end_date, actual_start_date, actual_end_date, estimate_hours, 
-        create_user_id, update_user_id, create_time, update_time
+        create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
 
     <!-- 根据ID查询任务 -->
     <select id="selectById" parameterType="long" resultMap="TaskResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM task
-        WHERE id = #{id}
+        WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <!-- 根据项目ID查询任务 -->
     <select id="selectByProjectId" parameterType="long" resultMap="TaskResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM task
-        WHERE project_id = #{projectId}
+        WHERE project_id = #{projectId} AND is_deleted = 0
         ORDER BY create_time DESC
     </select>
 
@@ -53,6 +53,7 @@
         SELECT <include refid="selectAllFields"/>
         FROM task
         <where>
+            AND is_deleted = 0
             <if test="projectId != null">
                 AND project_id = #{projectId}
             </if>
@@ -102,8 +103,8 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据ID删除任务 -->
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM task WHERE id = #{id}
-    </delete>
+    <!-- 根据ID逻辑删除任务 -->
+    <update id="deleteById" parameterType="long">
+        UPDATE task SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+    </update>
 </mapper>

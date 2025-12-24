@@ -62,13 +62,19 @@ public class User {
      */
     @Schema(description = "创建时间")
     private Date createTime;
-
+    
     /**
      * 更新时间
      */
     @Schema(description = "更新时间")
     private Date updateTime;
-
+    
+    /**
+     * 是否删除
+     */
+    @Schema(description = "是否删除")
+    private Integer isDeleted;
+    
     // Getter和Setter方法
     public Long getId() {
         return id;
@@ -145,8 +151,16 @@ public class User {
     public Date getUpdateTime() {
         return updateTime;
     }
-
+    
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+    
+    public Integer getIsDeleted() {
+        return isDeleted;
+    }
+    
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

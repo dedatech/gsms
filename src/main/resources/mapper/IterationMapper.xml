@@ -14,25 +14,25 @@
         <result column="actual_start_date" property="actualStartDate"/>
         <result column="actual_end_date" property="actualEndDate"/>
         <result column="create_user_id" property="createUserId"/>
-        <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
     <sql id="selectAllFields">
         id, project_id, name, description, status, plan_start_date, plan_end_date,
-        actual_start_date, actual_end_date, create_user_id, create_time, update_time
+        actual_start_date, actual_end_date, create_user_id, create_time, update_time, is_deleted
     </sql>
 
     <select id="selectById" parameterType="long" resultMap="IterationResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM iteration
-        WHERE id = #{id}
+        WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <select id="selectByProjectId" parameterType="long" resultMap="IterationResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM iteration
-        WHERE project_id = #{projectId}
+        WHERE project_id = #{projectId} AND is_deleted = 0
         ORDER BY plan_start_date DESC
     </select>
 
@@ -46,6 +46,7 @@
         <if test="status != null">
             AND status = #{status}
         </if>
+        AND is_deleted = 0
         ORDER BY plan_start_date DESC
     </select>
 
@@ -72,8 +73,8 @@
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteById" parameterType="long">
-        DELETE FROM iteration WHERE id = #{id}
-    </delete>
+    <update id="deleteById" parameterType="long">
+        UPDATE iteration SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+    </update>
 
 </mapper>
