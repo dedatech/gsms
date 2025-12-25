@@ -8,7 +8,6 @@ import com.gsms.gsms.domain.entity.WorkHour;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.service.WorkHourService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
