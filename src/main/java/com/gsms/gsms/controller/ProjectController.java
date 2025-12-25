@@ -6,12 +6,10 @@ import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.domain.entity.ProjectMember;
-import com.gsms.gsms.domain.enums.ProjectStatus;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.service.ProjectMemberService;
 import com.gsms.gsms.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +101,18 @@ public class ProjectController {
         Project updatedProject = projectService.updateProject(project);
         logger.info("项目更新成功: {}", updatedProject.getId());
         return Result.success(updatedProject);
+    }
+
+    /**
+     * 删除项目
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除项目")
+    public Result<String> deleteProject(@PathVariable Long id) {
+        logger.info("删除项目: {}", id);
+        projectService.deleteProject(id);
+        logger.info("项目删除成功: {}", id);
+        return Result.success("项目删除成功");
     }
 
     /**

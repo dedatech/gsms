@@ -1,6 +1,5 @@
 package com.gsms.gsms.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.UserStatus;
 import com.gsms.gsms.dto.user.UserLoginReq;
@@ -9,39 +8,25 @@ import com.gsms.gsms.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 用户控制器测试类（集成测试风格）
+ * 用户控制器集成测试类
+ * 继承BaseControllerTest，使用真实Service和数据库
  * 使用 @SpringBootTest + @AutoConfigureMockMvc，结合真实 UserService 和 JWT 认证
  * 如果要验证某个测试用例是否通过，可以查看控制台输出的日志。也可以使用 @Commit 注解，这样数据库就不会回滚。
  * 同时也要注意    @BeforeEach会在测试用例执行前，会先执行一次，所以可能会影响其他测试用例的执行结果。
  * 这时候可以用@TestMethodOrder(MethodOrderer.OrderAnnotation.class) + @Order(1) 注解，来指定测试用例的执行顺序。
  * 特别需要注意@TestMethodOrder(MethodOrderer.OrderAnnotation.class)要写到所有注解的最上面，否则无效。
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-@Transactional
-public class UserControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+public class UserControllerTest extends BaseControllerTest {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private User testUser;
     private String testToken;
