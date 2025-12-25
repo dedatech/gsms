@@ -67,7 +67,7 @@
 
     <!-- 根据ID逻辑删除用户 -->
     <update id="deleteById" parameterType="long">
-        UPDATE `user` SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+        UPDATE `gsms_user` SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
 
     <!-- 根据部门ID查询用户列表 -->

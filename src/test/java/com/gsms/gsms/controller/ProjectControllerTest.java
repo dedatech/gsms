@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.domain.entity.ProjectMember;
 import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.domain.enums.errorcode.ProjectErrorCode;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.infra.config.JwtInterceptor;
+import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.service.ProjectMemberService;
 import com.gsms.gsms.service.ProjectService;
@@ -14,9 +16,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -29,9 +33,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * 项目控制器测试类
+ * 项目控制器单元测试类
+ * 使用 @SpringBootTest + MockBean 模式，验证 Controller 层业务逻辑
  */
-@WebMvcTest(ProjectController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class ProjectControllerTest {
 
     @Autowired
@@ -84,16 +91,29 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.data.name").value("测试项目"));
     }
 
+    /**
+     * 测试项目不存在的异常处理
+     * 测试目的：验证 Controller 层能正确捕获 Service 层抛出的 BusinessException，
+     *          并通过 GlobalExceptionHandler 转换为正确的错误响应结构
+     * 验证点：
+     *   1. HTTP 状态码为 200（业务异常不应该返回 500）
+     *   2. 响应 code = 3001（ProjectErrorCode.PROJECT_NOT_FOUND）
+     *   3. 响应 message = "项目不存在"
+     * 注意：这是单元测试，通过 Mock 模拟异常场景，不依赖真实数据库
+     */
     @Test
     void testGetProjectById_NotFound() throws Exception {
-        // Given
-        when(projectService.getProjectById(1L)).thenThrow(new RuntimeException("项目不存在"));
+        // Given - Mock Service 抛出业务异常
+        when(projectService.getProjectById(999L)).thenThrow(
+            new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        );
 
-        // When & Then
-        mockMvc.perform(get("/api/projects/1")
+        // When & Then - 验证异常处理机制
+        mockMvc.perform(get("/api/projects/999")
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
+                .andExpect(jsonPath("$.code").value(3001))
+                .andExpect(jsonPath("$.message").value("项目不存在"));
     }
 
     @Test

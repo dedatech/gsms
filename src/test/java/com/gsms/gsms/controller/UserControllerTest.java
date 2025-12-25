@@ -4,40 +4,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.UserStatus;
 import com.gsms.gsms.dto.user.UserLoginReq;
-import com.gsms.gsms.infra.config.JwtInterceptor;
+import com.gsms.gsms.infra.utils.JwtUtil;
 import com.gsms.gsms.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 用户控制器测试类
+ * 用户控制器测试类（集成测试风格）
+ * 使用 @SpringBootTest + @AutoConfigureMockMvc，结合真实 UserService 和 JWT 认证
+ * 如果要验证某个测试用例是否通过，可以查看控制台输出的日志。也可以使用 @Commit 注解，这样数据库就不会回滚。
+ * 同时也要注意    @BeforeEach会在测试用例执行前，会先执行一次，所以可能会影响其他测试用例的执行结果。
+ * 这时候可以用@TestMethodOrder(MethodOrderer.OrderAnnotation.class) + @Order(1) 注解，来指定测试用例的执行顺序。
+ * 特别需要注意@TestMethodOrder(MethodOrderer.OrderAnnotation.class)要写到所有注解的最上面，否则无效。
  */
-@WebMvcTest(UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
 public class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private UserService userService;
-
-    @MockBean
-    private JwtInterceptor jwtInterceptor;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -47,53 +48,46 @@ public class UserControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setUsername("testuser");
-        testUser.setNickname("测试用户");
-        testUser.setEmail("test@example.com");
-        testUser.setPhone("13800138000");
-        testUser.setStatus(UserStatus.DISABLED);
-        
-        // 生成测试用的JWT Token
-        testToken = "test.jwt.token";
-        
-        // Mock JWT拦截器，让所有请求通过
-        when(jwtInterceptor.preHandle(any(), any(), any())).thenReturn(true);
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setNickname("测试用户");
+        user.setEmail("test@example.com");
+        user.setPhone("13800138000");
+        user.setStatus(UserStatus.DISABLED);
+
+        // 通过真实 UserService 创建用户（依赖 DB）
+        testUser = userService.createUser(user);
+
+        // 使用 JwtUtil 生成真实可验证的 Token
+        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
     }
 
     @Test
     void testGetUserById_Success() throws Exception {
-        // Given
-        when(userService.getUserById(1L)).thenReturn(testUser);
-
         // When & Then
-        mockMvc.perform(get("/api/users/1")
+        mockMvc.perform(get("/api/users/" + testUser.getId())
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.id").value(testUser.getId().intValue()))
                 .andExpect(jsonPath("$.data.username").value("testuser"));
     }
 
     @Test
     void testGetUserById_NotFound() throws Exception {
-        // Given
-        when(userService.getUserById(1L)).thenThrow(new RuntimeException("用户不存在"));
+        // Given - 使用一个不存在的用户ID
+        Long nonExistId = testUser.getId() + 1000;
 
         // When & Then
-        mockMvc.perform(get("/api/users/1")
+        mockMvc.perform(get("/api/users/" + nonExistId)
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
+                .andExpect(jsonPath("$.code").value(2002));
     }
 
     @Test
     void testGetAllUsers() throws Exception {
-        // Given
-        List<User> users = Arrays.asList(testUser);
-        when(userService.getAllUsers()).thenReturn(users);
-
         // When & Then
         mockMvc.perform(get("/api/users")
                 .header("Authorization", "Bearer " + testToken))
@@ -105,23 +99,29 @@ public class UserControllerTest {
 
     @Test
     void testCreateUser_Success() throws Exception {
-        // Given
-        when(userService.createUser(any(User.class))).thenReturn(testUser);
+        // Given - 使用不同用户名，避免唯一索引冲突
+        User newUser = new User();
+        newUser.setUsername("newuser");
+        newUser.setPassword("password2");
+        newUser.setNickname("新用户");
+        newUser.setEmail("new@example.com");
+        newUser.setPhone("13900139000");
+        newUser.setStatus(UserStatus.DISABLED);
 
         // When & Then
         mockMvc.perform(post("/api/users")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUser)))
+                .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.username").value("testuser"));
+                .andExpect(jsonPath("$.data.username").value("newuser"));
     }
 
     @Test
     void testUpdateUser_Success() throws Exception {
-        // Given
-        when(userService.updateUser(any(User.class))).thenReturn(testUser);
+        // Given - 修改已有用户的昵称
+        testUser.setNickname("更新后用户");
 
         // When & Then
         mockMvc.perform(put("/api/users")
@@ -130,16 +130,14 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.username").value("testuser"));
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.nickname").value("更新后用户"));
     }
 
     @Test
     void testDeleteUser_Success() throws Exception {
-        // Given
-        doNothing().when(userService).deleteUser(1L);
-
         // When & Then
-        mockMvc.perform(delete("/api/users/1")
+        mockMvc.perform(delete("/api/users/" + testUser.getId())
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -153,9 +151,7 @@ public class UserControllerTest {
         loginReq.setUsername("testuser");
         loginReq.setPassword("password");
 
-        when(userService.login("testuser", "password")).thenReturn(testUser);
-
-        // When & Then
+        // When & Then - 调用真实登录接口，生成 JWT
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginReq)))
@@ -172,13 +168,11 @@ public class UserControllerTest {
         loginReq.setUsername("testuser");
         loginReq.setPassword("wrongpassword");
 
-        when(userService.login("testuser", "wrongpassword")).thenThrow(new RuntimeException("用户名或密码错误"));
-
-        // When & Then
+        // When & Then - 密码错误，触发业务异常 PASSWORD_ERROR
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
+                .andExpect(jsonPath("$.code").value(2003));
     }
 }
