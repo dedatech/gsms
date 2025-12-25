@@ -1,18 +1,17 @@
 # 测试环境配置
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password: 
-    driver-class-name: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop
-  sql:
-    init:
-      schema-locations: classpath:schema.sql
-      mode: always
+    url: jdbc:mysql://localhost:3306/gsms_test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # 测试库为全新库，从V1开始完整迁移，不做baseline
+    baseline-on-migrate: false
+    encoding: UTF-8
+    placeholder-replacement: false
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

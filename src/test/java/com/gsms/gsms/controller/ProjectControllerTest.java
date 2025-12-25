@@ -2,11 +2,13 @@ package com.gsms.gsms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.domain.entity.ProjectMember;
 import com.gsms.gsms.domain.enums.ProjectStatus;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.infra.config.JwtInterceptor;
 import com.gsms.gsms.infra.utils.UserContext;
+import com.gsms.gsms.service.ProjectMemberService;
 import com.gsms.gsms.service.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,11 +20,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mockStatic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,6 +39,9 @@ public class ProjectControllerTest {
 
     @MockBean
     private ProjectService projectService;
+
+    @MockBean
+    private ProjectMemberService projectMemberService;
 
     @MockBean
     private JwtInterceptor jwtInterceptor;
@@ -189,5 +192,70 @@ public class ProjectControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data").value("项目删除成功"));
+    }
+
+    @Test
+    void testListProjectMembers_Success() throws Exception {
+        // Given
+        ProjectMember member = new ProjectMember();
+        member.setId(1L);
+        member.setProjectId(1L);
+        member.setUserId(2L);
+        member.setRoleType(2);
+
+        List<ProjectMember> members = Arrays.asList(member);
+        when(projectMemberService.listMembersByProjectId(1L)).thenReturn(members);
+
+        // When & Then
+        mockMvc.perform(get("/api/projects/1/members")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.length()"
+                ).value(1))
+                .andExpect(jsonPath("$.data[0].userId").value(2));
+    }
+
+    @Test
+    void testAddProjectMembers_Success() throws Exception {
+        // Given
+        List<Long> userIds = Arrays.asList(2L, 3L);
+        doNothing().when(projectMemberService).addMembers(eq(1L), anyList(), eq(2));
+
+        // When & Then
+        mockMvc.perform(post("/api/projects/1/members")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userIds)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value("添加项目成员成功"));
+    }
+
+    @Test
+    void testUpdateProjectMemberRole_Success() throws Exception {
+        // Given
+        doNothing().when(projectMemberService).updateMemberRole(1L, 2L, 3);
+
+        // When & Then
+        mockMvc.perform(put("/api/projects/1/members/2")
+                .header("Authorization", "Bearer " + testToken)
+                .param("roleType", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value("更新项目成员角色成功"));
+    }
+
+    @Test
+    void testRemoveProjectMember_Success() throws Exception {
+        // Given
+        doNothing().when(projectMemberService).removeMember(1L, 2L);
+
+        // When & Then
+        mockMvc.perform(delete("/api/projects/1/members/2")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value("移除项目成员成功"));
     }
 }

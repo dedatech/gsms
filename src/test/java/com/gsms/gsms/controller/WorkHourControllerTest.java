@@ -129,8 +129,8 @@ public class WorkHourControllerTest {
     void testGetWorkHoursByCondition() throws Exception {
         // Given
         List<WorkHour> workHours = Arrays.asList(testWorkHour);
-        when(workHourService.getWorkHoursByCondition(1L, 1L, null, null)).thenReturn(workHours);
-
+        when(workHourService.getWorkHoursByCondition(1L, 1L, null, null, null)).thenReturn(workHours);
+        
         // When & Then
         mockMvc.perform(get("/api/work-hours/search")
                 .header("Authorization", "Bearer " + testToken)

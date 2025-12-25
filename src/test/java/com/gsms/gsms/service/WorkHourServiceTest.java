@@ -98,15 +98,15 @@ class WorkHourServiceTest {
         List<WorkHour> workHours = Arrays.asList(testWorkHour);
         Date startDate = new Date();
         Date endDate = new Date();
-        when(workHourMapper.selectByCondition(1L, 1L, startDate, endDate)).thenReturn(workHours);
+        when(workHourMapper.selectByCondition(1L, 1L, 1L, startDate, endDate)).thenReturn(workHours);
 
         // When
-        List<WorkHour> result = workHourService.getWorkHoursByCondition(1L, 1L, startDate, endDate);
+        List<WorkHour> result = workHourService.getWorkHoursByCondition(1L, 1L, 1L, startDate, endDate);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(workHourMapper, times(1)).selectByCondition(1L, 1L, startDate, endDate);
+        verify(workHourMapper, times(1)).selectByCondition(1L, 1L, 1L, startDate, endDate);
     }
 
     @Test

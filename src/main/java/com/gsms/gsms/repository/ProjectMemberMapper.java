@@ -1,5 +1,6 @@
 package com.gsms.gsms.repository;
 
+import com.gsms.gsms.domain.entity.ProjectMember;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,4 +29,23 @@ public interface ProjectMemberMapper {
                             @Param("userId") Long userId,
                             @Param("roleType") Integer roleType,
                             @Param("createUserId") Long createUserId);
+
+    /**
+     * 根据项目ID查询项目成员详情列表
+     */
+    List<ProjectMember> selectMembersByProjectId(@Param("projectId") Long projectId);
+
+    /**
+     * 从项目中移除成员（逻辑删除）
+     */
+    int deleteProjectMember(@Param("projectId") Long projectId,
+                            @Param("userId") Long userId);
+
+    /**
+     * 更新项目成员角色类型
+     */
+    int updateProjectMemberRole(@Param("projectId") Long projectId,
+                                @Param("userId") Long userId,
+                                @Param("roleType") Integer roleType);
 }
+

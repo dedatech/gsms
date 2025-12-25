@@ -1,5 +1,6 @@
-package com.gsms.gsms.infra.utils;
+package com.gsms.gsms.utils;
 
+import com.gsms.gsms.infra.utils.JwtUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

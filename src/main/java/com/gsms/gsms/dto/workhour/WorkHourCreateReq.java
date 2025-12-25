@@ -16,8 +16,7 @@ public class WorkHourCreateReq {
     @Schema(description = "项目ID", required = true, example = "1")
     private Long projectId;
     
-    @NotNull(message = "任务ID不能为空")
-    @Schema(description = "任务ID", required = true, example = "1")
+    @Schema(description = "任务ID（可选）", required = false, example = "1")
     private Long taskId;
     
     @NotNull(message = "工作日期不能为空")

@@ -7,6 +7,7 @@
         SELECT project_id
         FROM gsms_project_member
         WHERE user_id = #{userId}
+          AND is_deleted = 0
     </select>
 
     <!-- 根据项目ID查询项目成员的用户ID列表 -->
@@ -14,6 +15,7 @@
         SELECT user_id
         FROM gsms_project_member
         WHERE project_id = #{projectId}
+          AND is_deleted = 0
     </select>
 
     <!-- 插入项目成员 -->
@@ -21,5 +23,39 @@
         INSERT INTO gsms_project_member(project_id, user_id, role_type, create_user_id)
         VALUES(#{projectId}, #{userId}, #{roleType}, #{createUserId})
     </insert>
+
+    <!-- 根据项目ID查询项目成员详情列表 -->
+    <select id="selectMembersByProjectId" parameterType="long" resultType="com.gsms.gsms.domain.entity.ProjectMember">
+        SELECT id,
+               project_id    AS projectId,
+               user_id       AS userId,
+               role_type     AS roleType,
+               create_user_id AS createUserId,
+               create_time   AS createTime,
+               update_time   AS updateTime
+        FROM gsms_project_member
+        WHERE project_id = #{projectId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 从项目中移除成员（逻辑删除） -->
+    <update id="deleteProjectMember">
+        UPDATE gsms_project_member
+        SET is_deleted = 1,
+            update_time = NOW()
+        WHERE project_id = #{projectId}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 更新项目成员角色类型 -->
+    <update id="updateProjectMemberRole">
+        UPDATE gsms_project_member
+        SET role_type = #{roleType},
+            update_time = NOW()
+        WHERE project_id = #{projectId}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </update>
 
 </mapper>
