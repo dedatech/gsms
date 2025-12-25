@@ -5,20 +5,20 @@
     <!-- 根据用户ID查询其参与的项目ID列表 -->
     <select id="selectProjectIdsByUserId" parameterType="long" resultType="long">
         SELECT project_id
-        FROM project_member
+        FROM gsms_project_member
         WHERE user_id = #{userId}
     </select>
 
     <!-- 根据项目ID查询项目成员的用户ID列表 -->
     <select id="selectUserIdsByProjectId" parameterType="long" resultType="long">
         SELECT user_id
-        FROM project_member
+        FROM gsms_project_member
         WHERE project_id = #{projectId}
     </select>
 
     <!-- 插入项目成员 -->
     <insert id="insertProjectMember">
-        INSERT INTO project_member(project_id, user_id, role_type, create_user_id)
+        INSERT INTO gsms_project_member(project_id, user_id, role_type, create_user_id)
         VALUES(#{projectId}, #{userId}, #{roleType}, #{createUserId})
     </insert>
 

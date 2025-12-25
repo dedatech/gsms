@@ -26,14 +26,14 @@
     <!-- 根据ID查询工时记录 -->
     <select id="selectById" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM work_hour
+        FROM gsms_work_hour
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <!-- 根据用户ID查询工时记录 -->
     <select id="selectByUserId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM work_hour
+        FROM gsms_work_hour
         WHERE user_id = #{userId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
@@ -41,7 +41,7 @@
     <!-- 根据项目ID查询工时记录 -->
     <select id="selectByProjectId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM work_hour
+        FROM gsms_work_hour
         WHERE project_id = #{projectId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
@@ -49,7 +49,7 @@
     <!-- 根据任务ID查询工时记录 -->
     <select id="selectByTaskId" parameterType="long" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM work_hour
+        FROM gsms_work_hour
         WHERE task_id = #{taskId} AND is_deleted = 0
         ORDER BY work_date DESC, create_time DESC
     </select>
@@ -57,7 +57,7 @@
     <!-- 根据条件查询工时记录 -->
     <select id="selectByCondition" resultMap="WorkHourResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM work_hour
+        FROM gsms_work_hour
         <where>
             <if test="userId != null">
                 AND user_id = #{userId}
@@ -81,7 +81,7 @@
     <!-- 插入工时记录 -->
     <insert id="insert" parameterType="com.gsms.gsms.domain.entity.WorkHour" 
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO work_hour(user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id)
+        INSERT INTO gsms_work_hour(user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id)
         VALUES(#{userId}, #{projectId}, #{taskId}, #{workDate}, #{hours}, #{content}, 
                #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
                #{createUserId}, #{updateUserId})
@@ -89,7 +89,7 @@
 
     <!-- 更新工时记录 -->
     <update id="update" parameterType="com.gsms.gsms.domain.entity.WorkHour">
-        UPDATE work_hour
+        UPDATE gsms_work_hour
         <set>
             <if test="userId != null">user_id = #{userId},</if>
             <if test="projectId != null">project_id = #{projectId},</if>

@@ -24,34 +24,34 @@
     <!-- 根据ID查询用户 -->
     <select id="selectById" parameterType="long" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM `user`
+        FROM `gsms_user`
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <!-- 根据用户名查询用户 -->
     <select id="selectByUsername" parameterType="string" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM `user`
+        FROM `gsms_user`
         WHERE username = #{username} AND is_deleted = 0
     </select>
 
     <!-- 查询所有用户 -->
     <select id="selectAll" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM `user`
+        FROM `gsms_user`
     </select>
 
     <!-- 插入用户 -->
     <insert id="insert" parameterType="com.gsms.gsms.domain.entity.User" 
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `user`(username, password, nickname, email, phone, department_id, status)
+        INSERT INTO `gsms_user`(username, password, nickname, email, phone, department_id, status)
         VALUES(#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{departmentId}, 
                #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler})
     </insert>
 
     <!-- 更新用户 -->
     <update id="update" parameterType="com.gsms.gsms.domain.entity.User">
-        UPDATE `user`
+        UPDATE `gsms_user`
         <set>
             <if test="username != null and username != ''">username = #{username},</if>
             <if test="password != null and password != ''">password = #{password},</if>
@@ -73,7 +73,7 @@
     <!-- 根据部门ID查询用户列表 -->
     <select id="selectByDepartmentId" parameterType="long" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM `user`
+        FROM `gsms_user`
         WHERE department_id = #{departmentId} AND is_deleted = 0
     </select>
 </mapper>

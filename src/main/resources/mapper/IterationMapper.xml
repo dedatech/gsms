@@ -25,20 +25,20 @@
 
     <select id="selectById" parameterType="long" resultMap="IterationResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM iteration
+        FROM gsms_iteration
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <select id="selectByProjectId" parameterType="long" resultMap="IterationResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM iteration
+        FROM gsms_iteration
         WHERE project_id = #{projectId} AND is_deleted = 0
         ORDER BY plan_start_date DESC
     </select>
 
     <select id="selectByCondition" resultMap="IterationResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM iteration
+        FROM gsms_iteration
         WHERE 1=1
         <if test="projectId != null">
             AND project_id = #{projectId}
@@ -52,7 +52,7 @@
 
     <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Iteration" 
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO iteration(project_id, name, description, status, plan_start_date, 
+        INSERT INTO gsms_iteration(project_id, name, description, status, plan_start_date, 
                              plan_end_date, create_user_id)
         VALUES(#{projectId}, #{name}, #{description}, 
                #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
@@ -60,7 +60,7 @@
     </insert>
 
     <update id="update" parameterType="com.gsms.gsms.domain.entity.Iteration">
-        UPDATE iteration
+        UPDATE gsms_iteration
         <set>
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="description != null">description = #{description},</if>
