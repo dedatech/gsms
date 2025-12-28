@@ -1,5 +1,9 @@
 package com.gsms.gsms.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.domain.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
@@ -8,11 +12,13 @@ import java.util.Date;
  * 用户实体类
  */
 @Schema(description = "用户信息")
+@TableName("sys_user")
 public class User {
     /**
      * 用户ID
      */
     @Schema(description = "用户ID")
+    @TableId
     private Long id;
 
     /**
@@ -49,30 +55,37 @@ public class User {
      * 部门ID
      */
     @Schema(description = "部门ID")
+    @TableField("department_id")
     private Long departmentId;
 
     /**
      * 状态
      */
     @Schema(description = "用户状态")
+    @TableField(typeHandler = com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler.class)
     private UserStatus status;
 
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
     
     /**
      * 更新时间
      */
     @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
     
     /**
      * 是否删除
      */
     @Schema(description = "是否删除")
+    @TableField("is_deleted")
     private Integer isDeleted;
     
     // Getter和Setter方法

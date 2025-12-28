@@ -1,8 +1,6 @@
 package com.gsms.gsms.dto.workhour;
 
 import com.gsms.gsms.domain.entity.WorkHour;
-import com.gsms.gsms.dto.workhour.WorkHourCreateReq;
-import com.gsms.gsms.dto.workhour.WorkHourUpdateReq;
 
 /**
  * 工时记录对象转换器

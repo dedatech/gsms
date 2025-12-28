@@ -14,19 +14,19 @@ public abstract class ProjectBaseReq {
     
     @NotBlank(message = "项目名称不能为空")
     @Size(max = 100, message = "项目名称长度不能超过100个字符")
-    @Schema(description = "项目名称", required = true, example = "工时管理系统")
+    @Schema(description = "项目名称", example = "工时管理系统")
     private String name;
     
     @NotBlank(message = "项目编码不能为空")
     @Size(max = 50, message = "项目编码长度不能超过50个字符")
-    @Schema(description = "项目编码", required = true, example = "GSMS")
+    @Schema(description = "项目编码", example = "GSMS")
     private String code;
     
     @Schema(description = "项目描述", example = "企业级工时管理平台")
     private String description;
     
     @NotNull(message = "项目负责人不能为空")
-    @Schema(description = "项目负责人ID", required = true, example = "1")
+    @Schema(description = "项目负责人ID", example = "1")
     private Long managerId;
     
     @Schema(description = "项目状态", example = "IN_PROGRESS")

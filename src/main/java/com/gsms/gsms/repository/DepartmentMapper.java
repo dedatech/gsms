@@ -14,6 +14,8 @@ public interface DepartmentMapper extends BaseMapper<Department> {
     List<Department> selectAll();
 
     List<Department> selectByParentId(@Param("parentId") Long parentId);
+    
+    List<Department> selectByCondition(@Param("name") String name, @Param("parentId") Long parentId);
 
     int insert(Department department);
 

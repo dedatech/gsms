@@ -101,7 +101,7 @@ public class TaskControllerTest {
     void testGetTasksByProjectId() throws Exception {
         // Given
         List<Task> tasks = Arrays.asList(testTask);
-        when(taskService.getTasksByProjectId(1L)).thenReturn(tasks);
+        when(taskService.getTasksByCondition(1L, null, null)).thenReturn(tasks);
 
         // When & Then
         mockMvc.perform(get("/api/tasks/project/1")

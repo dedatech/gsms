@@ -17,14 +17,15 @@ import java.util.stream.Collectors;
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
-    @Autowired
-    private WorkHourMapper workHourMapper;
+    private final WorkHourMapper workHourMapper;
+    private final TaskMapper taskMapper;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private TaskMapper taskMapper;
-
-    @Autowired
-    private UserMapper userMapper;
+    public StatisticsServiceImpl(WorkHourMapper workHourMapper, TaskMapper taskMapper, UserMapper userMapper) {
+        this.workHourMapper = workHourMapper;
+        this.taskMapper = taskMapper;
+        this.userMapper = userMapper;
+    }
 
     @Override
     public Map<String, Object> getProjectWorkHourStatistics(Long projectId, Date startDate, Date endDate) {

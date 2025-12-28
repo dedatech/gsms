@@ -101,7 +101,7 @@ public class WorkHourControllerTest {
     void testGetWorkHoursByUserId() throws Exception {
         // Given
         List<WorkHour> workHours = Arrays.asList(testWorkHour);
-        when(workHourService.getWorkHoursByUserId(1L)).thenReturn(workHours);
+        when(workHourService.getWorkHoursByCondition(1L, null, null, null, null)).thenReturn(workHours);
 
         // When & Then
         mockMvc.perform(get("/api/work-hours/user/1")
@@ -115,7 +115,7 @@ public class WorkHourControllerTest {
     void testGetWorkHoursByProjectId() throws Exception {
         // Given
         List<WorkHour> workHours = Arrays.asList(testWorkHour);
-        when(workHourService.getWorkHoursByProjectId(1L)).thenReturn(workHours);
+        when(workHourService.getWorkHoursByCondition(null, 1L, null, null, null)).thenReturn(workHours);
 
         // When & Then
         mockMvc.perform(get("/api/work-hours/project/1")

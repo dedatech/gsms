@@ -11,7 +11,7 @@ import java.util.Date;
 public class ProjectUpdateReq extends ProjectBaseReq {
     
     @NotNull(message = "项目ID不能为空")
-    @Schema(description = "项目ID", required = true, example = "1")
+    @Schema(description = "项目ID", example = "1")
     private Long id;
     
     @Schema(description = "实际开始日期", example = "2025-01-05")

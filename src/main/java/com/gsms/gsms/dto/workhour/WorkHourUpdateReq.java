@@ -13,22 +13,22 @@ import java.util.Date;
 public class WorkHourUpdateReq {
     
     @NotNull(message = "工时记录ID不能为空")
-    @Schema(description = "工时记录ID", required = true, example = "1")
+    @Schema(description = "工时记录ID",  example = "1")
     private Long id;
     
     @NotNull(message = "项目ID不能为空")
-    @Schema(description = "项目ID", required = true, example = "1")
+    @Schema(description = "项目ID", example = "1")
     private Long projectId;
     
-    @Schema(description = "任务ID（可选）", required = false, example = "1")
+    @Schema(description = "任务ID（可选）", example = "1")
     private Long taskId;
     
     @NotNull(message = "工作日期不能为空")
-    @Schema(description = "工作日期", required = true, example = "2025-01-01")
+    @Schema(description = "工作日期", example = "2025-01-01")
     private Date workDate;
     
     @NotNull(message = "工时数不能为空")
-    @Schema(description = "工时数", required = true, example = "8.0")
+    @Schema(description = "工时数", example = "8.0")
     private BigDecimal hours;
     
     @Schema(description = "工作内容描述", example = "完成用户登录功能开发和测试")

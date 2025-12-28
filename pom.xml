@@ -37,6 +37,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Mockito Inline for static method mocking -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- H2 Database for testing -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -69,6 +75,12 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
         </dependency>
+        <!-- PageHelper 分页插件 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.4.6</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -76,6 +88,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <jvmArguments>-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8</jvmArguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>

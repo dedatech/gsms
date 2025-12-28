@@ -21,11 +21,13 @@ public class AuthServiceImpl implements AuthService {
     private static final String PERM_TASK_VIEW_ALL = "TASK_VIEW_ALL";
     private static final String PERM_WORKHOUR_VIEW_ALL = "WORKHOUR_VIEW_ALL";
 
-    @Autowired
-    private PermissionMapper permissionMapper;
+    private final PermissionMapper permissionMapper;
+    private final ProjectMemberMapper projectMemberMapper;
 
-    @Autowired
-    private ProjectMemberMapper projectMemberMapper;
+    public AuthServiceImpl(PermissionMapper permissionMapper, ProjectMemberMapper projectMemberMapper) {
+        this.permissionMapper = permissionMapper;
+        this.projectMemberMapper = projectMemberMapper;
+    }
 
     @Override
     public boolean hasPermission(Long userId, String permissionCode) {

@@ -23,17 +23,17 @@ import java.util.Set;
 @Service
 public class ProjectMemberServiceImpl implements ProjectMemberService {
 
-    @Autowired
-    private ProjectMemberMapper projectMemberMapper;
+    private final ProjectMemberMapper projectMemberMapper;
+    private final ProjectMapper projectMapper;
+    private final UserMapper userMapper;
+    private final AuthService authService;
 
-    @Autowired
-    private ProjectMapper projectMapper;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private AuthService authService;
+    public ProjectMemberServiceImpl(ProjectMemberMapper projectMemberMapper, ProjectMapper projectMapper, UserMapper userMapper, AuthService authService) {
+        this.projectMemberMapper = projectMemberMapper;
+        this.projectMapper = projectMapper;
+        this.userMapper = userMapper;
+        this.authService = authService;
+    }
 
     @Override
     public List<ProjectMember> listMembersByProjectId(Long projectId) {

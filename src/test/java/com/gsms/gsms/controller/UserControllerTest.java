@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,7 +80,10 @@ public class UserControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].username").value("testuser"));
+                .andExpect(jsonPath("$.data[0].username").value("testuser"))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.pageNum").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10));
     }
 
     @Test
@@ -97,7 +101,7 @@ public class UserControllerTest extends BaseControllerTest {
         mockMvc.perform(post("/api/users")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newUser)))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(newUser))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.username").value("newuser"));
@@ -112,7 +116,7 @@ public class UserControllerTest extends BaseControllerTest {
         mockMvc.perform(put("/api/users")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUser)))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(testUser))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.username").value("testuser"))
@@ -139,11 +143,50 @@ public class UserControllerTest extends BaseControllerTest {
         // When & Then - 调用真实登录接口，生成 JWT
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginReq)))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(loginReq))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("登录成功"))
                 .andExpect(jsonPath("$.data").isNotEmpty());
+    }
+
+    @Test
+    void testGetUsersByCondition() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/users/search?username=testuser")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].username").value("testuser"))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.pageNum").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10));
+    }
+
+    @Test
+    void testGetUsersByCondition_WithPaging() throws Exception {
+        // 创建更多测试用户
+        for (int i = 1; i <= 15; i++) {
+            User user = new User();
+            user.setUsername("testuser" + i);
+            user.setPassword("password");
+            user.setNickname("测试用户" + i);
+            user.setEmail("test" + i + "@example.com");
+            user.setPhone("1380013800" + i);
+            user.setStatus(UserStatus.DISABLED);
+            userService.createUser(user);
+        }
+        
+        // 测试分页查询 - 第一页，每页5条
+        mockMvc.perform(get("/api/users/search?pageNum=1&pageSize=5")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.pageNum").value(1))
+                .andExpect(jsonPath("$.pageSize").value(5))
+                .andExpect(jsonPath("$.total").value(16)); // 包括之前创建的1个用户
     }
 
     @Test
@@ -156,7 +199,7 @@ public class UserControllerTest extends BaseControllerTest {
         // When & Then - 密码错误，触发业务异常 PASSWORD_ERROR
         mockMvc.perform(post("/api/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginReq)))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(loginReq))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(2003));
     }

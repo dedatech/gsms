@@ -1,6 +1,9 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.dto.task.TaskPageQuery;
+import com.gsms.gsms.infra.common.PageResult;
+import com.gsms.gsms.dto.task.TaskInfoResp;
 
 import java.util.List;
 
@@ -30,6 +33,12 @@ public interface TaskService {
      * @return 任务列表
      */
     List<Task> getTasksByCondition(Long projectId, Long assigneeId, Integer status);
+
+    /**
+     * 根据条件分页查询任务
+     * @return 分页结果
+     */
+    PageResult<TaskInfoResp> findAll(TaskPageQuery taskPageQuery);
 
     /**
      * 创建任务

@@ -1,13 +1,15 @@
 package com.gsms.gsms.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.domain.enums.errorcode.IterationErrorCode;
+import com.gsms.gsms.dto.iteration.IterationQueryReq;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
-import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.IterationMapper;
 import com.gsms.gsms.service.IterationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,8 +18,11 @@ import java.util.List;
 @Service
 public class IterationServiceImpl implements IterationService {
 
-    @Autowired
-    private IterationMapper iterationMapper;
+    private final IterationMapper iterationMapper;
+
+    public IterationServiceImpl(IterationMapper iterationMapper) {
+        this.iterationMapper = iterationMapper;
+    }
 
     @Override
     public Iteration getIterationById(Long id) {
@@ -42,9 +47,6 @@ public class IterationServiceImpl implements IterationService {
     @Transactional(rollbackFor = Exception.class)
     public Iteration createIteration(Iteration iteration) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         iteration.setCreateUserId(currentUserId);
         
         int result = iterationMapper.insert(iteration);

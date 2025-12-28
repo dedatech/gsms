@@ -3,8 +3,10 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.domain.entity.Department;
 import com.gsms.gsms.dto.department.DepartmentConverter;
 import com.gsms.gsms.dto.department.DepartmentCreateReq;
+import com.gsms.gsms.dto.department.DepartmentQueryReq;
 import com.gsms.gsms.dto.department.DepartmentUpdateReq;
 import com.gsms.gsms.infra.common.Result;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.DepartmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,13 +17,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import com.github.pagehelper.PageHelper;
+
 @Tag(name = "部门管理", description = "部门管理相关接口")
 @RestController
 @RequestMapping("/api/departments")
 public class DepartmentController {
 
-    @Autowired
-    private DepartmentService departmentService;
+    private final DepartmentService departmentService;
+
+    public DepartmentController(DepartmentService departmentService) {
+        this.departmentService = departmentService;
+    }
 
     @Operation(summary = "根据ID获取部门")
     @GetMapping("/{id}")
@@ -31,19 +38,31 @@ public class DepartmentController {
         return Result.success(department);
     }
 
-    @Operation(summary = "获取所有部门")
+    @Operation(summary = "根据条件分页查询部门")
     @GetMapping
-    public Result<List<Department>> getAllDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
-        return Result.success(departments);
+    public PageResult<Department> getDepartments(DepartmentQueryReq req) {
+        // 使用默认分页参数（pageNum=1, pageSize=100）
+        PageHelper.startPage(1, 100);
+        List<Department> departments = departmentService.getDepartmentsByCondition(req.getName(), req.getParentId());
+        return PageResult.success(departments);
     }
 
     @Operation(summary = "根据父部门ID获取子部门列表")
     @GetMapping("/children/{parentId}")
-    public Result<List<Department>> getDepartmentsByParentId(
+    public PageResult<Department> getDepartmentsByParentId(
             @Parameter(description = "父部门ID", required = true) @PathVariable Long parentId) {
+        // 使用默认分页参数
+        PageHelper.startPage(1, 100);
         List<Department> departments = departmentService.getDepartmentsByParentId(parentId);
-        return Result.success(departments);
+        return PageResult.success(departments);
+    }
+    
+    @Operation(summary = "根据条件分页查询部门")
+    @GetMapping("/search")
+    public PageResult<Department> getDepartmentsByCondition(DepartmentQueryReq req) {
+        PageHelper.startPage(req.getPageNum(), req.getPageSize());
+        List<Department> departments = departmentService.getDepartmentsByCondition(req.getName(), req.getParentId());
+        return PageResult.success(departments);
     }
 
     @Operation(summary = "创建部门")

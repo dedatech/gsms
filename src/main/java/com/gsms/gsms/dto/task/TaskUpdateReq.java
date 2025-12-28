@@ -11,7 +11,7 @@ import java.util.Date;
 public class TaskUpdateReq extends TaskBaseReq {
     
     @NotNull(message = "任务ID不能为空")
-    @Schema(description = "任务ID", required = true, example = "1")
+    @Schema(description = "任务ID", example = "1")
     private Long id;
     
     @Schema(description = "实际开始日期", example = "2025-01-02")

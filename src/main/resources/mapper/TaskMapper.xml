@@ -40,6 +40,16 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
+    <!-- 根据ID查询任务（仅限用户可访问的项目） -->
+    <select id="selectByIdForUser" parameterType="map" resultMap="TaskResultMap">
+        SELECT DISTINCT t.id, t.project_id, t.iteration_id, t.title, t.description, t.type, t.priority, 
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date, 
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
+        WHERE t.id = #{id} AND t.is_deleted = 0 AND pm.user_id = #{userId}
+    </select>
+
     <!-- 根据项目ID查询任务 -->
     <select id="selectByProjectId" parameterType="long" resultMap="TaskResultMap">
         SELECT <include refid="selectAllFields"/>
@@ -65,6 +75,28 @@
             </if>
         </where>
         ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据条件查询用户可访问的任务（基于项目成员表） -->
+    <select id="selectAccessibleTasksByCondition" resultMap="TaskResultMap">
+        SELECT DISTINCT t.id, t.project_id, t.iteration_id, t.title, t.description, t.type, t.priority, 
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date, 
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
+        <where>
+            AND t.is_deleted = 0 AND pm.user_id = #{userId}
+            <if test="projectId != null">
+                AND t.project_id = #{projectId}
+            </if>
+            <if test="assigneeId != null">
+                AND t.assignee_id = #{assigneeId}
+            </if>
+            <if test="status != null">
+                AND t.status = #{status}
+            </if>
+        </where>
+        ORDER BY t.create_time DESC
     </select>
 
     <!-- 插入任务 -->
@@ -105,6 +137,6 @@
 
     <!-- 根据ID逻辑删除任务 -->
     <update id="deleteById" parameterType="long">
-        UPDATE task SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+        UPDATE gsms_task SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
 </mapper>

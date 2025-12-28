@@ -9,14 +9,14 @@ import javax.validation.constraints.NotNull;
 public class DepartmentCreateReq {
 
     @NotBlank(message = "部门名称不能为空")
-    @Schema(description = "部门名称", required = true)
+    @Schema(description = "部门名称")
     private String name;
 
     @Schema(description = "父部门ID，顶级部门传0")
     private Long parentId = 0L;
 
     @NotNull(message = "层级不能为空")
-    @Schema(description = "层级", required = true)
+    @Schema(description = "层级")
     private Integer level;
 
     @Schema(description = "排序")

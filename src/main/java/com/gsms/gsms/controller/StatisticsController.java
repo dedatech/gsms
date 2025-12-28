@@ -17,8 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/statistics")
 public class StatisticsController {
 
-    @Autowired
-    private StatisticsService statisticsService;
+    private final StatisticsService statisticsService;
+
+    public StatisticsController(StatisticsService statisticsService) {
+        this.statisticsService = statisticsService;
+    }
 
     @Operation(summary = "获取项目工时统计")
     @GetMapping("/project/{projectId}")

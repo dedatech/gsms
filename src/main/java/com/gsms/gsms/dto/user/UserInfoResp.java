@@ -1,8 +1,12 @@
 package com.gsms.gsms.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户信息响应
@@ -29,6 +33,7 @@ public class UserInfoResp {
     private UserStatus status;
     
     @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     // Getter and Setter
@@ -86,5 +91,38 @@ public class UserInfoResp {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+    
+    /**
+     * 将 User 实体转换为 UserInfoResp
+     */
+    public static UserInfoResp from(User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        UserInfoResp resp = new UserInfoResp();
+        resp.setId(user.getId());
+        resp.setUsername(user.getUsername());
+        resp.setNickname(user.getNickname());
+        resp.setEmail(user.getEmail());
+        resp.setPhone(user.getPhone());
+        resp.setStatus(user.getStatus());
+        resp.setCreateTime(user.getCreateTime());
+        
+        return resp;
+    }
+    
+    /**
+     * 将 User 列表转换为 UserInfoResp 列表
+     */
+    public static java.util.List<UserInfoResp> from(List<User> users) {
+        if (users == null) {
+            return java.util.Collections.emptyList();
+        }
+        
+        return users.stream()
+                .map(UserInfoResp::from)
+                .collect(Collectors.toList());
     }
 }

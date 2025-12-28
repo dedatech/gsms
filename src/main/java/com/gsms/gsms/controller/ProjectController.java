@@ -7,13 +7,14 @@ import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.domain.entity.ProjectMember;
 import com.gsms.gsms.infra.common.Result;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.ProjectMemberService;
 import com.gsms.gsms.service.ProjectService;
+import com.github.pagehelper.PageHelper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,11 +29,13 @@ import java.util.List;
 public class ProjectController {
     private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
 
-    @Autowired
-    private ProjectService projectService;
+    private final ProjectService projectService;
+    private final ProjectMemberService projectMemberService;
 
-    @Autowired
-    private ProjectMemberService projectMemberService;
+    public ProjectController(ProjectService projectService, ProjectMemberService projectMemberService) {
+        this.projectService = projectService;
+        this.projectMemberService = projectMemberService;
+    }
 
     /**
      * 根据ID查询项目
@@ -47,30 +50,44 @@ public class ProjectController {
     }
 
     /**
-     * 查询所有项目
+     * 根据条件分页查询项目
      */
     @GetMapping
-    @Operation(summary = "查询所有项目")
-    public Result<List<Project>> getAllProjects() {
-        logger.info("查询所有项目");
-        List<Project> projects = projectService.getAllProjects();
-        logger.info("成功查询到{}个项目", projects.size());
-        return Result.success(projects);
-    }
+    @Operation(summary = "根据条件分页查询项目")
+    public PageResult<Project> getProjects(ProjectQueryReq req) {
+        logger.info("根据条件分页查询项目: name={}, status={}, pageNum={}, pageSize={}", 
+                req.getName(), req.getStatus(), req.getPageNum(), req.getPageSize());
+        Integer statusCode = req.getStatus() != null ? req.getStatus().getCode() : null;
 
+        // 使用基类提供的规范化方法获取分页参数
+        PageHelper.startPage(req.getPageNum(), req.getPageSize());
+
+        // 无论是否传入查询条件，都使用条件查询方法（null条件会被正确处理）
+        List<Project> projects = projectService.getProjectsByCondition(req.getName(), statusCode);
+        
+        logger.info("根据条件分页查询到{}个项目", projects.size());
+        return PageResult.success(projects);
+    }
+    
     /**
      * 根据条件查询项目
      */
     @GetMapping("/search")
     @Operation(summary = "根据条件查询项目")
-    public Result<List<Project>> getProjectsByCondition(ProjectQueryReq req) {
-        logger.info("根据条件查询项目: name={}, status={}", req.getName(), req.getStatus());
+    public PageResult<Project> getProjectsByCondition(ProjectQueryReq req) {
+        logger.info("根据条件查询项目: name={}, status={}, pageNum={}, pageSize={}", 
+                req.getName(), req.getStatus(), req.getPageNum(), req.getPageSize());
         Integer statusCode = req.getStatus() != null ? req.getStatus().getCode() : null;
+    
+        // 使用基类提供的规范化方法获取分页参数
+        PageHelper.startPage(req.getPageNum(), req.getPageSize());
+    
         List<Project> projects = projectService.getProjectsByCondition(req.getName(), statusCode);
+            
         logger.info("根据条件查询到{}个项目", projects.size());
-        return Result.success(projects);
+        return PageResult.success(projects);
     }
-
+    
     /**
      * 创建项目
      */

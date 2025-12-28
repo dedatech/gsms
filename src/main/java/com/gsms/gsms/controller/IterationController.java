@@ -21,8 +21,11 @@ import java.util.List;
 @RequestMapping("/api/iterations")
 public class IterationController {
 
-    @Autowired
-    private IterationService iterationService;
+    private final IterationService iterationService;
+
+    public IterationController(IterationService iterationService) {
+        this.iterationService = iterationService;
+    }
 
     @Operation(summary = "根据ID获取迭代")
     @GetMapping("/{id}")
@@ -36,7 +39,7 @@ public class IterationController {
     @GetMapping("/project/{projectId}")
     public Result<List<Iteration>> getIterationsByProjectId(
             @Parameter(description = "项目ID", required = true) @PathVariable Long projectId) {
-        List<Iteration> iterations = iterationService.getIterationsByProjectId(projectId);
+        List<Iteration> iterations = iterationService.getIterationsByCondition(projectId, null);
         return Result.success(iterations);
     }
 

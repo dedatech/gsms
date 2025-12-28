@@ -49,7 +49,7 @@ class UserServiceTest {
         when(userMapper.selectById(1L)).thenReturn(testUser);
 
         // When
-        User result = userService.getUserById(1L);
+        User result = userService.getById(1L);
 
         // Then
         assertNotNull(result);
@@ -63,7 +63,7 @@ class UserServiceTest {
         when(userMapper.selectByUsername("testuser")).thenReturn(testUser);
 
         // When
-        User result = userService.getUserByUsername("testuser");
+        User result = userService.getByUsername("testuser");
 
         // Then
         assertNotNull(result);

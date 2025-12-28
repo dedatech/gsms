@@ -17,7 +17,7 @@ import java.util.Date;
 public abstract class TaskBaseReq {
     
     @NotNull(message = "项目ID不能为空")
-    @Schema(description = "项目ID", required = true, example = "1")
+    @Schema(description = "项目ID", example = "1")
     private Long projectId;
     
     @Schema(description = "迭代ID", example = "1")
@@ -25,7 +25,7 @@ public abstract class TaskBaseReq {
     
     @NotBlank(message = "任务标题不能为空")
     @Size(max = 200, message = "任务标题长度不能超过200个字符")
-    @Schema(description = "任务标题", required = true, example = "实现用户登录功能")
+    @Schema(description = "任务标题", example = "实现用户登录功能")
     private String title;
     
     @Schema(description = "任务描述", example = "完成用户登录功能的前后端开发")

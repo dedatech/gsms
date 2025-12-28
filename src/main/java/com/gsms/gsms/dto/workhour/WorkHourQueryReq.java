@@ -1,5 +1,6 @@
 package com.gsms.gsms.dto.workhour;
 
+import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -9,7 +10,7 @@ import java.util.Date;
  * 工时记录查询请求
  */
 @Schema(description = "工时记录查询请求")
-public class WorkHourQueryReq {
+public class WorkHourQueryReq extends BasePageQuery {
     
     @Schema(description = "用户ID", example = "1")
     private Long userId;

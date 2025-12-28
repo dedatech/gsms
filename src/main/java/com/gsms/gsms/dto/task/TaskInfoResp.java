@@ -1,139 +1,65 @@
-package com.gsms.gsms.domain.entity;
+package com.gsms.gsms.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.domain.entity.Task;
 import com.gsms.gsms.domain.enums.TaskPriority;
 import com.gsms.gsms.domain.enums.TaskStatus;
 import com.gsms.gsms.domain.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 任务实体类
+ * 任务信息响应
  */
-@Schema(description = "任务信息")
-public class Task {
-    /**
-     * 任务ID
-     */
+@Schema(description = "任务信息响应")
+public class TaskInfoResp {
+    
     @Schema(description = "任务ID")
     private Long id;
-
-    /**
-     * 项目ID
-     */
+    
     @Schema(description = "项目ID")
     private Long projectId;
-
-    /**
-     * 迭代ID
-     */
+    
     @Schema(description = "迭代ID")
     private Long iterationId;
-
-    /**
-     * 任务标题
-     */
+    
     @Schema(description = "任务标题")
     private String title;
-
-    /**
-     * 任务描述
-     */
+    
     @Schema(description = "任务描述")
     private String description;
-
-    /**
-     * 任务类型
-     */
+    
     @Schema(description = "任务类型")
     private TaskType type;
-
-    /**
-     * 优先级
-     */
+    
     @Schema(description = "优先级")
     private TaskPriority priority;
-
-    /**
-     * 负责人ID
-     */
+    
     @Schema(description = "负责人ID")
     private Long assigneeId;
-
-    /**
-     * 任务状态
-     */
+    
     @Schema(description = "任务状态")
     private TaskStatus status;
-
-    /**
-     * 计划开始日期
-     */
+    
     @Schema(description = "计划开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date planStartDate;
-
-    /**
-     * 计划结束日期
-     */
+    
     @Schema(description = "计划结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date planEndDate;
-
-    /**
-     * 实际开始日期
-     */
+    
     @Schema(description = "实际开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date actualStartDate;
-
-    /**
-     * 实际结束日期
-     */
+    
     @Schema(description = "实际结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date actualEndDate;
-
-    /**
-     * 预估工时
-     */
-    @Schema(description = "预估工时")
-    private BigDecimal estimateHours;
-
-    /**
-     * 创建人ID
-     */
-    @Schema(description = "创建人ID")
-    private Long createUserId;
     
-    /**
-     * 更新人ID
-     */
-    @Schema(description = "更新人ID")
-    private Long updateUserId;
-    
-    /**
-     * 创建时间
-     */
-    @Schema(description = "创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
-    
-    /**
-     * 更新时间
-     */
-    @Schema(description = "更新时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
-    
-    /**
-     * 是否删除
-     */
-    @Schema(description = "是否删除")
-    private Integer isDeleted;
-    
-    // Getter和Setter方法
+    // Getter and Setter
     public Long getId() {
         return id;
     }
@@ -237,52 +163,43 @@ public class Task {
     public void setActualEndDate(Date actualEndDate) {
         this.actualEndDate = actualEndDate;
     }
-
-    public BigDecimal getEstimateHours() {
-        return estimateHours;
-    }
-
-    public void setEstimateHours(BigDecimal estimateHours) {
-        this.estimateHours = estimateHours;
-    }
-
-    public Long getCreateUserId() {
-        return createUserId;
-    }
-
-    public void setCreateUserId(Long createUserId) {
-        this.createUserId = createUserId;
-    }
-
-    public Long getUpdateUserId() {
-        return updateUserId;
-    }
-
-    public void setUpdateUserId(Long updateUserId) {
-        this.updateUserId = updateUserId;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
+    
+    /**
+     * 将 Task 实体转换为 TaskInfoResp
+     */
+    public static TaskInfoResp from(Task task) {
+        if (task == null) {
+            return null;
+        }
+        
+        TaskInfoResp resp = new TaskInfoResp();
+        resp.setId(task.getId());
+        resp.setProjectId(task.getProjectId());
+        resp.setIterationId(task.getIterationId());
+        resp.setTitle(task.getTitle());
+        resp.setDescription(task.getDescription());
+        resp.setType(task.getType());
+        resp.setPriority(task.getPriority());
+        resp.setAssigneeId(task.getAssigneeId());
+        resp.setStatus(task.getStatus());
+        resp.setPlanStartDate(task.getPlanStartDate());
+        resp.setPlanEndDate(task.getPlanEndDate());
+        resp.setActualStartDate(task.getActualStartDate());
+        resp.setActualEndDate(task.getActualEndDate());
+        
+        return resp;
     }
     
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-    
-    public Integer getIsDeleted() {
-        return isDeleted;
-    }
-    
-    public void setIsDeleted(Integer isDeleted) {
-        this.isDeleted = isDeleted;
+    /**
+     * 将 Task 列表转换为 TaskInfoResp 列表
+     */
+    public static java.util.List<TaskInfoResp> from(List<Task> tasks) {
+        if (tasks == null) {
+            return java.util.Collections.emptyList();
+        }
+        
+        return tasks.stream()
+                .map(TaskInfoResp::from)
+                .collect(Collectors.toList());
     }
 }

@@ -3,7 +3,7 @@
     <!-- 定义日志文件的存储地址 -->
     <property name="LOG_HOME" value="./logs" />
     
-    <!-- 控制台输出（彩色高亮主题）-->
+    <!-- 控制台输出，针对Windows系统优化 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- 彩色日志格式 -->
@@ -101,10 +101,10 @@
         <logger name="com.gsms.gsms" level="DEBUG"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-            <!-- <appender-ref ref="DEBUG_FILE" />
+            <appender-ref ref="DEBUG_FILE" />
             <appender-ref ref="INFO_FILE" />
             <appender-ref ref="WARN_FILE" />
-            <appender-ref ref="ERROR_FILE" /> -->
+            <appender-ref ref="ERROR_FILE" />
         </root>
     </springProfile>
     

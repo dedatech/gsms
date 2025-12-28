@@ -106,6 +106,6 @@
 
     <!-- 根据ID逻辑删除工时记录 -->
     <update id="deleteById" parameterType="long">
-        UPDATE work_hour SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+        UPDATE gsms_work_hour SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
 </mapper>

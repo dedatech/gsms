@@ -20,6 +20,14 @@ public interface TaskMapper extends BaseMapper<Task> {
     Task selectById(@Param("id") Long id);
 
     /**
+     * 根据ID查询任务（仅限用户可访问的项目）
+     * @param id 任务ID
+     * @param userId 用户ID
+     * @return 任务实体
+     */
+    Task selectByIdForUser(@Param("id") Long id, @Param("userId") Long userId);
+
+    /**
      * 根据项目ID查询任务
      * @param projectId 项目ID
      * @return 任务列表
@@ -28,12 +36,22 @@ public interface TaskMapper extends BaseMapper<Task> {
 
     /**
      * 根据条件查询任务
-     * @param projectId 项目ID
-     * @param assigneeId 负责人ID
+     * @param projectId 项目 ID
+     * @param assigneeId 负责人 ID
      * @param status 任务状态
      * @return 任务列表
      */
     List<Task> selectByCondition(@Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId, @Param("status") Integer status);
+    
+    /**
+     * 根据条件查询用户可访问的任务（基于项目成员表）
+     * @param userId 用户ID
+     * @param projectId 项目 ID
+     * @param assigneeId 负责人 ID
+     * @param status 任务状态
+     * @return 任务列表
+     */
+    List<Task> selectAccessibleTasksByCondition(@Param("userId") Long userId, @Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId, @Param("status") Integer status);
 
     /**
      * 插入任务

@@ -50,6 +50,20 @@
         ORDER BY plan_start_date DESC
     </select>
 
+    <select id="selectByConditionWithStatus" parameterType="map" resultMap="IterationResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM gsms_iteration
+        WHERE 1=1
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        AND is_deleted = 0
+        ORDER BY plan_start_date DESC
+    </select>
+
     <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Iteration" 
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO gsms_iteration(project_id, name, description, status, plan_start_date, 
@@ -74,7 +88,7 @@
     </update>
 
     <update id="deleteById" parameterType="long">
-        UPDATE iteration SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+        UPDATE gsms_iteration SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
 
 </mapper>

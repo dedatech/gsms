@@ -20,6 +20,7 @@ public class HelloController {
     @GetMapping("/hello")
     public Result<String> hello() {
         logger.info("访问/hello接口");
+        System.out.println("访问/hello接口");
         return Result.success("Welcome to GSMS - 工时管理系统");
     }
 

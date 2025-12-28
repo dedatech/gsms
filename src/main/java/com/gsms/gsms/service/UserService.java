@@ -1,6 +1,9 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.dto.user.UserInfoResp;
+import com.gsms.gsms.dto.user.UserPageQuery;
+import com.gsms.gsms.infra.common.PageResult;
 
 import java.util.List;
 
@@ -13,20 +16,21 @@ public interface UserService {
      * @param id 用户ID
      * @return 用户实体
      */
-    User getUserById(Long id);
+    User getById(Long id);
 
     /**
      * 根据用户名查询用户
      * @param username 用户名
      * @return 用户实体
      */
-    User getUserByUsername(String username);
+    User getByUsername(String username);
+
 
     /**
-     * 查询所有用户
-     * @return 用户列表
+     * 根据条件分页查询用户
+     * @return 分页结果
      */
-    List<User> getAllUsers();
+    PageResult<UserInfoResp> findAll(UserPageQuery userPageQuery);
 
     /**
      * 创建用户

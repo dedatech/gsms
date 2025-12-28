@@ -1,8 +1,6 @@
 package com.gsms.gsms.dto.user;
 
 import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.dto.user.UserRegisterReq;
-import com.gsms.gsms.dto.user.UserInfoResp;
 
 /**
  * 用户对象转换器（手动转换，性能最优）

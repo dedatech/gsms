@@ -8,7 +8,6 @@ import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.WorkHourMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.WorkHourService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,40 +20,48 @@ import java.util.List;
 @Service
 public class WorkHourServiceImpl implements WorkHourService {
 
-    @Autowired
-    private WorkHourMapper workHourMapper;
+    private final WorkHourMapper workHourMapper;
+    private final AuthService authService;
 
-    @Autowired
-    private AuthService authService;
+    public WorkHourServiceImpl(WorkHourMapper workHourMapper, AuthService authService) {
+        this.workHourMapper = workHourMapper;
+        this.authService = authService;
+    }
 
-    @Override
-    public WorkHour getWorkHourById(Long id) {
-        WorkHour workHour = workHourMapper.selectById(id);
+    /**
+     * 校验当前用户对工时记录的访问权限
+     * @param workHourId 工时记录ID
+     * @throws BusinessException 无权限时抛出异常
+     */
+    private void checkWorkHourAccess(Long workHourId) {
+        WorkHour workHour = workHourMapper.selectById(workHourId);
         if (workHour == null) {
             throw new BusinessException(WorkHourErrorCode.WORKHOUR_NOT_FOUND);
         }
-
+        
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        
+        // 具备全局工时查看权限的用户可以访问任意工时
+        if (authService.canViewAllWorkHours(currentUserId)) {
+            return;
         }
-        // 具备全局工时查看权限的用户可以查看任意工时
-        if (!authService.canViewAllWorkHours(currentUserId)) {
-            // 否则只能查看自己的工时记录
-            if (!currentUserId.equals(workHour.getUserId())) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
-            }
+        
+        // 普通用户只能访问自己的工时记录
+        if (!currentUserId.equals(workHour.getUserId())) {
+            throw new BusinessException(CommonErrorCode.FORBIDDEN);
         }
+    }
 
-        return workHour;
+    @Override
+    public WorkHour getWorkHourById(Long id) {
+        // 先鉴权再查询
+        checkWorkHourAccess(id);
+        return workHourMapper.selectById(id);
     }
 
     @Override
     public List<WorkHour> getWorkHoursByUserId(Long userId) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         // 具备全局工时查看权限的用户可以查看任意用户工时
         if (authService.canViewAllWorkHours(currentUserId)) {
             return workHourMapper.selectByUserId(userId);
@@ -69,9 +76,6 @@ public class WorkHourServiceImpl implements WorkHourService {
     @Override
     public List<WorkHour> getWorkHoursByProjectId(Long projectId) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         // 具备全局工时查看权限的用户可以查看任意项目工时
         if (authService.canViewAllWorkHours(currentUserId)) {
             return workHourMapper.selectByProjectId(projectId);
@@ -87,9 +91,6 @@ public class WorkHourServiceImpl implements WorkHourService {
     @Override
     public List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, Date startDate, Date endDate) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         // 具备全局工时查看权限的用户可以按任意条件查询
         if (authService.canViewAllWorkHours(currentUserId)) {
             return workHourMapper.selectByCondition(userId, projectId, taskId, startDate, endDate);
@@ -112,9 +113,6 @@ public class WorkHourServiceImpl implements WorkHourService {
     @Transactional(rollbackFor = Exception.class)
     public WorkHour createWorkHour(WorkHour workHour) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         // 普通用户只能在自己参与的项目中登记工时
         if (!authService.canViewAllWorkHours(currentUserId)) {
             List<Long> accessibleProjectIds = authService.getAccessibleProjectIds(currentUserId);

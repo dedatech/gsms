@@ -106,12 +106,32 @@ public class ProjectControllerTest extends BaseControllerTest {
     void testGetAllProjects() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/projects")
-                .header("Authorization", "Bearer " + testToken))
+                .header("Authorization", "Bearer " + testToken)
+                .param("pageNum", "1")
+                .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.total").isNumber())
+                .andExpect(jsonPath("$.pageNum").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10));
     }
-
+    
+    @Test
+    void testGetProjectsByPage() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/projects")
+                .header("Authorization", "Bearer " + testToken)
+                .param("pageNum", "1")
+                .param("pageSize", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.total").isNumber())
+                .andExpect(jsonPath("$.pageNum").value(1))
+                .andExpect(jsonPath("$.pageSize").value(1));
+    }
+        
     @Test
     void testGetProjectsByCondition() throws Exception {
         // When & Then
@@ -121,9 +141,10 @@ public class ProjectControllerTest extends BaseControllerTest {
                 .param("status", "IN_PROGRESS"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.total").isNumber());
     }
-
+    
     @Test
     void testCreateProject_Success() throws Exception {
         // Given

@@ -19,32 +19,32 @@
 
     <select id="selectById" parameterType="long" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM gsms_department
+        FROM sys_department
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
     <select id="selectAll" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM gsms_department
+        FROM sys_department
         WHERE is_deleted = 0
         ORDER BY level, sort
     </select>
 
     <select id="selectByParentId" parameterType="long" resultMap="DepartmentResultMap">
         SELECT <include refid="selectAllFields"/>
-        FROM gsms_department
+        FROM sys_department
         WHERE parent_id = #{parentId} AND is_deleted = 0
         ORDER BY sort
     </select>
 
     <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Department" 
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO gsms_department(name, parent_id, level, sort, remark)
+        INSERT INTO sys_department(name, parent_id, level, sort, remark)
         VALUES(#{name}, #{parentId}, #{level}, #{sort}, #{remark})
     </insert>
 
     <update id="update" parameterType="com.gsms.gsms.domain.entity.Department">
-        UPDATE gsms_department
+        UPDATE sys_department
         <set>
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="parentId != null">parent_id = #{parentId},</if>
@@ -56,7 +56,20 @@
     </update>
 
     <update id="deleteById" parameterType="long">
-        UPDATE department SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
+        UPDATE sys_department SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
+    
+    <select id="selectByCondition" resultMap="DepartmentResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM sys_department
+        WHERE is_deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="parentId != null">
+            AND parent_id = #{parentId}
+        </if>
+        ORDER BY level, sort
+    </select>
 
 </mapper>

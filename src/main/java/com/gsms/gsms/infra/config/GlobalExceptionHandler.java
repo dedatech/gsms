@@ -61,8 +61,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public Result<String> handleException(HttpServletRequest request, Exception e) {
-        logger.error("请求地址：{}，发生异常：", request.getRequestURL(), e);
-        return Result.error(CommonErrorCode.INTERNAL_ERROR.getCode(), "系统内部错误");
+        logger.error("请求地址：{}，系统异常：{}", request.getRequestURL(), e.getMessage(), e);
+        return Result.error(CommonErrorCode.INTERNAL_ERROR.getCode(), "系统繁忙，请稍后再试");
     }
     
     /**
@@ -84,11 +84,11 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * 处理数据库异常
+     * 处理数据访问异常
      */
     @ExceptionHandler(DataAccessException.class)
     public Result<String> handleDataAccessException(HttpServletRequest request, DataAccessException e) {
-        logger.error("请求地址：{}，数据库异常：", request.getRequestURL(), e);
-        return Result.error(CommonErrorCode.DATABASE_ERROR.getCode(), "数据库操作异常");
+        logger.error("请求地址：{}，数据访问异常：{}", request.getRequestURL(), e.getMessage(), e);
+        return Result.error(CommonErrorCode.DATABASE_ERROR.getCode(), "数据访问异常：" + e.getMessage());
     }
 }

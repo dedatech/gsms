@@ -1,25 +1,20 @@
 package com.gsms.gsms.dto.task;
 
-import com.gsms.gsms.domain.enums.TaskStatus;
 import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * 任务查询请求
- */
 @Schema(description = "任务查询请求")
-public class TaskQueryReq extends BasePageQuery {
-    
+public class TaskPageQuery extends BasePageQuery {
+
     @Schema(description = "项目ID", example = "1")
     private Long projectId;
-    
+
     @Schema(description = "负责人ID", example = "1")
     private Long assigneeId;
-    
-    @Schema(description = "任务状态", example = "IN_PROGRESS")
-    private TaskStatus status;
 
-    // Getter and Setter
+    @Schema(description = "任务状态", example = "1")
+    private Integer status;
+
     public Long getProjectId() {
         return projectId;
     }
@@ -36,11 +31,11 @@ public class TaskQueryReq extends BasePageQuery {
         this.assigneeId = assigneeId;
     }
 
-    public TaskStatus getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 }

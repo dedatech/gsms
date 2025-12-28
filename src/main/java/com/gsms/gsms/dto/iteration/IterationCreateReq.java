@@ -11,11 +11,11 @@ import java.util.Date;
 public class IterationCreateReq {
 
     @NotNull(message = "项目ID不能为空")
-    @Schema(description = "项目ID", required = true)
+    @Schema(description = "项目ID")
     private Long projectId;
 
     @NotBlank(message = "迭代名称不能为空")
-    @Schema(description = "迭代名称", required = true)
+    @Schema(description = "迭代名称")
     private String name;
 
     @Schema(description = "迭代描述")

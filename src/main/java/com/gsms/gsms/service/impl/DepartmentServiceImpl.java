@@ -5,7 +5,6 @@ import com.gsms.gsms.domain.enums.errorcode.DepartmentErrorCode;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.repository.DepartmentMapper;
 import com.gsms.gsms.service.DepartmentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +13,11 @@ import java.util.List;
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
 
-    @Autowired
-    private DepartmentMapper departmentMapper;
+    private final DepartmentMapper departmentMapper;
+
+    public DepartmentServiceImpl(DepartmentMapper departmentMapper) {
+        this.departmentMapper = departmentMapper;
+    }
 
     @Override
     public Department getDepartmentById(Long id) {
@@ -34,6 +36,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public List<Department> getDepartmentsByParentId(Long parentId) {
         return departmentMapper.selectByParentId(parentId);
+    }
+    
+    @Override
+    public List<Department> getDepartmentsByCondition(String name, Long parentId) {
+        return departmentMapper.selectByCondition(name, parentId);
     }
 
     @Override

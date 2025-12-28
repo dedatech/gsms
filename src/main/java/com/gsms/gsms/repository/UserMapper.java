@@ -33,6 +33,14 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> selectAll();
 
     /**
+     * 根据条件查询用户
+     * @param username 用户名（模糊匹配）
+     * @param status 用户状态
+     * @return 用户列表
+     */
+    List<User> findAll(@Param("username") String username, @Param("status") Integer status);
+
+    /**
      * 插入用户
      * @param user 用户实体
      * @return 影响行数

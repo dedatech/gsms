@@ -1,14 +1,17 @@
 package com.gsms.gsms.service.impl;
 
+import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.errorcode.UserErrorCode;
+import com.gsms.gsms.dto.user.UserInfoResp;
+import com.gsms.gsms.dto.user.UserPageQuery;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.PasswordUtil;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,11 +24,14 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
+
+    public UserServiceImpl(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
 
     @Override
-    public User getUserById(Long id) {
+    public User getById(Long id) {
         logger.debug("根据ID查询用户: {}", id);
         User user = userMapper.selectById(id);
         if (user == null) {
@@ -35,7 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserByUsername(String username) {
+    public User getByUsername(String username) {
         logger.debug("根据用户名查询用户: {}", username);
         User user = userMapper.selectByUsername(username);
         if (user == null) {
@@ -44,10 +50,19 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+
     @Override
-    public List<User> getAllUsers() {
-        logger.debug("查询所有用户");
-        return userMapper.selectAll();
+    public PageResult<UserInfoResp> findAll(UserPageQuery userPageQuery) {
+        logger.debug("根据条件分页查询用户: userPageQuery={}", userPageQuery);
+        
+        // 使用PageHelper进行分页
+        com.github.pagehelper.PageHelper.startPage(userPageQuery.getPageNum(),userPageQuery.getPageSize());
+        List<User> users = userMapper.findAll(userPageQuery.getUsername(), userPageQuery.getStatus());
+
+        PageInfo<User> pageInfo = new PageInfo<>(users);
+        List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);
+
+        return PageResult.success(userInfoRespList,pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     @Override
@@ -120,7 +135,6 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
-        
         if (!PasswordUtil.verify(password, user.getPassword())) {
             throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
         }

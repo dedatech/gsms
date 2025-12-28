@@ -9,13 +9,10 @@ import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 项目服务实现类
@@ -23,34 +20,44 @@ import java.util.Set;
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
-    @Autowired
-    private ProjectMapper projectMapper;
-    
-    @Autowired
-    private ProjectMemberMapper projectMemberMapper;
-    
-    @Autowired
-    private AuthService authService;
+    private final ProjectMapper projectMapper;
+    private final ProjectMemberMapper projectMemberMapper;
+    private final AuthService authService;
+
+    public ProjectServiceImpl(ProjectMapper projectMapper, ProjectMemberMapper projectMemberMapper, AuthService authService) {
+        this.projectMapper = projectMapper;
+        this.projectMemberMapper = projectMemberMapper;
+        this.authService = authService;
+    }
+
+    /**
+     * 校验当前用户对项目的访问权限
+     * @param projectId 项目ID
+     * @throws BusinessException 无权限时抛出异常
+     */
+    private void checkProjectAccess(Long projectId) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        
+        // 系统管理员和业务相关角色可以访问所有项目
+        if (authService.canViewAllProjects(currentUserId)) {
+            return;
+        }
+        
+        // 普通用户只能访问自己参与的项目
+        List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
+        if (projectIds == null || !projectIds.contains(projectId)) {
+            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+        }
+    }
 
     @Override
     public Project getProjectById(Long id) {
+        // 先鉴权再查询
+        checkProjectAccess(id);
+        
         Project project = projectMapper.selectById(id);
         if (project == null) {
             throw new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND);
-        }
-    
-        Long currentUserId = UserContext.getCurrentUserId();
-        // 未登录直接视为未授权
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
-        // 系统管理员和业务相关角色可以查看所有项目
-        if (!authService.canViewAllProjects(currentUserId)) {
-            // 其他角色只能查看自己参与的项目
-            List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
-            if (projectIds == null || !projectIds.contains(project.getId())) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
-            }
         }
         return project;
     }
@@ -58,45 +65,27 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> getAllProjects() {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
-    
-        List<Project> projects = projectMapper.selectAll();
+        
         // 系统管理员和业务相关角色可以查看所有项目
         if (authService.canViewAllProjects(currentUserId)) {
-            return projects;
+            return projectMapper.selectAll();
         }
-    
-        List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
-        if (projectIds == null || projectIds.isEmpty()) {
-            return java.util.Collections.emptyList();
-        }
-        Set<Long> idSet = new HashSet<>(projectIds);
-        projects.removeIf(p -> p.getId() == null || !idSet.contains(p.getId()));
-        return projects;
+        
+        // 普通用户只查询自己参与的项目（在SQL层过滤）
+        return projectMapper.selectAccessibleProjects(currentUserId);
     }
 
     @Override
     public List<Project> getProjectsByCondition(String name, Integer status) {
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
-    
-        List<Project> projects = projectMapper.selectByCondition(name, status);
+            
         // 系统管理员和业务相关角色可以查看所有项目
         if (authService.canViewAllProjects(currentUserId)) {
-            return projects;
+            return projectMapper.selectByCondition(name, status);
         }
-    
-        List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
-        if (projectIds == null || projectIds.isEmpty()) {
-            return java.util.Collections.emptyList();
-        }
-        Set<Long> idSet = new HashSet<>(projectIds);
-        projects.removeIf(p -> p.getId() == null || !idSet.contains(p.getId()));
-        return projects;
+            
+        // 普通用户只查询自己参与的项目（在SQL层过滤）
+        return projectMapper.selectAccessibleProjectsByCondition(currentUserId, name, status);
     }
 
     @Override
@@ -104,9 +93,6 @@ public class ProjectServiceImpl implements ProjectService {
     public Project createProject(Project project) {
         // 自动填充创建人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         project.setCreateUserId(currentUserId);
     
         // 创建时间和更新时间由数据库自动填充
@@ -124,6 +110,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Project updateProject(Project project) {
+        // 先鉴权
+        checkProjectAccess(project.getId());
+        
         // 检查项目是否存在
         Project existProject = projectMapper.selectById(project.getId());
         if (existProject == null) {
@@ -132,9 +121,6 @@ public class ProjectServiceImpl implements ProjectService {
         
         // 自动填充更新人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();
-        if (currentUserId == null) {
-            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
-        }
         project.setUpdateUserId(currentUserId);
         
         // 更新时间由数据库自动填充
@@ -149,6 +135,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteProject(Long id) {
+        // 先鉴权
+        checkProjectAccess(id);
+        
         // 检查项目是否存在
         Project existProject = projectMapper.selectById(id);
         if (existProject == null) {

@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 public class DepartmentUpdateReq {
 
     @NotNull(message = "部门ID不能为空")
-    @Schema(description = "部门ID", required = true)
+    @Schema(description = "部门ID")
     private Long id;
 
     @Schema(description = "部门名称")

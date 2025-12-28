@@ -15,6 +15,9 @@ public interface IterationMapper extends BaseMapper<Iteration> {
 
     List<Iteration> selectByCondition(@Param("projectId") Long projectId, @Param("status") Integer status);
 
+    // 添加支持IterationStatus枚举的查询方法
+    List<Iteration> selectByConditionWithStatus(@Param("projectId") Long projectId, @Param("status") Object status);
+
     int insert(Iteration iteration);
 
     int update(Iteration iteration);

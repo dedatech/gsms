@@ -1,17 +1,24 @@
 package com.gsms.gsms.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 
 @Schema(description = "部门信息")
+@TableName("sys_department")
 public class Department {
     @Schema(description = "部门ID")
+    @TableId
     private Long id;
 
     @Schema(description = "部门名称")
     private String name;
 
     @Schema(description = "父部门ID")
+    @TableField("parent_id")
     private Long parentId;
 
     @Schema(description = "层级")
@@ -24,12 +31,17 @@ public class Department {
     private String remark;
 
     @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
     
     @Schema(description = "是否删除")
+    @TableField("is_deleted")
     private Integer isDeleted;
     
     public Long getId() {

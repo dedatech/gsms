@@ -1,5 +1,6 @@
 package com.gsms.gsms.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Date;
@@ -26,9 +27,11 @@ public class ProjectMember {
     private Long createUserId;
 
     @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
     public Long getId() {

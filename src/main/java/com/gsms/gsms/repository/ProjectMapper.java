@@ -26,12 +26,28 @@ public interface ProjectMapper extends BaseMapper<Project> {
     List<Project> selectAll();
 
     /**
+     * 查询用户可访问的项目列表（基于项目成员表）
+     * @param userId 用户ID
+     * @return 项目列表
+     */
+    List<Project> selectAccessibleProjects(@Param("userId") Long userId);
+
+    /**
      * 根据条件查询项目
      * @param name 项目名称（模糊匹配）
      * @param status 项目状态
      * @return 项目列表
      */
     List<Project> selectByCondition(@Param("name") String name, @Param("status") Integer status);
+
+    /**
+     * 根据条件查询用户可访问的项目（基于项目成员表）
+     * @param userId 用户ID
+     * @param name 项目名称（模糊匹配）
+     * @param status 项目状态
+     * @return 项目列表
+     */
+    List<Project> selectAccessibleProjectsByCondition(@Param("userId") Long userId, @Param("name") String name, @Param("status") Integer status);
 
     /**
      * 插入项目

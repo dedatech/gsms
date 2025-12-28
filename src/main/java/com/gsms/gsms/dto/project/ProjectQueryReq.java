@@ -1,13 +1,14 @@
 package com.gsms.gsms.dto.project;
 
 import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 项目查询请求
  */
 @Schema(description = "项目查询请求")
-public class ProjectQueryReq {
+public class ProjectQueryReq extends BasePageQuery {
     
     @Schema(description = "项目名称，模糊匹配", example = "工时管理")
     private String name;

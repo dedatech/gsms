@@ -41,6 +41,17 @@
         ORDER BY create_time DESC
     </select>
 
+    <!-- 查询用户可访问的项目列表（基于项目成员表） -->
+    <select id="selectAccessibleProjects" resultMap="ProjectResultMap">
+        SELECT DISTINCT p.id, p.name, p.code, p.description, p.manager_id, p.status, 
+               p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date, 
+               p.create_user_id, p.update_user_id, p.create_time, p.update_time, p.is_deleted
+        FROM gsms_project p
+        INNER JOIN gsms_project_member pm ON p.id = pm.project_id AND pm.is_deleted = 0
+        WHERE p.is_deleted = 0 AND pm.user_id = #{userId}
+        ORDER BY p.create_time DESC
+    </select>
+
     <!-- 根据条件查询项目 -->
     <select id="selectByCondition" resultMap="ProjectResultMap">
         SELECT <include refid="selectAllFields"/>
@@ -55,6 +66,25 @@
             </if>
         </where>
         ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据条件查询用户可访问的项目（基于项目成员表） -->
+    <select id="selectAccessibleProjectsByCondition" resultMap="ProjectResultMap">
+        SELECT DISTINCT p.id, p.name, p.code, p.description, p.manager_id, p.status, 
+               p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date, 
+               p.create_user_id, p.update_user_id, p.create_time, p.update_time, p.is_deleted
+        FROM gsms_project p
+        INNER JOIN gsms_project_member pm ON p.id = pm.project_id AND pm.is_deleted = 0
+        <where>
+            AND p.is_deleted = 0 AND pm.user_id = #{userId}
+            <if test="name != null and name != ''">
+                AND p.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
     </select>
 
     <!-- 插入项目 -->

@@ -1,10 +1,11 @@
 package com.gsms.gsms.dto.iteration;
 
 import com.gsms.gsms.domain.enums.IterationStatus;
+import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "查询迭代请求")
-public class IterationQueryReq {
+public class IterationQueryReq extends BasePageQuery {
 
     @Schema(description = "项目ID")
     private Long projectId;

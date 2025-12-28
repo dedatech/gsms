@@ -10,7 +10,7 @@ import java.util.Date;
 public class IterationUpdateReq {
 
     @NotNull(message = "迭代ID不能为空")
-    @Schema(description = "迭代ID", required = true)
+    @Schema(description = "迭代ID")
     private Long id;
 
     @Schema(description = "迭代名称")
