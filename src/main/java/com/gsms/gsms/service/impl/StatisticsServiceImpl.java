@@ -3,6 +3,7 @@ package com.gsms.gsms.service.impl;
 import com.gsms.gsms.domain.entity.Task;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.domain.enums.TaskStatus;
 import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.repository.WorkHourMapper;
@@ -173,9 +174,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<Task> tasks = taskMapper.selectByProjectId(projectId);
 
         long totalTasks = tasks.size();
-        long todoTasks = tasks.stream().filter(t -> t.getStatus().getCode() == 1).count();
-        long inProgressTasks = tasks.stream().filter(t -> t.getStatus().getCode() == 2).count();
-        long doneTasks = tasks.stream().filter(t -> t.getStatus().getCode() == 3).count();
+        long todoTasks = tasks.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count();
+        long inProgressTasks = tasks.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count();
+        long doneTasks = tasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
 
         double completionRate = totalTasks > 0 ? (double) doneTasks / totalTasks * 100 : 0;
 

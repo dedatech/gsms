@@ -111,7 +111,7 @@ public class TaskServiceImpl implements TaskService {
         if (task.getAssigneeId() != null) {
             List<Long> memberUserIds = projectMemberMapper.selectUserIdsByProjectId(task.getProjectId());
             if (memberUserIds == null || memberUserIds.isEmpty() || !memberUserIds.contains(task.getAssigneeId())) {
-                throw new BusinessException(CommonErrorCode.PARAM_INVALID.getCode(), "任务负责人必顺为项目成员");
+                throw new BusinessException(TaskErrorCode.TASK_ASSIGNEE_INVALID);
             }
         }
 
@@ -147,7 +147,7 @@ public class TaskServiceImpl implements TaskService {
         if (task.getAssigneeId() != null) {
             List<Long> memberUserIds = projectMemberMapper.selectUserIdsByProjectId(existTask.getProjectId());
             if (memberUserIds == null || memberUserIds.isEmpty() || !memberUserIds.contains(task.getAssigneeId())) {
-                throw new BusinessException(CommonErrorCode.PARAM_INVALID.getCode(), "任务负责人必须为项目成员");
+                throw new BusinessException(TaskErrorCode.TASK_ASSIGNEE_INVALID);
             }
         }
 

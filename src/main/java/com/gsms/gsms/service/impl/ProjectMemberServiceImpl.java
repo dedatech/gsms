@@ -1,6 +1,7 @@
 package com.gsms.gsms.service.impl;
 
 import com.gsms.gsms.domain.entity.ProjectMember;
+import com.gsms.gsms.domain.enums.ProjectMemberRole;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.infra.utils.UserContext;
@@ -58,7 +59,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addMembers(Long projectId, List<Long> userIds, Integer roleType) {
-        logger.info("为项目添加成员: projectId={}, userIds={}, roleType={}", projectId, userIds, roleType);
+        // 转换并验证角色类型
+        ProjectMemberRole role = ProjectMemberRole.fromCode(roleType);
+        logger.info("为项目添加成员: projectId={}, userIds={}, roleType={}", projectId, userIds, role.getDesc());
+
         Long currentUserId = requireLogin();
         // 校验项目存在
         if (projectMapper.selectById(projectId) == null) {
@@ -88,13 +92,16 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             projectMemberMapper.insertProjectMember(projectId, userId, roleType, currentUserId);
             addedCount++;
         }
-        logger.info("成功为项目添加{}个成员: projectId={}", addedCount, projectId);
+        logger.info("成功为项目添加{}个成员: projectId={}, role={}", addedCount, projectId, role.getDesc());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateMemberRole(Long projectId, Long userId, Integer roleType) {
-        logger.info("更新项目成员角色: projectId={}, userId={}, roleType={}", projectId, userId, roleType);
+        // 转换并验证角色类型
+        ProjectMemberRole role = ProjectMemberRole.fromCode(roleType);
+        logger.info("更新项目成员角色: projectId={}, userId={}, roleType={}", projectId, userId, role.getDesc());
+
         Long currentUserId = requireLogin();
         if (projectMapper.selectById(projectId) == null) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
@@ -109,7 +116,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (updated <= 0) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
-        logger.info("项目成员角色更新成功: projectId={}, userId={}", projectId, userId);
+        logger.info("项目成员角色更新成功: projectId={}, userId={}, newRole={}", projectId, userId, role.getDesc());
     }
 
     @Override
