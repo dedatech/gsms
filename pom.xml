@@ -55,6 +55,12 @@
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>1.6.14</version>
         </dependency>
+        <!-- 升级 ClassGraph 到最新版，修复 Debug 模式死锁问题 -->
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.172</version>
+        </dependency>
         <!-- Spring Boot Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -42,7 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
         filter.setForceEncoding(true);
         return filter;
     }
-    
+
     /**
      * 注册拦截器
      */
