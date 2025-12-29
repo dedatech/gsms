@@ -9,6 +9,8 @@ import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.ProjectMemberService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import java.util.Set;
  */
 @Service
 public class ProjectMemberServiceImpl implements ProjectMemberService {
+    private static final Logger logger = LoggerFactory.getLogger(ProjectMemberServiceImpl.class);
 
     private final ProjectMemberMapper projectMemberMapper;
     private final ProjectMapper projectMapper;
@@ -37,6 +40,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public List<ProjectMember> listMembersByProjectId(Long projectId) {
+        logger.info("查询项目成员列表: projectId={}", projectId);
         Long currentUserId = requireLogin();
         // 系统级角色可查看所有项目成员
         if (!authService.canViewAllProjects(currentUserId)) {
@@ -46,12 +50,15 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 throw new BusinessException(CommonErrorCode.FORBIDDEN);
             }
         }
-        return projectMemberMapper.selectMembersByProjectId(projectId);
+        List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(projectId);
+        logger.info("查询到{}个项目成员", members.size());
+        return members;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void addMembers(Long projectId, List<Long> userIds, Integer roleType) {
+        logger.info("为项目添加成员: projectId={}, userIds={}, roleType={}", projectId, userIds, roleType);
         Long currentUserId = requireLogin();
         // 校验项目存在
         if (projectMapper.selectById(projectId) == null) {
@@ -73,17 +80,21 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (existUserIds != null && !existUserIds.isEmpty()) {
             targetUserIds.removeAll(existUserIds);
         }
+        int addedCount = 0;
         for (Long userId : targetUserIds) {
             if (userMapper.selectById(userId) == null) {
                 throw new BusinessException(CommonErrorCode.NOT_FOUND);
             }
             projectMemberMapper.insertProjectMember(projectId, userId, roleType, currentUserId);
+            addedCount++;
         }
+        logger.info("成功为项目添加{}个成员: projectId={}", addedCount, projectId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateMemberRole(Long projectId, Long userId, Integer roleType) {
+        logger.info("更新项目成员角色: projectId={}, userId={}, roleType={}", projectId, userId, roleType);
         Long currentUserId = requireLogin();
         if (projectMapper.selectById(projectId) == null) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
@@ -98,11 +109,13 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (updated <= 0) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
+        logger.info("项目成员角色更新成功: projectId={}, userId={}", projectId, userId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void removeMember(Long projectId, Long userId) {
+        logger.info("从项目移除成员: projectId={}, userId={}", projectId, userId);
         Long currentUserId = requireLogin();
         if (projectMapper.selectById(projectId) == null) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
@@ -117,6 +130,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (updated <= 0) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
+        logger.info("项目成员移除成功: projectId={}, userId={}", projectId, userId);
     }
 
     private Long requireLogin() {
