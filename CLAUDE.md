@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用 DDD（领域驱动设计）原则，具有清晰的分层架构。
+GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用标准三层架构结合DTO模式，具有清晰的分层结构。
 
 **技术栈：**
 - Java 8 + Spring Boot 2.7.0
@@ -54,7 +54,7 @@ mvn flyway:info
 
 ## 架构设计
 
-### 分层结构（DDD思想）
+### 分层结构（标准三层架构）
 
 ```
 controller/         # REST API层 - 处理HTTP请求、参数校验
@@ -79,6 +79,16 @@ controller/         # REST API层 - 处理HTTP请求、参数校验
 4. **Repository**（MyBatis Mapper）处理数据库操作
 5. **Domain** 实体表示数据库表结构
 6. **Result<T>** 包装所有API响应为统一格式
+
+### 架构模式
+
+**标准三层架构 + DTO模式：**
+- **Controller层**：处理HTTP请求和响应，参数校验
+- **Service层**：实现业务逻辑和事务管理
+- **Repository/Mapper层**：数据持久化操作
+- **DTO模式**：Controller和Service之间使用DTO传输数据
+- **Domain层**：实体类和枚举，使用贫血模型模式
+- 这种架构适合中小型项目，职责清晰，易于理解和维护
 
 ### 关键设计模式
 
