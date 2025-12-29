@@ -49,10 +49,13 @@ public class ProjectController {
 
     /**
      * 根据条件分页查询项目
+     *
+     * @param req 查询条件（项目名称、状态、分页参数）
+     * @return 分页结果
      */
     @GetMapping
     @Operation(summary = "根据条件分页查询项目")
-    public PageResult<ProjectInfoResp> getProjects(ProjectQueryReq req) {
+    public PageResult<ProjectInfoResp> getProjects(@Valid ProjectQueryReq req) {
         logger.info("根据条件分页查询项目: name={}, status={}, pageNum={}, pageSize={}",
                 req.getName(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return projectService.findAll(req);
@@ -106,11 +109,16 @@ public class ProjectController {
 
     /**
      * 为项目批量添加成员
+     *
+     * @param projectId 项目ID
+     * @param userIds 用户ID列表
+     * @param roleType 角色类型（1=项目经理，2=普通成员）
+     * @return 操作结果
      */
     @PostMapping("/{projectId}/members")
     @Operation(summary = "为项目批量添加成员")
     public Result<String> addProjectMembers(@PathVariable Long projectId,
-                                            @RequestBody List<Long> userIds,
+                                            @Valid @RequestBody List<Long> userIds,
                                             @RequestParam(name = "roleType", defaultValue = "2") Integer roleType) {
         projectMemberService.addMembers(projectId, userIds, roleType);
         return Result.success("添加项目成员成功");

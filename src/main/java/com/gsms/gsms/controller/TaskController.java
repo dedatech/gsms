@@ -33,10 +33,13 @@ public class TaskController {
 
     /**
      * 根据条件分页查询任务
+     *
+     * @param req 查询条件（项目ID、负责人ID、状态、分页参数）
+     * @return 分页结果
      */
     @GetMapping("/search")
     @Operation(summary = "根据条件分页查询任务")
-    public PageResult<TaskInfoResp> search(TaskQueryReq req) {
+    public PageResult<TaskInfoResp> search(@Valid TaskQueryReq req) {
         logger.info("根据条件分页查询任务: projectId={}, assigneeId={}, status={}, pageNum={}, pageSize={}",
                     req.getProjectId(), req.getAssigneeId(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return taskService.findAll(req);
@@ -44,6 +47,9 @@ public class TaskController {
 
     /**
      * 根据ID查询任务
+     *
+     * @param id 任务ID
+     * @return 任务详细信息
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询任务")
@@ -57,6 +63,9 @@ public class TaskController {
 
     /**
      * 创建任务
+     *
+     * @param req 任务创建请求对象
+     * @return 创建的任务信息
      */
     @PostMapping
     @Operation(summary = "创建任务")
@@ -71,6 +80,9 @@ public class TaskController {
 
     /**
      * 更新任务
+     *
+     * @param req 任务更新请求对象
+     * @return 更新后的任务信息
      */
     @PutMapping
     @Operation(summary = "更新任务")
@@ -84,6 +96,9 @@ public class TaskController {
 
     /**
      * 删除任务
+     *
+     * @param id 任务ID
+     * @return 操作结果
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除任务")

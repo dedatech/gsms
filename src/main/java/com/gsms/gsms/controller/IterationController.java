@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @Tag(name = "迭代管理", description = "迭代管理相关接口")
 @RestController
 @RequestMapping("/api/iterations")
@@ -27,6 +29,12 @@ public class IterationController {
         this.iterationService = iterationService;
     }
 
+    /**
+     * 根据ID查询迭代
+     *
+     * @param id 迭代ID
+     * @return 迭代详细信息
+     */
     @Operation(summary = "根据ID获取迭代")
     @GetMapping("/{id}")
     public Result<IterationInfoResp> getById(
@@ -37,14 +45,26 @@ public class IterationController {
         return Result.success(iteration);
     }
 
+    /**
+     * 根据条件分页查询迭代
+     *
+     * @param req 查询条件（项目ID、状态、分页参数）
+     * @return 分页结果
+     */
     @Operation(summary = "根据条件分页查询迭代")
     @PostMapping("/query")
-    public PageResult<IterationInfoResp> findAll(@RequestBody IterationQueryReq req) {
+    public PageResult<IterationInfoResp> findAll(@Valid @RequestBody IterationQueryReq req) {
         logger.info("根据条件分页查询迭代: projectId={}, status={}, pageNum={}, pageSize={}",
                 req.getProjectId(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return iterationService.findAll(req);
     }
 
+    /**
+     * 创建迭代
+     *
+     * @param req 迭代创建请求对象
+     * @return 创建的迭代信息
+     */
     @Operation(summary = "创建迭代")
     @PostMapping
     public Result<IterationInfoResp> create(@Validated @RequestBody IterationCreateReq req) {
@@ -54,6 +74,12 @@ public class IterationController {
         return Result.success(createdIteration);
     }
 
+    /**
+     * 更新迭代
+     *
+     * @param req 迭代更新请求对象
+     * @return 更新后的迭代信息
+     */
     @Operation(summary = "更新迭代")
     @PutMapping
     public Result<IterationInfoResp> update(@Validated @RequestBody IterationUpdateReq req) {
@@ -63,6 +89,12 @@ public class IterationController {
         return Result.success(updatedIteration);
     }
 
+    /**
+     * 删除迭代
+     *
+     * @param id 迭代ID
+     * @return 操作结果
+     */
     @Operation(summary = "删除迭代")
     @DeleteMapping("/{id}")
     public Result<String> delete(

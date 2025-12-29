@@ -36,6 +36,9 @@ public class WorkHourController {
 
     /**
      * 根据ID查询工时记录
+     *
+     * @param id 工时记录ID
+     * @return 工时记录详细信息
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询工时记录")
@@ -48,6 +51,9 @@ public class WorkHourController {
 
     /**
      * 根据用户ID分页查询工时记录
+     *
+     * @param userId 用户ID
+     * @return 工时记录列表
      */
     @GetMapping("/user/{userId}")
     @Operation(summary = "根据用户ID分页查询工时记录")
@@ -60,6 +66,9 @@ public class WorkHourController {
 
     /**
      * 根据项目ID分页查询工时记录
+     *
+     * @param projectId 项目ID
+     * @return 工时记录列表
      */
     @GetMapping("/project/{projectId}")
     @Operation(summary = "根据项目ID分页查询工时记录")
@@ -72,10 +81,13 @@ public class WorkHourController {
 
     /**
      * 根据条件查询工时记录
+     *
+     * @param req 查询条件（用户ID、项目ID、任务ID、日期范围、分页参数）
+     * @return 分页结果
      */
     @PostMapping("/query")
     @Operation(summary = "根据条件查询工时记录")
-    public PageResult<WorkHour> getWorkHoursByCondition(@RequestBody WorkHourQueryReq req) {
+    public PageResult<WorkHour> getWorkHoursByCondition(@Valid @RequestBody WorkHourQueryReq req) {
         logger.info("根据条件查询工时记录: {}", req);
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
         List<WorkHour> workHours = workHourService.getWorkHoursByCondition(
@@ -86,6 +98,9 @@ public class WorkHourController {
 
     /**
      * 创建工时记录
+     *
+     * @param req 工时记录创建请求对象
+     * @return 创建的工时记录
      */
     @PostMapping
     @Operation(summary = "创建工时记录")
@@ -99,6 +114,9 @@ public class WorkHourController {
 
     /**
      * 更新工时记录
+     *
+     * @param req 工时记录更新请求对象
+     * @return 更新后的工时记录
      */
     @PutMapping
     @Operation(summary = "更新工时记录")
@@ -112,6 +130,9 @@ public class WorkHourController {
 
     /**
      * 删除工时记录
+     *
+     * @param id 工时记录ID
+     * @return 操作结果
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除工时记录")
