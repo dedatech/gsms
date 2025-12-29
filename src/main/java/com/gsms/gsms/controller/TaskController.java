@@ -2,7 +2,7 @@ package com.gsms.gsms.controller;
 
 import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.dto.task.TaskCreateReq;
-import com.gsms.gsms.dto.task.TaskPageQuery;
+import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
 import com.gsms.gsms.domain.entity.Task;
 import com.gsms.gsms.dto.task.TaskInfoResp;
@@ -37,8 +37,8 @@ public class TaskController {
      */
     @GetMapping("/search")
     @Operation(summary = "根据条件分页查询任务")
-    public PageResult<TaskInfoResp> search(TaskPageQuery req) {
-        logger.info("根据条件分页查询任务: projectId={}, assigneeId={}, status={}, pageNum={}, pageSize={}", 
+    public PageResult<TaskInfoResp> search(TaskQueryReq req) {
+        logger.info("根据条件分页查询任务: projectId={}, assigneeId={}, status={}, pageNum={}, pageSize={}",
                     req.getProjectId(), req.getAssigneeId(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return taskService.findAll(req);
     }
@@ -48,9 +48,9 @@ public class TaskController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询任务")
-    public Result<TaskInfoResp> getTaskById(@PathVariable Long id) {
+    public Result<TaskInfoResp> getById(@PathVariable Long id) {
         logger.info("根据ID查询任务: {}", id);
-        Task task = taskService.getTaskById(id);
+        Task task = taskService.getById(id);
         TaskInfoResp resp = TaskInfoResp.from(task);
         logger.info("成功查询到任务: {}", task.getTitle());
         return Result.success(resp);
@@ -61,10 +61,10 @@ public class TaskController {
      */
     @PostMapping
     @Operation(summary = "创建任务")
-    public Result<TaskInfoResp> createTask(@RequestBody @Valid TaskCreateReq req) {
+    public Result<TaskInfoResp> create(@RequestBody @Valid TaskCreateReq req) {
         logger.info("创建任务: {}", req.getTitle());
         Task task = TaskConverter.toTask(req);
-        Task createdTask = taskService.createTask(task);
+        Task createdTask = taskService.create(task);
         TaskInfoResp resp = TaskInfoResp.from(createdTask);
         logger.info("任务创建成功: {}", createdTask.getTitle());
         return Result.success(resp);
@@ -75,10 +75,10 @@ public class TaskController {
      */
     @PutMapping
     @Operation(summary = "更新任务")
-    public Result<TaskInfoResp> updateTask(@RequestBody @Valid TaskUpdateReq req) {
+    public Result<TaskInfoResp> update(@RequestBody @Valid TaskUpdateReq req) {
         logger.info("更新任务: {}", req.getId());
         Task task = TaskConverter.toTask(req);
-        Task updatedTask = taskService.updateTask(task);
+        Task updatedTask = taskService.update(task);
         TaskInfoResp resp = TaskInfoResp.from(updatedTask);
         logger.info("任务更新成功: {}", updatedTask.getId());
         return Result.success(resp);
@@ -89,9 +89,9 @@ public class TaskController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除任务")
-    public Result<String> deleteTask(@PathVariable Long id) {
+    public Result<String> delete(@PathVariable Long id) {
         logger.info("删除任务: {}", id);
-        taskService.deleteTask(id);
+        taskService.delete(id);
         logger.info("任务删除成功: {}", id);
         return Result.success("任务删除成功");
     }

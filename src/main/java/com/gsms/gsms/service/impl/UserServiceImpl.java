@@ -4,7 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.errorcode.UserErrorCode;
 import com.gsms.gsms.dto.user.UserInfoResp;
-import com.gsms.gsms.dto.user.UserPageQuery;
+import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.PasswordUtil;
@@ -52,12 +52,12 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public PageResult<UserInfoResp> findAll(UserPageQuery userPageQuery) {
-        logger.debug("根据条件分页查询用户: userPageQuery={}", userPageQuery);
-        
+    public PageResult<UserInfoResp> findAll(UserQueryReq userQueryReq) {
+        logger.debug("根据条件分页查询用户: userQueryReq={}", userQueryReq);
+
         // 使用PageHelper进行分页
-        com.github.pagehelper.PageHelper.startPage(userPageQuery.getPageNum(),userPageQuery.getPageSize());
-        List<User> users = userMapper.findAll(userPageQuery.getUsername(), userPageQuery.getStatus());
+        com.github.pagehelper.PageHelper.startPage(userQueryReq.getPageNum(),userQueryReq.getPageSize());
+        List<User> users = userMapper.findAll(userQueryReq.getUsername(), userQueryReq.getStatus());
 
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public User createUser(User user) {
+    public User create(User user) {
         logger.info("创建用户: {}", user.getUsername());
         
         // 检查用户名是否已存在
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public User updateUser(User user) {
+    public User update(User user) {
         logger.info("更新用户: {}", user.getId());
         
         // 检查用户是否存在
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteUser(Long id) {
+    public void delete(Long id) {
         logger.info("删除用户: {}", id);
         
         // 检查用户是否存在

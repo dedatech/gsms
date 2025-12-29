@@ -4,20 +4,41 @@ import com.gsms.gsms.domain.entity.Department;
 import com.gsms.gsms.dto.department.DepartmentQueryReq;
 import com.gsms.gsms.infra.common.PageResult;
 
-import java.util.List;
-
+/**
+ * 部门服务接口
+ */
 public interface DepartmentService {
-    Department getDepartmentById(Long id);
+    /**
+     * 根据ID查询部门
+     * @param id 部门ID
+     * @return 部门实体
+     */
+    Department getById(Long id);
 
-    List<Department> getAllDepartments();
+    /**
+     * 根据条件分页查询部门
+     * @param req 查询条件
+     * @return 分页结果
+     */
+    PageResult<Department> findAll(DepartmentQueryReq req);
 
-    List<Department> getDepartmentsByParentId(Long parentId);
-    
-    List<Department> getDepartmentsByCondition(String name, Long parentId);
+    /**
+     * 创建部门
+     * @param department 部门实体
+     * @return 创建成功的部门实体
+     */
+    Department create(Department department);
 
-    Department createDepartment(Department department);
+    /**
+     * 更新部门
+     * @param department 部门实体
+     * @return 更新后的部门实体
+     */
+    Department update(Department department);
 
-    Department updateDepartment(Department department);
-
-    void deleteDepartment(Long id);
+    /**
+     * 删除部门
+     * @param id 部门ID
+     */
+    void delete(Long id);
 }

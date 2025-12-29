@@ -4,19 +4,32 @@ import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.infra.common.PageResult;
 
-import java.util.List;
-
+/**
+ * 迭代服务接口
+ */
 public interface IterationService {
-    Iteration getIterationById(Long id);
+    /**
+     * 根据ID查询迭代
+     */
+    Iteration getById(Long id);
 
-    List<Iteration> getIterationsByProjectId(Long projectId);
+    /**
+     * 根据条件分页查询迭代
+     */
+    PageResult<Iteration> findAll(IterationQueryReq req);
 
-    List<Iteration> getIterationsByCondition(Long projectId, Integer status);
+    /**
+     * 创建迭代
+     */
+    Iteration create(Iteration iteration);
 
+    /**
+     * 更新迭代
+     */
+    Iteration update(Iteration iteration);
 
-    Iteration createIteration(Iteration iteration);
-
-    Iteration updateIteration(Iteration iteration);
-
-    void deleteIteration(Long id);
+    /**
+     * 删除迭代
+     */
+    void delete(Long id);
 }

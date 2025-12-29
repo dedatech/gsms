@@ -2,8 +2,9 @@ package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.dto.user.UserInfoResp;
-import com.gsms.gsms.dto.user.UserPageQuery;
+import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.infra.common.PageResult;
+import com.gsms.gsms.infra.exception.BusinessException;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public interface UserService {
      * 根据条件分页查询用户
      * @return 分页结果
      */
-    PageResult<UserInfoResp> findAll(UserPageQuery userPageQuery);
+    PageResult<UserInfoResp> findAll(UserQueryReq userQueryReq);
 
     /**
      * 创建用户
@@ -38,7 +39,7 @@ public interface UserService {
      * @return 创建成功的用户实体
      * @throws BusinessException 用户名已存在时抛出异常
      */
-    User createUser(User user);
+    User create(User user);
 
     /**
      * 更新用户
@@ -46,14 +47,14 @@ public interface UserService {
      * @return 更新后的用户实体
      * @throws BusinessException 用户不存在时抛出异常
      */
-    User updateUser(User user);
+    User update(User user);
 
     /**
      * 删除用户
      * @param id 用户ID
      * @throws BusinessException 用户不存在时抛出异常
      */
-    void deleteUser(Long id);
+    void delete(Long id);
 
     /**
      * 用户登录

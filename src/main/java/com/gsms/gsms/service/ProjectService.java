@@ -1,8 +1,8 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Project;
-
-import java.util.List;
+import com.gsms.gsms.dto.project.ProjectQueryReq;
+import com.gsms.gsms.infra.common.PageResult;
 
 /**
  * 项目服务接口
@@ -13,42 +13,32 @@ public interface ProjectService {
      * @param id 项目ID
      * @return 项目实体
      */
-    Project getProjectById(Long id);
+    Project getById(Long id);
 
     /**
-     * 查询所有项目
-     * @return 项目列表
+     * 根据条件分页查询项目
+     * @param req 查询条件
+     * @return 分页结果
      */
-    List<Project> getAllProjects();
-
-    /**
-     * 根据条件查询项目
-     * @param name 项目名称（模糊匹配）
-     * @param status 项目状态
-     * @return 项目列表
-     */
-    List<Project> getProjectsByCondition(String name, Integer status);
+    PageResult<Project> findAll(ProjectQueryReq req);
 
     /**
      * 创建项目
      * @param project 项目实体
      * @return 创建成功的项目实体
-     * @throws BusinessException 项目名称或编码已存在时抛出异常
      */
-    Project createProject(Project project);
+    Project create(Project project);
 
     /**
      * 更新项目
      * @param project 项目实体
      * @return 更新后的项目实体
-     * @throws BusinessException 项目不存在时抛出异常
      */
-    Project updateProject(Project project);
+    Project update(Project project);
 
     /**
      * 删除项目
-     * @param id 项目 ID
-     * @throws BusinessException 项目不存在时抛出异常
+     * @param id 项目ID
      */
-    void deleteProject(Long id);
+    void delete(Long id);
 }

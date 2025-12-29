@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 迭代服务实现类
+ */
 @Service
 public class IterationServiceImpl implements IterationService {
 
@@ -25,7 +28,7 @@ public class IterationServiceImpl implements IterationService {
     }
 
     @Override
-    public Iteration getIterationById(Long id) {
+    public Iteration getById(Long id) {
         Iteration iteration = iterationMapper.selectById(id);
         if (iteration == null) {
             throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
@@ -34,53 +37,51 @@ public class IterationServiceImpl implements IterationService {
     }
 
     @Override
-    public List<Iteration> getIterationsByProjectId(Long projectId) {
-        return iterationMapper.selectByProjectId(projectId);
-    }
-
-    @Override
-    public List<Iteration> getIterationsByCondition(Long projectId, Integer status) {
-        return iterationMapper.selectByCondition(projectId, status);
+    public PageResult<Iteration> findAll(IterationQueryReq req) {
+        PageHelper.startPage(req.getPageNum(), req.getPageSize());
+        List<Iteration> list = iterationMapper.selectByCondition(req.getProjectId(), req.getStatus());
+        PageInfo<Iteration> pageInfo = new PageInfo<>(list);
+        return PageResult.success(list, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration createIteration(Iteration iteration) {
+    public Iteration create(Iteration iteration) {
         Long currentUserId = UserContext.getCurrentUserId();
         iteration.setCreateUserId(currentUserId);
-        
+
         int result = iterationMapper.insert(iteration);
         if (result <= 0) {
             throw new BusinessException(IterationErrorCode.ITERATION_CREATE_FAILED);
         }
-        
+
         return iteration;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration updateIteration(Iteration iteration) {
+    public Iteration update(Iteration iteration) {
         Iteration existIteration = iterationMapper.selectById(iteration.getId());
         if (existIteration == null) {
             throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
         }
-        
+
         int result = iterationMapper.update(iteration);
         if (result <= 0) {
             throw new BusinessException(IterationErrorCode.ITERATION_UPDATE_FAILED);
         }
-        
+
         return iterationMapper.selectById(iteration.getId());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteIteration(Long id) {
+    public void delete(Long id) {
         Iteration existIteration = iterationMapper.selectById(id);
         if (existIteration == null) {
             throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
         }
-        
+
         int result = iterationMapper.deleteById(id);
         if (result <= 0) {
             throw new BusinessException(IterationErrorCode.ITERATION_DELETE_FAILED);

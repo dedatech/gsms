@@ -6,20 +6,21 @@ import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
 import com.gsms.gsms.infra.common.Result;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.IterationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "迭代管理", description = "迭代管理相关接口")
 @RestController
 @RequestMapping("/api/iterations")
 public class IterationController {
+    private static final Logger logger = LoggerFactory.getLogger(IterationController.class);
 
     private final IterationService iterationService;
 
@@ -29,51 +30,49 @@ public class IterationController {
 
     @Operation(summary = "根据ID获取迭代")
     @GetMapping("/{id}")
-    public Result<Iteration> getIterationById(
+    public Result<Iteration> getById(
             @Parameter(description = "迭代ID", required = true) @PathVariable Long id) {
-        Iteration iteration = iterationService.getIterationById(id);
+        logger.info("根据ID查询迭代: {}", id);
+        Iteration iteration = iterationService.getById(id);
+        logger.info("成功查询到迭代: {}", iteration.getName());
         return Result.success(iteration);
     }
 
-    @Operation(summary = "根据项目ID获取迭代列表")
-    @GetMapping("/project/{projectId}")
-    public Result<List<Iteration>> getIterationsByProjectId(
-            @Parameter(description = "项目ID", required = true) @PathVariable Long projectId) {
-        List<Iteration> iterations = iterationService.getIterationsByCondition(projectId, null);
-        return Result.success(iterations);
-    }
-
-    @Operation(summary = "查询迭代列表")
+    @Operation(summary = "根据条件分页查询迭代")
     @PostMapping("/query")
-    public Result<List<Iteration>> queryIterations(@RequestBody IterationQueryReq req) {
-        List<Iteration> iterations = iterationService.getIterationsByCondition(
-                req.getProjectId(),
-                req.getStatus() != null ? req.getStatus().getCode() : null
-        );
-        return Result.success(iterations);
+    public PageResult<Iteration> findAll(@RequestBody IterationQueryReq req) {
+        logger.info("根据条件分页查询迭代: projectId={}, status={}, pageNum={}, pageSize={}",
+                req.getProjectId(), req.getStatus(), req.getPageNum(), req.getPageSize());
+        return iterationService.findAll(req);
     }
 
     @Operation(summary = "创建迭代")
     @PostMapping
-    public Result<Iteration> createIteration(@Validated @RequestBody IterationCreateReq req) {
+    public Result<Iteration> create(@Validated @RequestBody IterationCreateReq req) {
+        logger.info("创建迭代: {}", req.getName());
         Iteration iteration = IterationConverter.toEntity(req);
-        Iteration createdIteration = iterationService.createIteration(iteration);
+        Iteration createdIteration = iterationService.create(iteration);
+        logger.info("迭代创建成功: {}", createdIteration.getId());
         return Result.success(createdIteration);
     }
 
     @Operation(summary = "更新迭代")
     @PutMapping
-    public Result<Iteration> updateIteration(@Validated @RequestBody IterationUpdateReq req) {
+    public Result<Iteration> update(@Validated @RequestBody IterationUpdateReq req) {
+        logger.info("更新迭代: {}", req.getId());
         Iteration iteration = IterationConverter.toEntity(req);
-        Iteration updatedIteration = iterationService.updateIteration(iteration);
+        Iteration updatedIteration = iterationService.update(iteration);
+        logger.info("迭代更新成功: {}", updatedIteration.getId());
         return Result.success(updatedIteration);
     }
 
     @Operation(summary = "删除迭代")
     @DeleteMapping("/{id}")
-    public Result<Void> deleteIteration(
+    public Result<String> delete(
             @Parameter(description = "迭代ID", required = true) @PathVariable Long id) {
-        iterationService.deleteIteration(id);
-        return Result.success();
+        logger.info("删除迭代: {}", id);
+        iterationService.delete(id);
+        logger.info("迭代删除成功: {}", id);
+        return Result.success("迭代删除成功");
     }
 }

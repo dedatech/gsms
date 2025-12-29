@@ -3,8 +3,11 @@ package com.gsms.gsms.dto.user;
 import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * 用户查询请求
+ */
 @Schema(description = "用户查询请求")
-public class UserPageQuery extends BasePageQuery {
+public class UserQueryReq extends BasePageQuery {
 
     @Schema(description = "用户名（模糊匹配）", example = "admin")
     private String username;
