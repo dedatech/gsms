@@ -5,6 +5,9 @@ import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.domain.entity.Department;
 import com.gsms.gsms.domain.enums.errorcode.DepartmentErrorCode;
 import com.gsms.gsms.dto.department.DepartmentQueryReq;
+import com.gsms.gsms.dto.department.DepartmentCreateReq;
+import com.gsms.gsms.dto.department.DepartmentUpdateReq;
+import com.gsms.gsms.dto.department.DepartmentConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.repository.DepartmentMapper;
@@ -45,7 +48,9 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Department create(Department department) {
+    public Department create(DepartmentCreateReq createReq) {
+        // DTO转Entity
+        Department department = DepartmentConverter.toEntity(createReq);
         int result = departmentMapper.insert(department);
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_CREATE_FAILED);
@@ -55,12 +60,12 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Department update(Department department) {
-        Department existDepartment = departmentMapper.selectById(department.getId());
-        if (existDepartment == null) {
-            throw new BusinessException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND);
-        }
+    public Department update(DepartmentUpdateReq updateReq) {
+        // 检查部门是否存在
+        getById(updateReq.getId());
 
+        // DTO转Entity
+        Department department = DepartmentConverter.toEntity(updateReq);
         int result = departmentMapper.update(department);
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_UPDATE_FAILED);

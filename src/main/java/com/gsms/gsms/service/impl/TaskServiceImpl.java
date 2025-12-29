@@ -6,6 +6,9 @@ import com.gsms.gsms.domain.entity.Task;
 import com.gsms.gsms.domain.enums.TaskStatus;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.dto.task.TaskQueryReq;
+import com.gsms.gsms.dto.task.TaskCreateReq;
+import com.gsms.gsms.dto.task.TaskUpdateReq;
+import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.domain.enums.errorcode.TaskErrorCode;
@@ -46,12 +49,12 @@ public class TaskServiceImpl implements TaskService {
      */
     private void checkTaskProjectAccess(Long projectId) {
         Long currentUserId = UserContext.getCurrentUserId();
-        
+
         // 系统管理员和业务相关角色可以访问所有任务
         if (authService.canViewAllTasks(currentUserId)) {
             return;
         }
-        
+
         // 普通用户只能访问自己参与项目下的任务
         List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
         if (projectIds == null || projectIds.isEmpty() || !projectIds.contains(projectId)) {
@@ -66,12 +69,12 @@ public class TaskServiceImpl implements TaskService {
      */
     private void checkTaskAccess(Long taskId) {
         Long currentUserId = UserContext.getCurrentUserId();
-        
+
         // 系统管理员和业务相关角色可以访问所有任务
         if (authService.canViewAllTasks(currentUserId)) {
             return;
         }
-        
+
         // 普通用户：通过SQL JOIN验证权限，查询任务是否存在且用户有访问权限
         Task task = taskMapper.selectByIdForUser(taskId, currentUserId);
         if (task == null) {
@@ -125,8 +128,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Task create(Task task) {
-        logger.info("创建任务: {}", task.getTitle());
+    public Task create(TaskCreateReq createReq) {
+        logger.info("创建任务: {}", createReq.getTitle());
+
+        // DTO转Entity
+        Task task = TaskConverter.toTask(createReq);
+
         // 先鉴权
         checkTaskProjectAccess(task.getProjectId());
 
@@ -152,16 +159,19 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Task update(Task task) {
-        logger.info("更新任务: {}", task.getId());
+    public Task update(TaskUpdateReq updateReq) {
+        logger.info("更新任务: {}", updateReq.getId());
         // 检查任务是否存在
-        Task existTask = taskMapper.selectById(task.getId());
+        Task existTask = taskMapper.selectById(updateReq.getId());
         if (existTask == null) {
             throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
         }
 
         // 鉴权
         checkTaskProjectAccess(existTask.getProjectId());
+
+        // DTO转Entity
+        Task task = TaskConverter.toTask(updateReq);
 
         // 如有修改负责人，需校验其为项目成员
         if (task.getAssigneeId() != null) {

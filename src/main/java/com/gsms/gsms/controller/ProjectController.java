@@ -1,6 +1,5 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.dto.project.ProjectConverter;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
@@ -66,11 +65,7 @@ public class ProjectController {
     @Operation(summary = "创建项目")
     public Result<Project> createProject(@Valid @RequestBody ProjectCreateReq req) {
         logger.info("创建项目: {}", req.getName());
-
-        // 使用转换器将 DTO 转为 Entity
-        Project project = ProjectConverter.toProject(req);
-
-        Project createdProject = projectService.create(project);
+        Project createdProject = projectService.create(req);
         logger.info("项目创建成功: {}", createdProject.getName());
         return Result.success(createdProject);
     }
@@ -82,11 +77,7 @@ public class ProjectController {
     @Operation(summary = "更新项目")
     public Result<Project> updateProject(@Valid @RequestBody ProjectUpdateReq req) {
         logger.info("更新项目: {}", req.getId());
-
-        // 使用转换器将 DTO 转为 Entity
-        Project project = ProjectConverter.toProject(req);
-
-        Project updatedProject = projectService.update(project);
+        Project updatedProject = projectService.update(req);
         logger.info("项目更新成功: {}", updatedProject.getId());
         return Result.success(updatedProject);
     }

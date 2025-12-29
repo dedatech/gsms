@@ -1,7 +1,6 @@
 package com.gsms.gsms.controller;
 
 import com.gsms.gsms.domain.entity.Department;
-import com.gsms.gsms.dto.department.DepartmentConverter;
 import com.gsms.gsms.dto.department.DepartmentCreateReq;
 import com.gsms.gsms.dto.department.DepartmentQueryReq;
 import com.gsms.gsms.dto.department.DepartmentUpdateReq;
@@ -51,8 +50,7 @@ public class DepartmentController {
     @PostMapping
     public Result<Department> create(@Validated @RequestBody DepartmentCreateReq req) {
         logger.info("创建部门: {}", req.getName());
-        Department department = DepartmentConverter.toEntity(req);
-        Department createdDepartment = departmentService.create(department);
+        Department createdDepartment = departmentService.create(req);
         logger.info("部门创建成功: {}", createdDepartment.getId());
         return Result.success(createdDepartment);
     }
@@ -61,8 +59,7 @@ public class DepartmentController {
     @PutMapping
     public Result<Department> update(@Validated @RequestBody DepartmentUpdateReq req) {
         logger.info("更新部门: {}", req.getId());
-        Department department = DepartmentConverter.toEntity(req);
-        Department updatedDepartment = departmentService.update(department);
+        Department updatedDepartment = departmentService.update(req);
         logger.info("部门更新成功: {}", updatedDepartment.getId());
         return Result.success(updatedDepartment);
     }

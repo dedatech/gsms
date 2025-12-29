@@ -1,6 +1,5 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
@@ -63,8 +62,7 @@ public class TaskController {
     @Operation(summary = "创建任务")
     public Result<TaskInfoResp> create(@RequestBody @Valid TaskCreateReq req) {
         logger.info("创建任务: {}", req.getTitle());
-        Task task = TaskConverter.toTask(req);
-        Task createdTask = taskService.create(task);
+        Task createdTask = taskService.create(req);
         TaskInfoResp resp = TaskInfoResp.from(createdTask);
         logger.info("任务创建成功: {}", createdTask.getTitle());
         return Result.success(resp);
@@ -77,8 +75,7 @@ public class TaskController {
     @Operation(summary = "更新任务")
     public Result<TaskInfoResp> update(@RequestBody @Valid TaskUpdateReq req) {
         logger.info("更新任务: {}", req.getId());
-        Task task = TaskConverter.toTask(req);
-        Task updatedTask = taskService.update(task);
+        Task updatedTask = taskService.update(req);
         TaskInfoResp resp = TaskInfoResp.from(updatedTask);
         logger.info("任务更新成功: {}", updatedTask.getId());
         return Result.success(resp);

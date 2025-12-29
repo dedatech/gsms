@@ -1,16 +1,16 @@
 package com.gsms.gsms.controller;
 
 import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.enums.UserStatus;
-import com.gsms.gsms.dto.user.UserConverter;
 import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserLoginReq;
+import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserRegisterReq;
+import com.gsms.gsms.dto.user.UserCreateReq;
+import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.utils.JwtUtil;
 import com.gsms.gsms.service.UserService;
-import com.gsms.gsms.dto.user.UserQueryReq;
-import com.gsms.gsms.infra.common.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -34,36 +34,34 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/search")
-    @Operation(summary = "根据条件分页查询用户")
-    public PageResult<UserInfoResp> search(UserQueryReq req) {
-        logger.info("根据条件分页查询用户: username={}, status={}, pageNum={}, pageSize={}", 
-                req.getUsername(), req.getStatus(), req.getPageNum(), req.getPageSize());
-        return userService.findAll(req);
-    }
-
     /**
      * 根据ID查询用户
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询用户")
     public Result<UserInfoResp> getById(@PathVariable Long id) {
-        logger.info("根据ID查询用户: {}", id);
-        User user = userService.getById(id);
-        UserInfoResp resp = UserInfoResp.from(user);
-        logger.info("成功查询到用户: {}", user.getUsername());
-        return Result.success(resp);
+        logger.info("查询用户: {}", id);
+        return Result.success(userService.getById(id));
     }
+
+    /**
+     * 分页查询用户列表
+     */
+    @GetMapping
+    @Operation(summary = "分页查询用户列表")
+    public PageResult<UserInfoResp> findAll(UserQueryReq userQueryReq) {
+        logger.info("查询用户列表: {}", userQueryReq);
+        return userService.findAll(userQueryReq);
+    }
+
     /**
      * 创建用户
      */
     @PostMapping
     @Operation(summary = "创建用户")
-    public Result<UserInfoResp> create(@RequestBody @Valid User user) {
-        logger.info("创建用户: {}", user.getUsername());
-        User createdUser = userService.create(user);
-        UserInfoResp resp = UserInfoResp.from(createdUser);
-        logger.info("用户创建成功: {}", createdUser.getUsername());
+    public Result<UserInfoResp> create(@Valid @RequestBody UserCreateReq createReq) {
+        logger.info("创建用户: {}", createReq.getUsername());
+        UserInfoResp resp = userService.create(createReq);
         return Result.success(resp);
     }
 
@@ -72,11 +70,9 @@ public class UserController {
      */
     @PutMapping
     @Operation(summary = "更新用户")
-    public Result<UserInfoResp> update(@RequestBody @Valid User user) {
-        logger.info("更新用户: {}", user.getId());
-        User updatedUser = userService.update(user);
-        UserInfoResp resp = UserInfoResp.from(updatedUser);
-        logger.info("用户更新成功: {}", updatedUser.getId());
+    public Result<UserInfoResp> update(@Valid @RequestBody UserUpdateReq updateReq) {
+        logger.info("更新用户: {}", updateReq.getId());
+        UserInfoResp resp = userService.update(updateReq);
         return Result.success(resp);
     }
 
@@ -88,8 +84,7 @@ public class UserController {
     public Result<String> delete(@PathVariable Long id) {
         logger.info("删除用户: {}", id);
         userService.delete(id);
-        logger.info("用户删除成功: {}", id);
-        return Result.success("用户删除成功");
+        return Result.success("删除成功");
     }
 
     /**
@@ -113,14 +108,17 @@ public class UserController {
     @Operation(summary = "用户注册")
     public Result<UserInfoResp> register(@Valid @RequestBody UserRegisterReq req) {
         logger.info("用户注册: {}", req.getUsername());
-        
-        // 使用转换工具将 DTO 转为 Entity
-        User user = UserConverter.toUser(req);
-        user.setStatus(UserStatus.NORMAL); // 默认状态为正常
-        
-        User createdUser = userService.create(user);
-        UserInfoResp resp = UserInfoResp.from(createdUser);
-        logger.info("用户注册成功: {}", createdUser.getUsername());
+
+        // 将注册请求转换为创建请求
+        UserCreateReq createReq = new UserCreateReq();
+        createReq.setUsername(req.getUsername());
+        createReq.setPassword(req.getPassword());
+        createReq.setNickname(req.getNickname());
+        createReq.setEmail(req.getEmail());
+        createReq.setPhone(req.getPhone());
+
+        UserInfoResp resp = userService.create(createReq);
+        logger.info("用户注册成功: {}", resp.getUsername());
         return Result.success(resp);
     }
 }

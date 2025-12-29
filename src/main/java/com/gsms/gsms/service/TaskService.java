@@ -2,6 +2,8 @@ package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Task;
 import com.gsms.gsms.dto.task.TaskQueryReq;
+import com.gsms.gsms.dto.task.TaskCreateReq;
+import com.gsms.gsms.dto.task.TaskUpdateReq;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 
@@ -24,17 +26,17 @@ public interface TaskService {
 
     /**
      * 创建任务
-     * @param task 任务实体
+     * @param createReq 创建请求DTO
      * @return 创建成功的任务实体
      */
-    Task create(Task task);
+    Task create(TaskCreateReq createReq);
 
     /**
      * 更新任务
-     * @param task 任务实体
+     * @param updateReq 更新请求DTO
      * @return 更新后的任务实体
      */
-    Task update(Task task);
+    Task update(TaskUpdateReq updateReq);
 
     /**
      * 删除任务

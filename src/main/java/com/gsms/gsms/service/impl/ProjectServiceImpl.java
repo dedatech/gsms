@@ -6,6 +6,9 @@ import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.domain.enums.errorcode.ProjectErrorCode;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
+import com.gsms.gsms.dto.project.ProjectCreateReq;
+import com.gsms.gsms.dto.project.ProjectUpdateReq;
+import com.gsms.gsms.dto.project.ProjectConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
@@ -88,7 +91,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Project create(Project project) {
+    public Project create(ProjectCreateReq createReq) {
+        // DTO转Entity
+        Project project = ProjectConverter.toProject(createReq);
+
         // 自动填充创建人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();
         project.setCreateUserId(currentUserId);
@@ -107,15 +113,18 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Project update(Project project) {
+    public Project update(ProjectUpdateReq updateReq) {
         // 先鉴权
-        checkProjectAccess(project.getId());
+        checkProjectAccess(updateReq.getId());
 
         // 检查项目是否存在
-        Project existProject = projectMapper.selectById(project.getId());
+        Project existProject = projectMapper.selectById(updateReq.getId());
         if (existProject == null) {
             throw new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND);
         }
+
+        // DTO转Entity
+        Project project = ProjectConverter.toProject(updateReq);
 
         // 自动填充更新人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();

@@ -6,7 +6,7 @@ import com.gsms.gsms.domain.entity.User;
  * 用户对象转换器（手动转换，性能最优）
  */
 public class UserConverter {
-    
+
     /**
      * 注册请求转用户实体
      */
@@ -22,7 +22,42 @@ public class UserConverter {
         user.setPhone(req.getPhone());
         return user;
     }
-    
+
+    /**
+     * 创建请求转用户实体
+     */
+    public static User toUser(UserCreateReq req) {
+        if (req == null) {
+            return null;
+        }
+        User user = new User();
+        user.setUsername(req.getUsername());
+        user.setPassword(req.getPassword());
+        user.setNickname(req.getNickname());
+        user.setEmail(req.getEmail());
+        user.setPhone(req.getPhone());
+        user.setDepartmentId(req.getDepartmentId());
+        return user;
+    }
+
+    /**
+     * 更新请求转用户实体
+     */
+    public static User toUser(UserUpdateReq req) {
+        if (req == null) {
+            return null;
+        }
+        User user = new User();
+        user.setId(req.getId());
+        user.setUsername(req.getUsername());
+        user.setPassword(req.getPassword());
+        user.setNickname(req.getNickname());
+        user.setEmail(req.getEmail());
+        user.setPhone(req.getPhone());
+        user.setDepartmentId(req.getDepartmentId());
+        return user;
+    }
+
     /**
      * 用户实体转用户信息响应（自动过滤密码等敏感信息）
      */
@@ -42,3 +77,4 @@ public class UserConverter {
         return resp;
     }
 }
+

@@ -5,6 +5,9 @@ import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.domain.enums.errorcode.IterationErrorCode;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
+import com.gsms.gsms.dto.iteration.IterationCreateReq;
+import com.gsms.gsms.dto.iteration.IterationUpdateReq;
+import com.gsms.gsms.dto.iteration.IterationConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
@@ -46,7 +49,9 @@ public class IterationServiceImpl implements IterationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration create(Iteration iteration) {
+    public Iteration create(IterationCreateReq createReq) {
+        // DTO转Entity
+        Iteration iteration = IterationConverter.toEntity(createReq);
         Long currentUserId = UserContext.getCurrentUserId();
         iteration.setCreateUserId(currentUserId);
 
@@ -60,11 +65,12 @@ public class IterationServiceImpl implements IterationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration update(Iteration iteration) {
-        Iteration existIteration = iterationMapper.selectById(iteration.getId());
-        if (existIteration == null) {
-            throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
-        }
+    public Iteration update(IterationUpdateReq updateReq) {
+        // 检查迭代是否存在
+        getById(updateReq.getId());
+
+        // DTO转Entity
+        Iteration iteration = IterationConverter.toEntity(updateReq);
 
         int result = iterationMapper.update(iteration);
         if (result <= 0) {

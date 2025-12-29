@@ -1,7 +1,6 @@
 package com.gsms.gsms.controller;
 
 import com.gsms.gsms.domain.entity.Iteration;
-import com.gsms.gsms.dto.iteration.IterationConverter;
 import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
@@ -50,8 +49,7 @@ public class IterationController {
     @PostMapping
     public Result<Iteration> create(@Validated @RequestBody IterationCreateReq req) {
         logger.info("创建迭代: {}", req.getName());
-        Iteration iteration = IterationConverter.toEntity(req);
-        Iteration createdIteration = iterationService.create(iteration);
+        Iteration createdIteration = iterationService.create(req);
         logger.info("迭代创建成功: {}", createdIteration.getId());
         return Result.success(createdIteration);
     }
@@ -60,8 +58,7 @@ public class IterationController {
     @PutMapping
     public Result<Iteration> update(@Validated @RequestBody IterationUpdateReq req) {
         logger.info("更新迭代: {}", req.getId());
-        Iteration iteration = IterationConverter.toEntity(req);
-        Iteration updatedIteration = iterationService.update(iteration);
+        Iteration updatedIteration = iterationService.update(req);
         logger.info("迭代更新成功: {}", updatedIteration.getId());
         return Result.success(updatedIteration);
     }

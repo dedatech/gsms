@@ -2,6 +2,8 @@ package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Department;
 import com.gsms.gsms.dto.department.DepartmentQueryReq;
+import com.gsms.gsms.dto.department.DepartmentCreateReq;
+import com.gsms.gsms.dto.department.DepartmentUpdateReq;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -24,17 +26,17 @@ public interface DepartmentService {
 
     /**
      * 创建部门
-     * @param department 部门实体
+     * @param createReq 创建请求DTO
      * @return 创建成功的部门实体
      */
-    Department create(Department department);
+    Department create(DepartmentCreateReq createReq);
 
     /**
      * 更新部门
-     * @param department 部门实体
+     * @param updateReq 更新请求DTO
      * @return 更新后的部门实体
      */
-    Department update(Department department);
+    Department update(DepartmentUpdateReq updateReq);
 
     /**
      * 删除部门

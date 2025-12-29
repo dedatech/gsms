@@ -2,6 +2,8 @@ package com.gsms.gsms.service;
 
 import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
+import com.gsms.gsms.dto.iteration.IterationCreateReq;
+import com.gsms.gsms.dto.iteration.IterationUpdateReq;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -21,12 +23,12 @@ public interface IterationService {
     /**
      * 创建迭代
      */
-    Iteration create(Iteration iteration);
+    Iteration create(IterationCreateReq createReq);
 
     /**
      * 更新迭代
      */
-    Iteration update(Iteration iteration);
+    Iteration update(IterationUpdateReq updateReq);
 
     /**
      * 删除迭代
