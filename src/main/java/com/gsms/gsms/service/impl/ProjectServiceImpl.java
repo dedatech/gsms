@@ -9,6 +9,7 @@ import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.dto.project.ProjectConverter;
+import com.gsms.gsms.dto.project.ProjectInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
@@ -58,7 +59,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project getById(Long id) {
+    public ProjectInfoResp getById(Long id) {
         // 先鉴权再查询
         checkProjectAccess(id);
 
@@ -66,11 +67,11 @@ public class ProjectServiceImpl implements ProjectService {
         if (project == null) {
             throw new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND);
         }
-        return project;
+        return ProjectInfoResp.from(project);
     }
 
     @Override
-    public PageResult<Project> findAll(ProjectQueryReq req) {
+    public PageResult<ProjectInfoResp> findAll(ProjectQueryReq req) {
         Long currentUserId = UserContext.getCurrentUserId();
         Integer statusCode = req.getStatus() != null ? req.getStatus().getCode() : null;
 
@@ -86,12 +87,13 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         PageInfo<Project> pageInfo = new PageInfo<>(projects);
-        return PageResult.success(projects, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
+        List<ProjectInfoResp> respList = ProjectInfoResp.from(projects);
+        return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Project create(ProjectCreateReq createReq) {
+    public ProjectInfoResp create(ProjectCreateReq createReq) {
         // DTO转Entity
         Project project = ProjectConverter.toProject(createReq);
 
@@ -108,12 +110,12 @@ public class ProjectServiceImpl implements ProjectService {
         // 将项目创建人加入项目成员，默认为项目管理员角色 1
         projectMemberMapper.insertProjectMember(project.getId(), currentUserId, 1, currentUserId);
 
-        return project;
+        return ProjectInfoResp.from(project);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Project update(ProjectUpdateReq updateReq) {
+    public ProjectInfoResp update(ProjectUpdateReq updateReq) {
         // 先鉴权
         checkProjectAccess(updateReq.getId());
 
@@ -136,7 +138,8 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ProjectErrorCode.PROJECT_UPDATE_FAILED);
         }
 
-        return projectMapper.selectById(project.getId());
+        Project updatedProject = projectMapper.selectById(project.getId());
+        return ProjectInfoResp.from(updatedProject);
     }
 
     @Override

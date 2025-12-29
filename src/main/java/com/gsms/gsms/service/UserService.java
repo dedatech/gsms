@@ -20,11 +20,11 @@ public interface UserService {
     UserInfoResp getById(Long id);
 
     /**
-     * 根据用户名查询用户实体（内部方法）
+     * 根据用户名查询用户
      * @param username 用户名
-     * @return 用户实体
+     * @return 用户响应DTO
      */
-    User getByUsername(String username);
+    UserInfoResp getByUsername(String username);
 
     /**
      * 根据条件分页查询用户

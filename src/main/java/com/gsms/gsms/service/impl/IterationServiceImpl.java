@@ -8,6 +8,7 @@ import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
 import com.gsms.gsms.dto.iteration.IterationConverter;
+import com.gsms.gsms.dto.iteration.IterationInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
@@ -31,25 +32,26 @@ public class IterationServiceImpl implements IterationService {
     }
 
     @Override
-    public Iteration getById(Long id) {
+    public IterationInfoResp getById(Long id) {
         Iteration iteration = iterationMapper.selectById(id);
         if (iteration == null) {
             throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
         }
-        return iteration;
+        return IterationInfoResp.from(iteration);
     }
 
     @Override
-    public PageResult<Iteration> findAll(IterationQueryReq req) {
+    public PageResult<IterationInfoResp> findAll(IterationQueryReq req) {
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
         List<Iteration> list = iterationMapper.selectByCondition(req.getProjectId(), req.getStatus());
         PageInfo<Iteration> pageInfo = new PageInfo<>(list);
-        return PageResult.success(list, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
+        List<IterationInfoResp> respList = IterationInfoResp.from(list);
+        return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration create(IterationCreateReq createReq) {
+    public IterationInfoResp create(IterationCreateReq createReq) {
         // DTO转Entity
         Iteration iteration = IterationConverter.toEntity(createReq);
         Long currentUserId = UserContext.getCurrentUserId();
@@ -60,12 +62,12 @@ public class IterationServiceImpl implements IterationService {
             throw new BusinessException(IterationErrorCode.ITERATION_CREATE_FAILED);
         }
 
-        return iteration;
+        return IterationInfoResp.from(iteration);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Iteration update(IterationUpdateReq updateReq) {
+    public IterationInfoResp update(IterationUpdateReq updateReq) {
         // 检查迭代是否存在
         getById(updateReq.getId());
 
@@ -77,7 +79,8 @@ public class IterationServiceImpl implements IterationService {
             throw new BusinessException(IterationErrorCode.ITERATION_UPDATE_FAILED);
         }
 
-        return iterationMapper.selectById(iteration.getId());
+        Iteration updatedIteration = iterationMapper.selectById(iteration.getId());
+        return IterationInfoResp.from(updatedIteration);
     }
 
     @Override

@@ -1,9 +1,9 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
+import com.gsms.gsms.dto.iteration.IterationInfoResp;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.IterationService;
@@ -29,17 +29,17 @@ public class IterationController {
 
     @Operation(summary = "根据ID获取迭代")
     @GetMapping("/{id}")
-    public Result<Iteration> getById(
+    public Result<IterationInfoResp> getById(
             @Parameter(description = "迭代ID", required = true) @PathVariable Long id) {
         logger.info("根据ID查询迭代: {}", id);
-        Iteration iteration = iterationService.getById(id);
+        IterationInfoResp iteration = iterationService.getById(id);
         logger.info("成功查询到迭代: {}", iteration.getName());
         return Result.success(iteration);
     }
 
     @Operation(summary = "根据条件分页查询迭代")
     @PostMapping("/query")
-    public PageResult<Iteration> findAll(@RequestBody IterationQueryReq req) {
+    public PageResult<IterationInfoResp> findAll(@RequestBody IterationQueryReq req) {
         logger.info("根据条件分页查询迭代: projectId={}, status={}, pageNum={}, pageSize={}",
                 req.getProjectId(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return iterationService.findAll(req);
@@ -47,18 +47,18 @@ public class IterationController {
 
     @Operation(summary = "创建迭代")
     @PostMapping
-    public Result<Iteration> create(@Validated @RequestBody IterationCreateReq req) {
+    public Result<IterationInfoResp> create(@Validated @RequestBody IterationCreateReq req) {
         logger.info("创建迭代: {}", req.getName());
-        Iteration createdIteration = iterationService.create(req);
+        IterationInfoResp createdIteration = iterationService.create(req);
         logger.info("迭代创建成功: {}", createdIteration.getId());
         return Result.success(createdIteration);
     }
 
     @Operation(summary = "更新迭代")
     @PutMapping
-    public Result<Iteration> update(@Validated @RequestBody IterationUpdateReq req) {
+    public Result<IterationInfoResp> update(@Validated @RequestBody IterationUpdateReq req) {
         logger.info("更新迭代: {}", req.getId());
-        Iteration updatedIteration = iterationService.update(req);
+        IterationInfoResp updatedIteration = iterationService.update(req);
         logger.info("迭代更新成功: {}", updatedIteration.getId());
         return Result.success(updatedIteration);
     }

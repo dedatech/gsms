@@ -1,9 +1,9 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.Iteration;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
+import com.gsms.gsms.dto.iteration.IterationInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -13,22 +13,22 @@ public interface IterationService {
     /**
      * 根据ID查询迭代
      */
-    Iteration getById(Long id);
+    IterationInfoResp getById(Long id);
 
     /**
      * 根据条件分页查询迭代
      */
-    PageResult<Iteration> findAll(IterationQueryReq req);
+    PageResult<IterationInfoResp> findAll(IterationQueryReq req);
 
     /**
      * 创建迭代
      */
-    Iteration create(IterationCreateReq createReq);
+    IterationInfoResp create(IterationCreateReq createReq);
 
     /**
      * 更新迭代
      */
-    Iteration update(IterationUpdateReq updateReq);
+    IterationInfoResp update(IterationUpdateReq updateReq);
 
     /**
      * 删除迭代

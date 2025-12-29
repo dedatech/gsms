@@ -1,9 +1,9 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.Project;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
+import com.gsms.gsms.dto.project.ProjectInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -13,30 +13,30 @@ public interface ProjectService {
     /**
      * 根据ID查询项目
      * @param id 项目ID
-     * @return 项目实体
+     * @return 项目响应DTO
      */
-    Project getById(Long id);
+    ProjectInfoResp getById(Long id);
 
     /**
      * 根据条件分页查询项目
      * @param req 查询条件
      * @return 分页结果
      */
-    PageResult<Project> findAll(ProjectQueryReq req);
+    PageResult<ProjectInfoResp> findAll(ProjectQueryReq req);
 
     /**
      * 创建项目
      * @param createReq 创建请求DTO
-     * @return 创建成功的项目实体
+     * @return 创建成功的项目响应DTO
      */
-    Project create(ProjectCreateReq createReq);
+    ProjectInfoResp create(ProjectCreateReq createReq);
 
     /**
      * 更新项目
      * @param updateReq 更新请求DTO
-     * @return 更新后的项目实体
+     * @return 更新后的项目响应DTO
      */
-    Project update(ProjectUpdateReq updateReq);
+    ProjectInfoResp update(ProjectUpdateReq updateReq);
 
     /**
      * 删除项目

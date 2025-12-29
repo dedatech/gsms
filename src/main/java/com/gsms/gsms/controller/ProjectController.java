@@ -3,7 +3,7 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
-import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.dto.project.ProjectInfoResp;
 import com.gsms.gsms.domain.entity.ProjectMember;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
@@ -40,9 +40,9 @@ public class ProjectController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询项目")
-    public Result<Project> getProjectById(@PathVariable Long id) {
+    public Result<ProjectInfoResp> getProjectById(@PathVariable Long id) {
         logger.info("根据ID查询项目: {}", id);
-        Project project = projectService.getById(id);
+        ProjectInfoResp project = projectService.getById(id);
         logger.info("成功查询到项目: {}", project.getName());
         return Result.success(project);
     }
@@ -52,7 +52,7 @@ public class ProjectController {
      */
     @GetMapping
     @Operation(summary = "根据条件分页查询项目")
-    public PageResult<Project> getProjects(ProjectQueryReq req) {
+    public PageResult<ProjectInfoResp> getProjects(ProjectQueryReq req) {
         logger.info("根据条件分页查询项目: name={}, status={}, pageNum={}, pageSize={}",
                 req.getName(), req.getStatus(), req.getPageNum(), req.getPageSize());
         return projectService.findAll(req);
@@ -63,9 +63,9 @@ public class ProjectController {
      */
     @PostMapping
     @Operation(summary = "创建项目")
-    public Result<Project> createProject(@Valid @RequestBody ProjectCreateReq req) {
+    public Result<ProjectInfoResp> createProject(@Valid @RequestBody ProjectCreateReq req) {
         logger.info("创建项目: {}", req.getName());
-        Project createdProject = projectService.create(req);
+        ProjectInfoResp createdProject = projectService.create(req);
         logger.info("项目创建成功: {}", createdProject.getName());
         return Result.success(createdProject);
     }
@@ -75,9 +75,9 @@ public class ProjectController {
      */
     @PutMapping
     @Operation(summary = "更新项目")
-    public Result<Project> updateProject(@Valid @RequestBody ProjectUpdateReq req) {
+    public Result<ProjectInfoResp> updateProject(@Valid @RequestBody ProjectUpdateReq req) {
         logger.info("更新项目: {}", req.getId());
-        Project updatedProject = projectService.update(req);
+        ProjectInfoResp updatedProject = projectService.update(req);
         logger.info("项目更新成功: {}", updatedProject.getId());
         return Result.success(updatedProject);
     }

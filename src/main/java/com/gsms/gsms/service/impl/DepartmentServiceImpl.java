@@ -8,6 +8,7 @@ import com.gsms.gsms.dto.department.DepartmentQueryReq;
 import com.gsms.gsms.dto.department.DepartmentCreateReq;
 import com.gsms.gsms.dto.department.DepartmentUpdateReq;
 import com.gsms.gsms.dto.department.DepartmentConverter;
+import com.gsms.gsms.dto.department.DepartmentInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.repository.DepartmentMapper;
@@ -30,37 +31,38 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public Department getById(Long id) {
+    public DepartmentInfoResp getById(Long id) {
         Department department = departmentMapper.selectById(id);
         if (department == null) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_NOT_FOUND);
         }
-        return department;
+        return DepartmentInfoResp.from(department);
     }
 
     @Override
-    public PageResult<Department> findAll(DepartmentQueryReq req) {
+    public PageResult<DepartmentInfoResp> findAll(DepartmentQueryReq req) {
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
         List<Department> list = departmentMapper.selectByCondition(req.getName(), req.getParentId());
         PageInfo<Department> pageInfo = new PageInfo<>(list);
-        return PageResult.success(list, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
+        List<DepartmentInfoResp> respList = DepartmentInfoResp.from(list);
+        return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Department create(DepartmentCreateReq createReq) {
+    public DepartmentInfoResp create(DepartmentCreateReq createReq) {
         // DTO转Entity
         Department department = DepartmentConverter.toEntity(createReq);
         int result = departmentMapper.insert(department);
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_CREATE_FAILED);
         }
-        return department;
+        return DepartmentInfoResp.from(department);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Department update(DepartmentUpdateReq updateReq) {
+    public DepartmentInfoResp update(DepartmentUpdateReq updateReq) {
         // 检查部门是否存在
         getById(updateReq.getId());
 
@@ -71,7 +73,8 @@ public class DepartmentServiceImpl implements DepartmentService {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_UPDATE_FAILED);
         }
 
-        return departmentMapper.selectById(department.getId());
+        Department updatedDepartment = departmentMapper.selectById(department.getId());
+        return DepartmentInfoResp.from(updatedDepartment);
     }
 
     @Override

@@ -44,13 +44,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getByUsername(String username) {
+    public UserInfoResp getByUsername(String username) {
         logger.debug("根据用户名查询用户: {}", username);
         User user = userMapper.selectByUsername(username);
         if (user == null) {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
-        return user;
+        return UserInfoResp.from(user);
     }
 
     @Override
