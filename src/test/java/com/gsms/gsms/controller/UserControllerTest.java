@@ -3,6 +3,9 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.domain.entity.User;
 import com.gsms.gsms.domain.enums.UserStatus;
 import com.gsms.gsms.dto.user.UserLoginReq;
+import com.gsms.gsms.dto.user.UserCreateReq;
+import com.gsms.gsms.dto.user.UserInfoResp;
+import com.gsms.gsms.dto.user.UserUpdateReq;
 import com.gsms.gsms.infra.utils.JwtUtil;
 import com.gsms.gsms.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,16 +37,26 @@ public class UserControllerTest extends BaseControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setNickname("测试用户");
-        user.setEmail("test@example.com");
-        user.setPhone("13800138000");
-        user.setStatus(UserStatus.DISABLED);
+        // 创建UserCreateReq
+        UserCreateReq createReq = new UserCreateReq();
+        createReq.setUsername("testuser");
+        createReq.setPassword("password");
+        createReq.setNickname("测试用户");
+        createReq.setEmail("test@example.com");
+        createReq.setPhone("13800138000");
 
         // 通过真实 UserService 创建用户（依赖 DB）
-        testUser = userService.createUser(user);
+        UserInfoResp userResp = userService.create(createReq);
+
+        // 构建testUser对象用于测试
+        testUser = new User();
+        testUser.setId(userResp.getId());
+        testUser.setUsername(userResp.getUsername());
+        testUser.setPassword("password");
+        testUser.setNickname(userResp.getNickname());
+        testUser.setEmail(userResp.getEmail());
+        testUser.setPhone(userResp.getPhone());
+        testUser.setStatus(userResp.getStatus());
 
         // 使用 JwtUtil 生成真实可验证的 Token
         testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
@@ -89,19 +102,18 @@ public class UserControllerTest extends BaseControllerTest {
     @Test
     void testCreateUser_Success() throws Exception {
         // Given - 使用不同用户名，避免唯一索引冲突
-        User newUser = new User();
-        newUser.setUsername("newuser");
-        newUser.setPassword("password2");
-        newUser.setNickname("新用户");
-        newUser.setEmail("new@example.com");
-        newUser.setPhone("13900139000");
-        newUser.setStatus(UserStatus.DISABLED);
+        UserCreateReq createReq = new UserCreateReq();
+        createReq.setUsername("newuser");
+        createReq.setPassword("password2");
+        createReq.setNickname("新用户");
+        createReq.setEmail("new@example.com");
+        createReq.setPhone("13900139000");
 
         // When & Then
         mockMvc.perform(post("/api/users")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(Objects.requireNonNull(objectMapper.writeValueAsString(newUser))))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReq))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.username").value("newuser"));
@@ -110,13 +122,15 @@ public class UserControllerTest extends BaseControllerTest {
     @Test
     void testUpdateUser_Success() throws Exception {
         // Given - 修改已有用户的昵称
-        testUser.setNickname("更新后用户");
+        UserUpdateReq updateReq = new UserUpdateReq();
+        updateReq.setId(testUser.getId());
+        updateReq.setNickname("更新后用户");
 
         // When & Then
         mockMvc.perform(put("/api/users")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(Objects.requireNonNull(objectMapper.writeValueAsString(testUser))))
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(updateReq))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.username").value("testuser"))
@@ -130,7 +144,7 @@ public class UserControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").value("用户删除成功"));
+                .andExpect(jsonPath("$.data").value("删除成功"));
     }
 
     @Test
@@ -153,7 +167,7 @@ public class UserControllerTest extends BaseControllerTest {
     @Test
     void testGetUsersByCondition() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/users/search?username=testuser")
+        mockMvc.perform(get("/api/users?username=testuser")
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -168,18 +182,17 @@ public class UserControllerTest extends BaseControllerTest {
     void testGetUsersByCondition_WithPaging() throws Exception {
         // 创建更多测试用户
         for (int i = 1; i <= 15; i++) {
-            User user = new User();
-            user.setUsername("testuser" + i);
-            user.setPassword("password");
-            user.setNickname("测试用户" + i);
-            user.setEmail("test" + i + "@example.com");
-            user.setPhone("1380013800" + i);
-            user.setStatus(UserStatus.DISABLED);
-            userService.createUser(user);
+            UserCreateReq createReq = new UserCreateReq();
+            createReq.setUsername("testuser" + i);
+            createReq.setPassword("password");
+            createReq.setNickname("测试用户" + i);
+            createReq.setEmail("test" + i + "@example.com");
+            createReq.setPhone("1380013800" + String.format("%02d", i % 100));
+            userService.create(createReq);
         }
         
         // 测试分页查询 - 第一页，每页5条
-        mockMvc.perform(get("/api/users/search?pageNum=1&pageSize=5")
+        mockMvc.perform(get("/api/users?pageNum=1&pageSize=5")
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
