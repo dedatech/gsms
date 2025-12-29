@@ -95,6 +95,8 @@ public class WorkHourServiceImpl implements WorkHourService {
         authService.checkProjectAccess(currentUserId, workHour.getProjectId());
 
         workHour.setUserId(currentUserId); // 工时记录的 userId 就是当前登录用户
+        workHour.setCreateUserId(currentUserId);
+        workHour.setUpdateUserId(currentUserId);
 
         int result = workHourMapper.insert(workHour);
         if (result <= 0) {

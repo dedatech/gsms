@@ -61,6 +61,12 @@ public class WorkHour {
     private WorkHourStatus status;
 
     /**
+     * 创建人id
+     */
+    @Schema(description = "创建人id")
+    private Long createUserId;
+
+    /**
      * 更新人id
      */
     @Schema(description = "更新人id")
@@ -149,6 +155,14 @@ public class WorkHour {
 
     public void setStatus(WorkHourStatus status) {
         this.status = status;
+    }
+
+    public Long getCreateUserId() {
+        return createUserId;
+    }
+
+    public void setCreateUserId(Long createUserId) {
+        this.createUserId = createUserId;
     }
 
     public Long getUpdateUserId() {
