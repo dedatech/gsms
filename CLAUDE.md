@@ -12,7 +12,6 @@ GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理�
 - JWT 认证 (jjwt 0.9.1)
 - Maven 构建管理
 - SpringDoc OpenAPI API文档
-- H2 内存数据库（测试用）
 
 ## 常用命令
 
@@ -41,9 +40,6 @@ mvn test -Dtest=UserControllerTest#testGetUserById
 
 # 运行所有Controller测试
 mvn test -Dtest=*ControllerTest
-
-# 运行测试并生成覆盖率报告
-mvn clean test jacoco:report
 ```
 
 ### 数据库
@@ -170,7 +166,7 @@ src/test/java/com/gsms/gsms/
 ```
 
 ### Controller集成测试
-- 继承`BaseControllerTest`（使用`@SpringBootTest`和真实Service、H2数据库）
+- 继承`BaseControllerTest`（使用`@SpringBootTest`和真实Service、MySQL测试数据库）
 - 在`@BeforeEach`中创建测试用户并使用`JwtUtil`生成JWT Token
 - 使用`executeWithUserContext()`创建测试数据以设置UserContext
 - 使用`objectMapper.writeValueAsString()`将DTO序列化为JSON
@@ -182,7 +178,7 @@ src/test/java/com/gsms/gsms/
 - 验证与Mapper的交互
 
 ### 单元测试最佳实践
-- 使用H2内存数据库实现隔离
+- 使用MySQL测试数据库（gsms_test）进行集成测试
 - 必要时在`@AfterEach`中清理测试数据
 - 避免硬编码ID - 使用创建的测试数据的ID
 - 使用描述性测试方法名：`test{方法名}_{场景}_{预期结果}`
