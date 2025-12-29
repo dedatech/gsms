@@ -42,54 +42,23 @@ public class TaskServiceImpl implements TaskService {
         this.authService = authService;
     }
 
-    /**
-     * 校验当前用户对任务的访问权限（通过SQL层验证）
-     * @param taskId 任务ID
-     * @throws BusinessException 无权限时抛出异常
-     */
-    private void checkTaskProjectAccess(Long projectId) {
-        Long currentUserId = UserContext.getCurrentUserId();
-
-        // 系统管理员和业务相关角色可以访问所有任务
-        if (authService.canViewAllTasks(currentUserId)) {
-            return;
-        }
-
-        // 普通用户只能访问自己参与项目下的任务
-        List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
-        if (projectIds == null || projectIds.isEmpty() || !projectIds.contains(projectId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
-    }
-
-    /**
-     * 校验当前用户对任务的访问权限（通过SQL层验证）
-     * @param taskId 任务ID
-     * @throws BusinessException 无权限时抛出异常
-     */
-    private void checkTaskAccess(Long taskId) {
-        Long currentUserId = UserContext.getCurrentUserId();
-
-        // 系统管理员和业务相关角色可以访问所有任务
-        if (authService.canViewAllTasks(currentUserId)) {
-            return;
-        }
-
-        // 普通用户：通过SQL JOIN验证权限，查询任务是否存在且用户有访问权限
-        Task task = taskMapper.selectByIdForUser(taskId, currentUserId);
-        if (task == null) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
-    }
-
     @Override
     public Task getById(Long id) {
         logger.debug("根据ID查询任务: {}", id);
         // 先鉴权
-        checkTaskAccess(id);
+        Long currentUserId = UserContext.getCurrentUserId();
 
-        // 鉴权通过后直接查询（此时已确认有权限）
-        Task task = taskMapper.selectById(id);
+        // 系统管理员和业务相关角色可以访问所有任务
+        if (authService.canViewAllTasks(currentUserId)) {
+            Task task = taskMapper.selectById(id);
+            if (task == null) {
+                throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+            }
+            return task;
+        }
+
+        // 普通用户：通过SQL JOIN验证权限，查询任务是否存在且用户有访问权限
+        Task task = taskMapper.selectByIdForUser(id, currentUserId);
         if (task == null) {
             throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
         }
@@ -134,8 +103,9 @@ public class TaskServiceImpl implements TaskService {
         // DTO转Entity
         Task task = TaskConverter.toTask(createReq);
 
-        // 先鉴权
-        checkTaskProjectAccess(task.getProjectId());
+        // 先鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, task.getProjectId());
 
         // 校验任务负责人必须为项目成员（如果指定了负责人）
         if (task.getAssigneeId() != null) {
@@ -145,7 +115,6 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        Long currentUserId = UserContext.getCurrentUserId();
         task.setCreateUserId(currentUserId);
 
         int result = taskMapper.insert(task);
@@ -167,8 +136,9 @@ public class TaskServiceImpl implements TaskService {
             throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
         }
 
-        // 鉴权
-        checkTaskProjectAccess(existTask.getProjectId());
+        // 鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, existTask.getProjectId());
 
         // DTO转Entity
         Task task = TaskConverter.toTask(updateReq);
@@ -197,7 +167,6 @@ public class TaskServiceImpl implements TaskService {
             task.setActualStartDate(new java.util.Date());
         }
 
-        Long currentUserId = UserContext.getCurrentUserId();
         task.setUpdateUserId(currentUserId);
 
         int result = taskMapper.update(task);
@@ -219,8 +188,9 @@ public class TaskServiceImpl implements TaskService {
             throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
         }
 
-        // 鉴权
-        checkTaskProjectAccess(existTask.getProjectId());
+        // 鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, existTask.getProjectId());
 
         int result = taskMapper.deleteById(id);
         if (result <= 0) {

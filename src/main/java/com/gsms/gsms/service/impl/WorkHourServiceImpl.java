@@ -28,35 +28,19 @@ public class WorkHourServiceImpl implements WorkHourService {
         this.authService = authService;
     }
 
-    /**
-     * 校验当前用户对工时记录的访问权限
-     * @param workHourId 工时记录ID
-     * @throws BusinessException 无权限时抛出异常
-     */
-    private void checkWorkHourAccess(Long workHourId) {
-        WorkHour workHour = workHourMapper.selectById(workHourId);
+    @Override
+    public WorkHour getWorkHourById(Long id) {
+        // 先查询工时记录
+        WorkHour workHour = workHourMapper.selectById(id);
         if (workHour == null) {
             throw new BusinessException(WorkHourErrorCode.WORKHOUR_NOT_FOUND);
         }
-        
-        Long currentUserId = UserContext.getCurrentUserId();
-        
-        // 具备全局工时查看权限的用户可以访问任意工时
-        if (authService.canViewAllWorkHours(currentUserId)) {
-            return;
-        }
-        
-        // 普通用户只能访问自己的工时记录
-        if (!currentUserId.equals(workHour.getUserId())) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
-    }
 
-    @Override
-    public WorkHour getWorkHourById(Long id) {
-        // 先鉴权再查询
-        checkWorkHourAccess(id);
-        return workHourMapper.selectById(id);
+        // 鉴权
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkWorkHourAccess(currentUserId, workHour.getUserId());
+
+        return workHour;
     }
 
     @Override
@@ -81,10 +65,7 @@ public class WorkHourServiceImpl implements WorkHourService {
             return workHourMapper.selectByProjectId(projectId);
         }
         // 普通用户只能查看自己参与项目范围内的工时
-        List<Long> accessibleProjectIds = authService.getAccessibleProjectIds(currentUserId);
-        if (accessibleProjectIds == null || accessibleProjectIds.isEmpty() || !accessibleProjectIds.contains(projectId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
+        authService.checkProjectAccess(currentUserId, projectId);
         return workHourMapper.selectByProjectId(projectId);
     }
 
@@ -101,10 +82,7 @@ public class WorkHourServiceImpl implements WorkHourService {
         Long queryUserId = currentUserId;
         Long queryProjectId = projectId;
         if (projectId != null) {
-            List<Long> accessibleProjectIds = authService.getAccessibleProjectIds(currentUserId);
-            if (accessibleProjectIds == null || accessibleProjectIds.isEmpty() || !accessibleProjectIds.contains(projectId)) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
-            }
+            authService.checkProjectAccess(currentUserId, projectId);
         }
         return workHourMapper.selectByCondition(queryUserId, queryProjectId, taskId, startDate, endDate);
     }
@@ -114,12 +92,7 @@ public class WorkHourServiceImpl implements WorkHourService {
     public WorkHour createWorkHour(WorkHour workHour) {
         Long currentUserId = UserContext.getCurrentUserId();
         // 普通用户只能在自己参与的项目中登记工时
-        if (!authService.canViewAllWorkHours(currentUserId)) {
-            List<Long> accessibleProjectIds = authService.getAccessibleProjectIds(currentUserId);
-            if (accessibleProjectIds == null || accessibleProjectIds.isEmpty() || !accessibleProjectIds.contains(workHour.getProjectId())) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
-            }
-        }
+        authService.checkProjectAccess(currentUserId, workHour.getProjectId());
 
         workHour.setUserId(currentUserId); // 工时记录的 userId 就是当前登录用户
 
@@ -144,10 +117,8 @@ public class WorkHourServiceImpl implements WorkHourService {
         if (currentUserId == null) {
             throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
         }
-        // 普通用户只能修改自己的工时记录
-        if (!authService.canViewAllWorkHours(currentUserId) && !currentUserId.equals(existWorkHour.getUserId())) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
+        // 鉴权 - 检查工时访问权限
+        authService.checkWorkHourAccess(currentUserId, existWorkHour.getUserId());
 
         workHour.setUpdateUserId(currentUserId);
 
@@ -172,10 +143,8 @@ public class WorkHourServiceImpl implements WorkHourService {
         if (currentUserId == null) {
             throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
         }
-        // 普通用户只能删除自己的工时记录
-        if (!authService.canViewAllWorkHours(currentUserId) && !currentUserId.equals(existWorkHour.getUserId())) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
+        // 鉴权 - 检查工时访问权限
+        authService.checkWorkHourAccess(currentUserId, existWorkHour.getUserId());
 
         int result = workHourMapper.deleteById(id);
         if (result <= 0) {

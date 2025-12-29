@@ -38,30 +38,11 @@ public class ProjectServiceImpl implements ProjectService {
         this.authService = authService;
     }
 
-    /**
-     * 校验当前用户对项目的访问权限
-     * @param projectId 项目ID
-     * @throws BusinessException 无权限时抛出异常
-     */
-    private void checkProjectAccess(Long projectId) {
-        Long currentUserId = UserContext.getCurrentUserId();
-
-        // 系统管理员和业务相关角色可以访问所有项目
-        if (authService.canViewAllProjects(currentUserId)) {
-            return;
-        }
-
-        // 普通用户只能访问自己参与的项目
-        List<Long> projectIds = authService.getAccessibleProjectIds(currentUserId);
-        if (projectIds == null || !projectIds.contains(projectId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
-        }
-    }
-
     @Override
     public ProjectInfoResp getById(Long id) {
         // 先鉴权再查询
-        checkProjectAccess(id);
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, id);
 
         Project project = projectMapper.selectById(id);
         if (project == null) {
@@ -117,7 +98,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional(rollbackFor = Exception.class)
     public ProjectInfoResp update(ProjectUpdateReq updateReq) {
         // 先鉴权
-        checkProjectAccess(updateReq.getId());
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, updateReq.getId());
 
         // 检查项目是否存在
         Project existProject = projectMapper.selectById(updateReq.getId());
@@ -129,7 +111,6 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = ProjectConverter.toProject(updateReq);
 
         // 自动填充更新人（从登录态获取）
-        Long currentUserId = UserContext.getCurrentUserId();
         project.setUpdateUserId(currentUserId);
 
         // 更新时间由数据库自动填充
@@ -146,7 +127,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         // 先鉴权
-        checkProjectAccess(id);
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, id);
 
         // 检查项目是否存在
         Project existProject = projectMapper.selectById(id);
