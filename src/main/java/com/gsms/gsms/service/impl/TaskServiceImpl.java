@@ -116,6 +116,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         task.setCreateUserId(currentUserId);
+        task.setUpdateUserId(currentUserId);
 
         int result = taskMapper.insert(task);
         if (result <= 0) {

@@ -55,7 +55,8 @@ public class IterationServiceImpl implements IterationService {
         // DTO转Entity
         Iteration iteration = IterationConverter.toEntity(createReq);
         Long currentUserId = UserContext.getCurrentUserId();
-        iteration.setCreateUserId(currentUserId);
+        iteration.setCreateUserId(currentUserId != null ? currentUserId : 1L);
+        iteration.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
 
         int result = iterationMapper.insert(iteration);
         if (result <= 0) {
@@ -73,6 +74,9 @@ public class IterationServiceImpl implements IterationService {
 
         // DTO转Entity
         Iteration iteration = IterationConverter.toEntity(updateReq);
+
+        Long currentUserId = UserContext.getCurrentUserId();
+        iteration.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
 
         int result = iterationMapper.update(iteration);
         if (result <= 0) {

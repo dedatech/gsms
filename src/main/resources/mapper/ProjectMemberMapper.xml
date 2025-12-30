@@ -20,8 +20,8 @@
 
     <!-- 插入项目成员 -->
     <insert id="insertProjectMember">
-        INSERT INTO gsms_project_member(project_id, user_id, role_type, create_user_id)
-        VALUES(#{projectId}, #{userId}, #{roleType}, #{createUserId})
+        INSERT INTO gsms_project_member(project_id, user_id, role_type, create_user_id, update_user_id)
+        VALUES(#{projectId}, #{userId}, #{roleType}, #{createUserId}, #{createUserId})
     </insert>
 
     <!-- 根据项目ID查询项目成员详情列表 -->
@@ -52,6 +52,7 @@
     <update id="updateProjectMemberRole">
         UPDATE gsms_project_member
         SET role_type = #{roleType},
+            update_user_id = #{updateUserId},
             update_time = NOW()
         WHERE project_id = #{projectId}
           AND user_id = #{userId}

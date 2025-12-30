@@ -81,6 +81,7 @@ public class ProjectServiceImpl implements ProjectService {
         // 自动填充创建人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();
         project.setCreateUserId(currentUserId);
+        project.setUpdateUserId(currentUserId);
 
         // 创建时间和更新时间由数据库自动填充
         int result = projectMapper.insert(project);

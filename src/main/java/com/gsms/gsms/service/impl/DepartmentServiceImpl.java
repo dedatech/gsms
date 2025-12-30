@@ -11,6 +11,7 @@ import com.gsms.gsms.dto.department.DepartmentConverter;
 import com.gsms.gsms.dto.department.DepartmentInfoResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
+import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.DepartmentMapper;
 import com.gsms.gsms.service.DepartmentService;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     public DepartmentInfoResp create(DepartmentCreateReq createReq) {
         // DTO转Entity
         Department department = DepartmentConverter.toEntity(createReq);
+
+        // 设置审计字段
+        Long currentUserId = UserContext.getCurrentUserId();
+        department.setCreateUserId(currentUserId != null ? currentUserId : 1L);
+        department.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
+
         int result = departmentMapper.insert(department);
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_CREATE_FAILED);
@@ -68,6 +75,11 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         // DTO转Entity
         Department department = DepartmentConverter.toEntity(updateReq);
+
+        // 设置审计字段
+        Long currentUserId = UserContext.getCurrentUserId();
+        department.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
+
         int result = departmentMapper.update(department);
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_UPDATE_FAILED);

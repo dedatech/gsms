@@ -112,7 +112,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 throw new BusinessException(CommonErrorCode.FORBIDDEN);
             }
         }
-        int updated = projectMemberMapper.updateProjectMemberRole(projectId, userId, roleType);
+        int updated = projectMemberMapper.updateProjectMemberRole(projectId, userId, roleType, currentUserId);
         if (updated <= 0) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }

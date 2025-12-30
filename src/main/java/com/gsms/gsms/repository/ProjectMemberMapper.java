@@ -46,6 +46,7 @@ public interface ProjectMemberMapper {
      */
     int updateProjectMemberRole(@Param("projectId") Long projectId,
                                 @Param("userId") Long userId,
-                                @Param("roleType") Integer roleType);
+                                @Param("roleType") Integer roleType,
+                                @Param("updateUserId") Long updateUserId);
 }
 
