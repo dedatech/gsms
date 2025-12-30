@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -67,7 +67,7 @@ public class IterationControllerTest extends BaseControllerTest {
         projectCreateReq.setName("GSMS项目");
         projectCreateReq.setCode("GSMS");
         projectCreateReq.setManagerId(testUser.getId());
-        projectCreateReq.setStatus(ProjectStatus.TODO);
+        projectCreateReq.setStatus(ProjectStatus.NOT_STARTED);
 
         executeWithUserContext(testUser.getId(), () -> {
             testProject = projectService.create(projectCreateReq);
@@ -77,9 +77,11 @@ public class IterationControllerTest extends BaseControllerTest {
             iterationCreateReq.setProjectId(testProject.getId());
             iterationCreateReq.setName("Sprint 1");
             iterationCreateReq.setDescription("第一个迭代");
-            iterationCreateReq.setStatus(IterationStatus.TODO);
-            iterationCreateReq.setPlanStartDate(LocalDate.now());
-            iterationCreateReq.setPlanEndDate(LocalDate.now().plusWeeks(2));
+            iterationCreateReq.setStatus(IterationStatus.NOT_STARTED);
+            iterationCreateReq.setPlanStartDate(new Date());
+            Date endDate2 = new Date();
+            endDate2.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+            iterationCreateReq.setPlanEndDate(endDate2);
 
             testIteration = iterationService.create(iterationCreateReq);
             return null;
@@ -123,8 +125,10 @@ public class IterationControllerTest extends BaseControllerTest {
         createReq.setName("Sprint 2");
         createReq.setDescription("第二个迭代");
         createReq.setStatus(IterationStatus.IN_PROGRESS);
-        createReq.setPlanStartDate(LocalDate.now());
-        createReq.setPlanEndDate(LocalDate.now().plusWeeks(2));
+        createReq.setPlanStartDate(new Date());
+        Date endDate2w = new Date();
+        endDate2w.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+        createReq.setPlanEndDate(endDate2w);
 
         mockMvc.perform(post("/api/iterations")
                 .header("Authorization", "Bearer " + testToken)
@@ -157,7 +161,7 @@ public class IterationControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").value("删除成功"));
+                .andExpect(jsonPath("$.data").value("迭代删除成功"));
     }
 
     @Test
@@ -167,6 +171,6 @@ public class IterationControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].status").value(IterationStatus.TODO.getValue()));
+                .andExpect(jsonPath("$.data[0].status").value(IterationStatus.NOT_STARTED.getCode()));
     }
 }

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -61,9 +61,11 @@ public class ProjectControllerTest extends BaseControllerTest {
         projectCreateReq.setCode("GSMS");
         projectCreateReq.setDescription("工时管理系统");
         projectCreateReq.setManagerId(testUser.getId());
-        projectCreateReq.setStatus(ProjectStatus.TODO);
-        projectCreateReq.setPlanStartDate(LocalDate.now());
-        projectCreateReq.setPlanEndDate(LocalDate.now().plusMonths(3));
+        projectCreateReq.setStatus(ProjectStatus.NOT_STARTED);
+        projectCreateReq.setPlanStartDate(new Date());
+        Date endDate = new Date();
+        endDate.setTime(System.currentTimeMillis() + 90L * 24 * 60 * 60 * 1000);
+        projectCreateReq.setPlanEndDate(endDate);
 
         executeWithUserContext(testUser.getId(), () -> {
             testProject = projectService.create(projectCreateReq);
@@ -89,7 +91,7 @@ public class ProjectControllerTest extends BaseControllerTest {
         mockMvc.perform(get("/api/projects/" + nonExistId)
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(1001)); // PROJECT_NOT_FOUND
+                .andExpect(jsonPath("$.code").value(3001)); // PROJECT_NOT_FOUND
     }
 
     @Test
@@ -109,9 +111,11 @@ public class ProjectControllerTest extends BaseControllerTest {
         createReq.setCode("NEW_PROJ");
         createReq.setDescription("新项目描述");
         createReq.setManagerId(testUser.getId());
-        createReq.setStatus(ProjectStatus.TODO);
-        createReq.setPlanStartDate(LocalDate.now());
-        createReq.setPlanEndDate(LocalDate.now().plusMonths(6));
+        createReq.setStatus(ProjectStatus.NOT_STARTED);
+        createReq.setPlanStartDate(new Date());
+        Date endDate6 = new Date();
+        endDate6.setTime(System.currentTimeMillis() + 180L * 24 * 60 * 60 * 1000);
+        createReq.setPlanEndDate(endDate6);
 
         mockMvc.perform(post("/api/projects")
                 .header("Authorization", "Bearer " + testToken)
@@ -130,14 +134,14 @@ public class ProjectControllerTest extends BaseControllerTest {
         createReq.setCode("GSMS"); // 重复的项目编码
         createReq.setDescription("重复编码项目");
         createReq.setManagerId(testUser.getId());
-        createReq.setStatus(ProjectStatus.TODO);
+        createReq.setStatus(ProjectStatus.NOT_STARTED);
 
         mockMvc.perform(post("/api/projects")
                 .header("Authorization", "Bearer " + testToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReq))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(1002)); // PROJECT_CODE_EXISTS
+                .andExpect(jsonPath("$.code").value(3003)); // PROJECT_CODE_EXISTS
     }
 
     @Test
@@ -162,7 +166,7 @@ public class ProjectControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").value("删除成功"));
+                .andExpect(jsonPath("$.data").value("项目删除成功"));
     }
 
     @Test
@@ -182,6 +186,6 @@ public class ProjectControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].status").value(ProjectStatus.TODO.getValue()));
+                .andExpect(jsonPath("$.data[0].status").value(ProjectStatus.NOT_STARTED.getCode()));
     }
 }

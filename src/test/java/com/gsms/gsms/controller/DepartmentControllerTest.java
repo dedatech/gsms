@@ -84,7 +84,7 @@ public class DepartmentControllerTest extends BaseControllerTest {
         mockMvc.perform(get("/api/departments/" + nonExistId)
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(3001)); // DEPARTMENT_NOT_FOUND
+                .andExpect(jsonPath("$.code").value(6001)); // DEPARTMENT_NOT_FOUND
     }
 
     @Test
@@ -93,8 +93,8 @@ public class DepartmentControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].name").value("技术部"));
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[1].name").value("技术部"));
     }
 
     @Test
@@ -156,7 +156,7 @@ public class DepartmentControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").value("删除成功"));
+                .andExpect(jsonPath("$.data").value("部门删除成功"));
     }
 
     @Test

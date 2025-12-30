@@ -1,5 +1,6 @@
 package com.gsms.gsms.controller;
 
+import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.model.entity.User;
 import com.gsms.gsms.model.enums.IterationStatus;
 import com.gsms.gsms.model.enums.ProjectStatus;
@@ -24,7 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -52,7 +53,7 @@ public class TaskControllerTest extends BaseControllerTest {
     private String testToken;
     private ProjectInfoResp testProject;
     private IterationInfoResp testIteration;
-    private TaskInfoResp testTask;
+    private Task testTask;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -86,8 +87,10 @@ public class TaskControllerTest extends BaseControllerTest {
             iterationCreateReq.setProjectId(testProject.getId());
             iterationCreateReq.setName("Sprint 1");
             iterationCreateReq.setStatus(IterationStatus.IN_PROGRESS);
-            iterationCreateReq.setPlanStartDate(LocalDate.now());
-            iterationCreateReq.setPlanEndDate(LocalDate.now().plusWeeks(2));
+            iterationCreateReq.setPlanStartDate(new Date());
+            Date planEndDate = new Date();
+            planEndDate.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+            iterationCreateReq.setPlanEndDate(planEndDate);
             testIteration = iterationService.create(iterationCreateReq);
 
             // 创建测试任务
@@ -96,13 +99,15 @@ public class TaskControllerTest extends BaseControllerTest {
             taskCreateReq.setIterationId(testIteration.getId());
             taskCreateReq.setTitle("开发用户管理功能");
             taskCreateReq.setDescription("实现用户CRUD操作");
-            taskCreateReq.setType(TaskType.FEATURE);
+            taskCreateReq.setType(TaskType.TASK);
             taskCreateReq.setPriority(TaskPriority.HIGH);
             taskCreateReq.setAssigneeId(testUser.getId());
             taskCreateReq.setStatus(TaskStatus.TODO);
-            taskCreateReq.setPlanStartDate(LocalDate.now());
-            taskCreateReq.setPlanEndDate(LocalDate.now().plusDays(7));
-            taskCreateReq.setEstimateHours(40.0);
+            taskCreateReq.setPlanStartDate(new Date());
+            Date taskPlanEndDate = new Date();
+            taskPlanEndDate.setTime(System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000);
+            taskCreateReq.setPlanEndDate(taskPlanEndDate);
+            taskCreateReq.setEstimateHours(new java.math.BigDecimal("40.0"));
 
             testTask = taskService.create(taskCreateReq);
             return null;
@@ -146,11 +151,11 @@ public class TaskControllerTest extends BaseControllerTest {
         createReq.setIterationId(testIteration.getId());
         createReq.setTitle("开发部门管理功能");
         createReq.setDescription("实现部门CRUD操作");
-        createReq.setType(TaskType.FEATURE);
+        createReq.setType(TaskType.TASK);
         createReq.setPriority(TaskPriority.MEDIUM);
         createReq.setAssigneeId(testUser.getId());
         createReq.setStatus(TaskStatus.TODO);
-        createReq.setEstimateHours(32.0);
+        createReq.setEstimateHours(new java.math.BigDecimal("32.0"));
 
         mockMvc.perform(post("/api/tasks")
                 .header("Authorization", "Bearer " + testToken)
@@ -175,7 +180,7 @@ public class TaskControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.title").value("开发用户管理功能（优化版）"))
-                .andExpect(jsonPath("$.data.status").value(TaskStatus.IN_PROGRESS.getValue()));
+                .andExpect(jsonPath("$.data.status").value(TaskStatus.IN_PROGRESS.getCode()));
     }
 
     @Test
@@ -184,7 +189,7 @@ public class TaskControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").value("删除成功"));
+                .andExpect(jsonPath("$.data").value("任务删除成功"));
     }
 
     @Test

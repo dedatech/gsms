@@ -92,9 +92,9 @@ public class UserControllerTest extends BaseControllerTest {
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].username").value("testuser"))
-                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[1].username").value("testuser"))
+                .andExpect(jsonPath("$.total").value(2))
                 .andExpect(jsonPath("$.pageNum").value(1))
                 .andExpect(jsonPath("$.pageSize").value(10));
     }
@@ -199,7 +199,7 @@ public class UserControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.data.length()").value(5))
                 .andExpect(jsonPath("$.pageNum").value(1))
                 .andExpect(jsonPath("$.pageSize").value(5))
-                .andExpect(jsonPath("$.total").value(16)); // 包括之前创建的1个用户
+                .andExpect(jsonPath("$.total").value(17)); // 包括admin、testuser和新建的15个用户
     }
 
     @Test
