@@ -13,6 +13,7 @@ import com.gsms.gsms.dto.user.UserConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.PasswordUtil;
+import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.UserService;
 import org.slf4j.Logger;
@@ -85,6 +86,11 @@ public class UserServiceImpl implements UserService {
         // 密码加密
         user.setPassword(PasswordUtil.encrypt(user.getPassword()));
 
+        // 设置审计字段
+        Long currentUserId = UserContext.getCurrentUserId();
+        user.setCreateUserId(currentUserId != null ? currentUserId : 1L);
+        user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
+
         int result = userMapper.insert(user);
         if (result <= 0) {
             throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
@@ -113,6 +119,10 @@ public class UserServiceImpl implements UserService {
             // 新密码需要加密
             user.setPassword(PasswordUtil.encrypt(user.getPassword()));
         }
+
+        // 设置审计字段
+        Long currentUserId = UserContext.getCurrentUserId();
+        user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
 
         int result = userMapper.update(user);
         if (result <= 0) {

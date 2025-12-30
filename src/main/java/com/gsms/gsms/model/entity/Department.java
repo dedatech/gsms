@@ -43,7 +43,15 @@ public class Department {
     @Schema(description = "是否删除")
     @TableField("is_deleted")
     private Integer isDeleted;
-    
+
+    @Schema(description = "创建人ID")
+    @TableField("create_user_id")
+    private Long createUserId;
+
+    @Schema(description = "更新人ID")
+    @TableField("update_user_id")
+    private Long updateUserId;
+
     public Long getId() {
         return id;
     }
@@ -111,8 +119,24 @@ public class Department {
     public Integer getIsDeleted() {
         return isDeleted;
     }
-    
+
     public void setIsDeleted(Integer isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public Long getCreateUserId() {
+        return createUserId;
+    }
+
+    public void setCreateUserId(Long createUserId) {
+        this.createUserId = createUserId;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
     }
 }

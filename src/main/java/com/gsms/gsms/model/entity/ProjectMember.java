@@ -26,6 +26,9 @@ public class ProjectMember {
     @Schema(description = "创建人ID")
     private Long createUserId;
 
+    @Schema(description = "更新人ID")
+    private Long updateUserId;
+
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
@@ -72,6 +75,14 @@ public class ProjectMember {
 
     public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
     }
 
     public Date getCreateTime() {
