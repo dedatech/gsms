@@ -2,9 +2,9 @@ package com.gsms.gsms.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.enums.UserStatus;
-import com.gsms.gsms.domain.enums.errorcode.UserErrorCode;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.UserStatus;
+import com.gsms.gsms.model.enums.errorcode.UserErrorCode;
 import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;

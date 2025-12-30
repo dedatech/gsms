@@ -1,7 +1,7 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.WorkHour;
-import com.gsms.gsms.domain.enums.WorkHourStatus;
+import com.gsms.gsms.model.entity.WorkHour;
+import com.gsms.gsms.model.enums.WorkHourStatus;
 import com.gsms.gsms.repository.WorkHourMapper;
 import com.gsms.gsms.service.impl.WorkHourServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

@@ -2,8 +2,8 @@ package com.gsms.gsms.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.gsms.gsms.domain.entity.Department;
-import com.gsms.gsms.domain.enums.errorcode.DepartmentErrorCode;
+import com.gsms.gsms.model.entity.Department;
+import com.gsms.gsms.model.enums.errorcode.DepartmentErrorCode;
 import com.gsms.gsms.dto.department.DepartmentQueryReq;
 import com.gsms.gsms.dto.department.DepartmentCreateReq;
 import com.gsms.gsms.dto.department.DepartmentUpdateReq;

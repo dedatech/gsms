@@ -1,8 +1,8 @@
 package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.gsms.gsms.domain.entity.Iteration;
-import com.gsms.gsms.domain.enums.IterationStatus;
+import com.gsms.gsms.model.entity.Iteration;
+import com.gsms.gsms.model.enums.IterationStatus;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

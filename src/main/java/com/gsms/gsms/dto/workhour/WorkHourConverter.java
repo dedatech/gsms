@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.workhour;
 
-import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.model.entity.WorkHour;
 
 /**
  * 工时记录对象转换器

@@ -1,9 +1,9 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.Task;
-import com.gsms.gsms.domain.enums.TaskPriority;
-import com.gsms.gsms.domain.enums.TaskStatus;
-import com.gsms.gsms.domain.enums.TaskType;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.enums.TaskPriority;
+import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.model.enums.TaskType;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.service.impl.TaskServiceImpl;

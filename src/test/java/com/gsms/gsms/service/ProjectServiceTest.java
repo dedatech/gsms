@@ -1,7 +1,7 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.Project;
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.entity.Project;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.service.impl.ProjectServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

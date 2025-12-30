@@ -1,21 +1,21 @@
-package com.gsms.gsms.domain.enums;
+package com.gsms.gsms.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 任务类型枚举
+ * 任务状态枚举
  */
-public enum TaskType {
-    TASK(1, "任务"),
-    REQUIREMENT(2, "需求"),
-    BUG(3, "缺陷");
+public enum TaskStatus {
+    TODO(1, "待处理"),
+    IN_PROGRESS(2, "进行中"),
+    DONE(3, "已完成");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final Integer code;
     private final String desc;
 
-    TaskType(Integer code, String desc) {
+    TaskStatus(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -32,15 +32,15 @@ public enum TaskType {
     /**
      * 根据 code 获取枚举
      */
-    public static TaskType fromCode(Integer code) {
+    public static TaskStatus fromCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (TaskType type : TaskType.values()) {
-            if (type.code.equals(code)) {
-                return type;
+        for (TaskStatus status : TaskStatus.values()) {
+            if (status.code.equals(code)) {
+                return status;
             }
         }
-        throw new IllegalArgumentException("无效的任务类型: " + code);
+        throw new IllegalArgumentException("无效的任务状态: " + code);
     }
 }

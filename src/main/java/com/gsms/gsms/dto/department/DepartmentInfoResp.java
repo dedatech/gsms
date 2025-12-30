@@ -1,7 +1,7 @@
 package com.gsms.gsms.dto.department;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.entity.Department;
+import com.gsms.gsms.model.entity.Department;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;

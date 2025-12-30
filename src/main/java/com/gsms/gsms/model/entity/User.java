@@ -1,10 +1,10 @@
-package com.gsms.gsms.domain.entity;
+package com.gsms.gsms.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 

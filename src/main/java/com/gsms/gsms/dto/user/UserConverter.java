@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.user;
 
-import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.model.entity.User;
 
 /**
  * 用户对象转换器（手动转换，性能最优）

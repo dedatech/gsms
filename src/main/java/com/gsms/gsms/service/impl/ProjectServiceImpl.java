@@ -2,9 +2,9 @@ package com.gsms.gsms.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
-import com.gsms.gsms.domain.enums.errorcode.ProjectErrorCode;
+import com.gsms.gsms.model.enums.errorcode.ProjectErrorCode;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;

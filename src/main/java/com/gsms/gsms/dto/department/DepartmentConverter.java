@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.department;
 
-import com.gsms.gsms.domain.entity.Department;
+import com.gsms.gsms.model.entity.Department;
 
 public class DepartmentConverter {
 

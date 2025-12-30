@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.iteration;
 
-import com.gsms.gsms.domain.entity.Iteration;
+import com.gsms.gsms.model.entity.Iteration;
 
 public class IterationConverter {
 

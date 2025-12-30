@@ -3,7 +3,7 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
-import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;

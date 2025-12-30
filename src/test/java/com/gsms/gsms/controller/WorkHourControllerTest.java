@@ -1,13 +1,13 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.domain.entity.Task;
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.entity.WorkHour;
-import com.gsms.gsms.domain.enums.TaskPriority;
-import com.gsms.gsms.domain.enums.TaskStatus;
-import com.gsms.gsms.domain.enums.TaskType;
-import com.gsms.gsms.domain.enums.WorkHourStatus;
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.entity.WorkHour;
+import com.gsms.gsms.model.enums.TaskPriority;
+import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.model.enums.TaskType;
+import com.gsms.gsms.model.enums.WorkHourStatus;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserInfoResp;

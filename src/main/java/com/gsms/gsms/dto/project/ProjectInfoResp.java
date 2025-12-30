@@ -1,8 +1,8 @@
 package com.gsms.gsms.dto.project;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.entity.Project;
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.entity.Project;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;

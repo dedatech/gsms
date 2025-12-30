@@ -1,7 +1,7 @@
-package com.gsms.gsms.domain.entity;
+package com.gsms.gsms.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.enums.IterationStatus;
+import com.gsms.gsms.model.enums.IterationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 

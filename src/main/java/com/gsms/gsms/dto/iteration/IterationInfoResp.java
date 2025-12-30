@@ -1,8 +1,8 @@
 package com.gsms.gsms.dto.iteration;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.entity.Iteration;
-import com.gsms.gsms.domain.enums.IterationStatus;
+import com.gsms.gsms.model.entity.Iteration;
+import com.gsms.gsms.model.enums.IterationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.model.entity.Task;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

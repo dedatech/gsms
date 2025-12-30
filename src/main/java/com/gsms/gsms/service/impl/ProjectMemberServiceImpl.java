@@ -1,7 +1,7 @@
 package com.gsms.gsms.service.impl;
 
-import com.gsms.gsms.domain.entity.ProjectMember;
-import com.gsms.gsms.domain.enums.ProjectMemberRole;
+import com.gsms.gsms.model.entity.ProjectMember;
+import com.gsms.gsms.model.enums.ProjectMemberRole;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.infra.utils.UserContext;

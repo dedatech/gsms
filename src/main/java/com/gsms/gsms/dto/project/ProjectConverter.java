@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.project;
 
-import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.model.entity.Project;
 
 /**
  * 项目对象转换器

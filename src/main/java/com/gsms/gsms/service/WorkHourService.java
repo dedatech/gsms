@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.model.entity.WorkHour;
 
 import java.util.Date;
 import java.util.List;

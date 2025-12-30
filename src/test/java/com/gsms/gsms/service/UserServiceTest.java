@@ -1,7 +1,7 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.UserStatus;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,7 +1,7 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.ProjectMember;
-import com.gsms.gsms.domain.enums.ProjectMemberRole;
+import com.gsms.gsms.model.entity.ProjectMember;
+import com.gsms.gsms.model.enums.ProjectMemberRole;
 
 import java.util.List;
 

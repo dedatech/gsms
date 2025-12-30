@@ -1,8 +1,8 @@
 package com.gsms.gsms.repository;
 
-import com.gsms.gsms.domain.entity.Project;
+import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.config.TestMyBatisConfig;
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

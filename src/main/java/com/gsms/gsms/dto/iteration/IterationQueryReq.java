@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.iteration;
 
-import com.gsms.gsms.domain.enums.IterationStatus;
+import com.gsms.gsms.model.enums.IterationStatus;
 import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 

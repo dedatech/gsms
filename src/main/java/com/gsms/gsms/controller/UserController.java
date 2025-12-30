@@ -1,6 +1,6 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.model.entity.User;
 import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserLoginReq;
 import com.gsms.gsms.dto.user.UserQueryReq;

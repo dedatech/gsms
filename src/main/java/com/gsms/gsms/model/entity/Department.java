@@ -1,4 +1,4 @@
-package com.gsms.gsms.domain.entity;
+package com.gsms.gsms.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;

@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.project;
 
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 

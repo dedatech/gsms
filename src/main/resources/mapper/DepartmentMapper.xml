@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gsms.gsms.repository.DepartmentMapper">
 
-    <resultMap id="DepartmentResultMap" type="com.gsms.gsms.domain.entity.Department">
+    <resultMap id="DepartmentResultMap" type="com.gsms.gsms.model.entity.Department">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="parent_id" property="parentId"/>
@@ -37,13 +37,13 @@
         ORDER BY sort
     </select>
 
-    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Department" 
+    <insert id="insert" parameterType="com.gsms.gsms.model.entity.Department"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO sys_department(name, parent_id, level, sort, remark)
         VALUES(#{name}, #{parentId}, #{level}, #{sort}, #{remark})
     </insert>
 
-    <update id="update" parameterType="com.gsms.gsms.domain.entity.Department">
+    <update id="update" parameterType="com.gsms.gsms.model.entity.Department">
         UPDATE sys_department
         <set>
             <if test="name != null and name != ''">name = #{name},</if>

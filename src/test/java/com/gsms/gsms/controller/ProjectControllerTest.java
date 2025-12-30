@@ -1,9 +1,9 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.domain.entity.Project;
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.enums.ProjectStatus;
-import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.model.entity.Project;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.UserStatus;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.dto.project.ProjectInfoResp;

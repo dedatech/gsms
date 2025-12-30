@@ -1,10 +1,10 @@
 package com.gsms.gsms.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gsms.gsms.domain.entity.Task;
-import com.gsms.gsms.domain.enums.TaskPriority;
-import com.gsms.gsms.domain.enums.TaskStatus;
-import com.gsms.gsms.domain.enums.TaskType;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.enums.TaskPriority;
+import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.model.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;

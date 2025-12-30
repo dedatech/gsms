@@ -4,7 +4,7 @@ import com.gsms.gsms.dto.workhour.WorkHourConverter;
 import com.gsms.gsms.dto.workhour.WorkHourCreateReq;
 import com.gsms.gsms.dto.workhour.WorkHourQueryReq;
 import com.gsms.gsms.dto.workhour.WorkHourUpdateReq;
-import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.model.entity.WorkHour;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.WorkHourService;

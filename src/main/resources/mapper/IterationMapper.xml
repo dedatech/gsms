@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gsms.gsms.repository.IterationMapper">
 
-    <resultMap id="IterationResultMap" type="com.gsms.gsms.domain.entity.Iteration">
+    <resultMap id="IterationResultMap" type="com.gsms.gsms.model.entity.Iteration">
         <id column="id" property="id"/>
         <result column="project_id" property="projectId"/>
         <result column="name" property="name"/>
@@ -64,7 +64,7 @@
         ORDER BY plan_start_date DESC
     </select>
 
-    <insert id="insert" parameterType="com.gsms.gsms.domain.entity.Iteration" 
+    <insert id="insert" parameterType="com.gsms.gsms.model.entity.Iteration"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO gsms_iteration(project_id, name, description, status, plan_start_date, 
                              plan_end_date, create_user_id)
@@ -73,7 +73,7 @@
                #{planStartDate}, #{planEndDate}, #{createUserId})
     </insert>
 
-    <update id="update" parameterType="com.gsms.gsms.domain.entity.Iteration">
+    <update id="update" parameterType="com.gsms.gsms.model.entity.Iteration">
         UPDATE gsms_iteration
         <set>
             <if test="name != null and name != ''">name = #{name},</if>

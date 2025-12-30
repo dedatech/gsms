@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.task;
 
-import com.gsms.gsms.domain.enums.TaskStatus;
+import com.gsms.gsms.model.enums.TaskStatus;
 import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 

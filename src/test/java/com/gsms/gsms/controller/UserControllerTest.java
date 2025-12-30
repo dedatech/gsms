@@ -1,7 +1,7 @@
 package com.gsms.gsms.controller;
 
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.enums.UserStatus;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.UserStatus;
 import com.gsms.gsms.dto.user.UserLoginReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserInfoResp;

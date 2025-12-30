@@ -1,9 +1,9 @@
 package com.gsms.gsms.service.impl;
 
-import com.gsms.gsms.domain.entity.Task;
-import com.gsms.gsms.domain.entity.User;
-import com.gsms.gsms.domain.entity.WorkHour;
-import com.gsms.gsms.domain.enums.TaskStatus;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.entity.WorkHour;
+import com.gsms.gsms.model.enums.TaskStatus;
 import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.repository.WorkHourMapper;

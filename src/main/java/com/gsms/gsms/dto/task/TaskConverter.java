@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.task;
 
-import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.model.entity.Task;
 
 /**
  * 任务对象转换器

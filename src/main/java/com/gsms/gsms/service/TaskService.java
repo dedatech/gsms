@@ -1,6 +1,6 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.domain.entity.Task;
+import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;

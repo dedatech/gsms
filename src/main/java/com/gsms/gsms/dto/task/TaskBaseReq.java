@@ -1,9 +1,9 @@
 package com.gsms.gsms.dto.task;
 
-import com.gsms.gsms.domain.entity.Task;
-import com.gsms.gsms.domain.enums.TaskPriority;
-import com.gsms.gsms.domain.enums.TaskStatus;
-import com.gsms.gsms.domain.enums.TaskType;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.enums.TaskPriority;
+import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.model.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

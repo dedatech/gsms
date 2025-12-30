@@ -1,6 +1,6 @@
 package com.gsms.gsms.repository;
 
-import com.gsms.gsms.domain.entity.ProjectMember;
+import com.gsms.gsms.model.entity.ProjectMember;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

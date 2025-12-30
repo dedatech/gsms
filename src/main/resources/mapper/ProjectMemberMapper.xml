@@ -25,7 +25,7 @@
     </insert>
 
     <!-- 根据项目ID查询项目成员详情列表 -->
-    <select id="selectMembersByProjectId" parameterType="long" resultType="com.gsms.gsms.domain.entity.ProjectMember">
+    <select id="selectMembersByProjectId" parameterType="long" resultType="com.gsms.gsms.model.entity.ProjectMember">
         SELECT id,
                project_id    AS projectId,
                user_id       AS userId,

@@ -4,7 +4,7 @@ import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.dto.project.ProjectInfoResp;
-import com.gsms.gsms.domain.entity.ProjectMember;
+import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.ProjectMemberService;

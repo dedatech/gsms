@@ -1,4 +1,4 @@
-package com.gsms.gsms.domain.enums.errorcode;
+package com.gsms.gsms.model.enums.errorcode;
 
 import com.gsms.gsms.infra.exception.ErrorCode;
 

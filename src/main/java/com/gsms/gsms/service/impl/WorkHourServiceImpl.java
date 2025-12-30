@@ -1,8 +1,8 @@
 package com.gsms.gsms.service.impl;
 
-import com.gsms.gsms.domain.entity.WorkHour;
+import com.gsms.gsms.model.entity.WorkHour;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
-import com.gsms.gsms.domain.enums.errorcode.WorkHourErrorCode;
+import com.gsms.gsms.model.enums.errorcode.WorkHourErrorCode;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.WorkHourMapper;

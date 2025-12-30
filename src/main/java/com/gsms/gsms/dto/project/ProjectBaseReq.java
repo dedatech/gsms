@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.project;
 
-import com.gsms.gsms.domain.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

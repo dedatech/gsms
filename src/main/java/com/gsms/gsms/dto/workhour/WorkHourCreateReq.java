@@ -1,6 +1,6 @@
 package com.gsms.gsms.dto.workhour;
 
-import com.gsms.gsms.domain.enums.WorkHourStatus;
+import com.gsms.gsms.model.enums.WorkHourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;

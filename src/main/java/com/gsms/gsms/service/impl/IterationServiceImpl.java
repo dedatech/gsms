@@ -2,8 +2,8 @@ package com.gsms.gsms.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.gsms.gsms.domain.entity.Iteration;
-import com.gsms.gsms.domain.enums.errorcode.IterationErrorCode;
+import com.gsms.gsms.model.entity.Iteration;
+import com.gsms.gsms.model.enums.errorcode.IterationErrorCode;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;

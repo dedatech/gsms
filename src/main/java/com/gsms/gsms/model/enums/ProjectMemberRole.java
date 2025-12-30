@@ -1,21 +1,20 @@
-package com.gsms.gsms.domain.enums;
+package com.gsms.gsms.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 任务状态枚举
+ * 项目成员角色枚举
  */
-public enum TaskStatus {
-    TODO(1, "待处理"),
-    IN_PROGRESS(2, "进行中"),
-    DONE(3, "已完成");
+public enum ProjectMemberRole {
+    PROJECT_MANAGER(1, "项目经理"),
+    MEMBER(2, "普通成员");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final Integer code;
     private final String desc;
 
-    TaskStatus(Integer code, String desc) {
+    ProjectMemberRole(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -32,15 +31,15 @@ public enum TaskStatus {
     /**
      * 根据 code 获取枚举
      */
-    public static TaskStatus fromCode(Integer code) {
+    public static ProjectMemberRole fromCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (TaskStatus status : TaskStatus.values()) {
-            if (status.code.equals(code)) {
-                return status;
+        for (ProjectMemberRole role : ProjectMemberRole.values()) {
+            if (role.code.equals(code)) {
+                return role;
             }
         }
-        throw new IllegalArgumentException("无效的任务状态: " + code);
+        throw new IllegalArgumentException("无效的项目成员角色: " + code);
     }
 }

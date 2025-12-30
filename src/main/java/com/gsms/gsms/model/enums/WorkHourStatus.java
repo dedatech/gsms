@@ -1,20 +1,21 @@
-package com.gsms.gsms.domain.enums;
+package com.gsms.gsms.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 用户状态枚举
+ * 工时记录状态枚举
  */
-public enum UserStatus {
-    NORMAL(1, "正常"),
-    DISABLED(2, "禁用");
+public enum WorkHourStatus {
+    SAVED(1, "已保存"),
+    SUBMITTED(2, "已提交"),
+    CONFIRMED(3, "已确认");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final Integer code;
     private final String desc;
 
-    UserStatus(Integer code, String desc) {
+    WorkHourStatus(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -31,15 +32,15 @@ public enum UserStatus {
     /**
      * 根据 code 获取枚举
      */
-    public static UserStatus fromCode(Integer code) {
+    public static WorkHourStatus fromCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (UserStatus status : UserStatus.values()) {
+        for (WorkHourStatus status : WorkHourStatus.values()) {
             if (status.code.equals(code)) {
                 return status;
             }
         }
-        throw new IllegalArgumentException("无效的用户状态: " + code);
+        throw new IllegalArgumentException("无效的工时状态: " + code);
     }
 }

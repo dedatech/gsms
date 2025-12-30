@@ -1,7 +1,7 @@
 package com.gsms.gsms.infra.common;
 
 import com.github.pagehelper.PageInfo;
-import com.gsms.gsms.domain.entity.User;
+import com.gsms.gsms.model.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
