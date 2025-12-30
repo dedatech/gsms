@@ -17,68 +17,269 @@
 -- 第一部分：审计字段优化
 -- ============================================
 
--- 1. sys_user 表添加审计字段
-ALTER TABLE `sys_user`
-    ADD COLUMN `create_user_id` BIGINT COMMENT '创建人ID',
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+-- 1. sys_user 表添加审计字段（如果不存在）
+SET @dbname = DATABASE();
+SET @tablename = 'sys_user';
+SET @columnname = 'create_user_id';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = @tablename
+    AND COLUMN_NAME = @columnname
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `create_user_id` BIGINT COMMENT ''创建人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 2. sys_department 表添加审计字段
-ALTER TABLE `sys_department`
-    ADD COLUMN `create_user_id` BIGINT COMMENT '创建人ID',
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'sys_department';
+
+SET @columnname = 'create_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `create_user_id` BIGINT COMMENT ''创建人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 3. gsms_project 表添加审计字段
-ALTER TABLE `gsms_project`
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'gsms_project';
 
--- 4. gsms_project_member 表添加审计字段（半业务表，保留create_user_id）
-ALTER TABLE `gsms_project_member`
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- 4. gsms_project_member 表添加审计字段
+SET @tablename = 'gsms_project_member';
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 5. gsms_iteration 表添加审计字段
-ALTER TABLE `gsms_iteration`
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'gsms_iteration';
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 6. gsms_task 表添加审计字段
-ALTER TABLE `gsms_task`
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'gsms_task';
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 7. gsms_work_hour 表添加审计字段
-ALTER TABLE `gsms_work_hour`
-    ADD COLUMN `create_user_id` BIGINT COMMENT '创建人ID',
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'gsms_work_hour';
+
+SET @columnname = 'create_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `create_user_id` BIGINT COMMENT ''创建人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 8. role 表添加审计字段
-ALTER TABLE `role`
-    ADD COLUMN `create_user_id` BIGINT COMMENT '创建人ID',
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'role';
+
+SET @columnname = 'create_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `create_user_id` BIGINT COMMENT ''创建人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 9. permission 表添加审计字段
-ALTER TABLE `permission`
-    ADD COLUMN `create_user_id` BIGINT COMMENT '创建人ID',
-    ADD COLUMN `update_user_id` BIGINT COMMENT '更新人ID',
-    ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT '逻辑删除标记 0:正常 1:已删除',
-    ADD INDEX `idx_is_deleted` (`is_deleted`);
+SET @tablename = 'permission';
 
--- 10. sys_user_role 纯关联表：只保留create_time（已有，不需要额外字段）
+SET @columnname = 'create_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `create_user_id` BIGINT COMMENT ''创建人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 11. role_permission 纯关联表：确保有create_time（已有，不需要额外字段）
+SET @columnname = 'update_user_id';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `update_user_id` BIGINT COMMENT ''更新人ID''')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'is_deleted';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = @tablename AND COLUMN_NAME = @columnname) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @tablename, '` ADD COLUMN `is_deleted` TINYINT(1) DEFAULT 0 NOT NULL COMMENT ''逻辑删除标记 0:正常 1:已删除'', ADD INDEX `idx_is_deleted` (`is_deleted`)')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- 10. sys_user_role 和 role_permission 是纯关联表，不需要额外字段
 
 -- ============================================
 -- 第二部分：为历史数据设置默认值
@@ -120,253 +321,345 @@ ALTER TABLE `permission` MODIFY `update_user_id` BIGINT NOT NULL;
 -- 系统表外键约束（5个）
 
 -- 1. sys_user.department_id -> sys_department.id
-ALTER TABLE `sys_user`
-    ADD CONSTRAINT `fk_user_department`
-    FOREIGN KEY (`department_id`)
-    REFERENCES `sys_department`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_user_department';
+SET @table_name = 'sys_user';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+   WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`department_id`) REFERENCES `sys_department`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 2. sys_user_role.user_id -> sys_user.id
-ALTER TABLE `sys_user_role`
-    ADD CONSTRAINT `fk_user_role_user`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_user_role_user';
+SET @table_name = 'sys_user_role';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`user_id`) REFERENCES `sys_user`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 3. sys_user_role.role_id -> role.id
-ALTER TABLE `sys_user_role`
-    ADD CONSTRAINT `fk_user_role_role`
-    FOREIGN KEY (`role_id`)
-    REFERENCES `role`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_user_role_role';
+SET @table_name = 'sys_user_role';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`role_id`) REFERENCES `role`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 4. role_permission.role_id -> role.id
-ALTER TABLE `role_permission`
-    ADD CONSTRAINT `fk_role_permission_role`
-    FOREIGN KEY (`role_id`)
-    REFERENCES `role`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_role_permission_role';
+SET @table_name = 'role_permission';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`role_id`) REFERENCES `role`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 5. role_permission.permission_id -> permission.id
-ALTER TABLE `role_permission`
-    ADD CONSTRAINT `fk_role_permission_permission`
-    FOREIGN KEY (`permission_id`)
-    REFERENCES `permission`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_role_permission_permission';
+SET @table_name = 'role_permission';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`permission_id`) REFERENCES `permission`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 业务表外键约束（20个）
 
--- 6. gsms_project.manager_id -> sys_user.id
-ALTER TABLE `gsms_project`
-    ADD CONSTRAINT `fk_project_manager`
-    FOREIGN KEY (`manager_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE;
+-- 6-8. gsms_project 外键
+SET @table_name = 'gsms_project';
 
--- 7. gsms_project.create_user_id -> sys_user.id
-ALTER TABLE `gsms_project`
-    ADD CONSTRAINT `fk_project_creator`
-    FOREIGN KEY (`create_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_manager';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`manager_id`) REFERENCES `sys_user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 8. gsms_project.update_user_id -> sys_user.id
-ALTER TABLE `gsms_project`
-    ADD CONSTRAINT `fk_project_updater`
-    FOREIGN KEY (`update_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_creator';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`create_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 9. gsms_project_member.project_id -> gsms_project.id
-ALTER TABLE `gsms_project_member`
-    ADD CONSTRAINT `fk_project_member_project`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `gsms_project`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_updater';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`update_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 10. gsms_project_member.user_id -> sys_user.id
-ALTER TABLE `gsms_project_member`
-    ADD CONSTRAINT `fk_project_member_user`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+-- 9-12. gsms_project_member 外键
+SET @table_name = 'gsms_project_member';
 
--- 11. gsms_project_member.create_user_id -> sys_user.id
-ALTER TABLE `gsms_project_member`
-    ADD CONSTRAINT `fk_project_member_creator`
-    FOREIGN KEY (`create_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_member_project';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`project_id`) REFERENCES `gsms_project`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 12. gsms_project_member.update_user_id -> sys_user.id
-ALTER TABLE `gsms_project_member`
-    ADD CONSTRAINT `fk_project_member_updater`
-    FOREIGN KEY (`update_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_member_user';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`user_id`) REFERENCES `sys_user`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 13. gsms_iteration.project_id -> gsms_project.id
-ALTER TABLE `gsms_iteration`
-    ADD CONSTRAINT `fk_iteration_project`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `gsms_project`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_member_creator';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`create_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 14. gsms_iteration.create_user_id -> sys_user.id
-ALTER TABLE `gsms_iteration`
-    ADD CONSTRAINT `fk_iteration_creator`
-    FOREIGN KEY (`create_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_project_member_updater';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`update_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 15. gsms_iteration.update_user_id -> sys_user.id
-ALTER TABLE `gsms_iteration`
-    ADD CONSTRAINT `fk_iteration_updater`
-    FOREIGN KEY (`update_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+-- 13-15. gsms_iteration 外键
+SET @table_name = 'gsms_iteration';
 
--- 16. gsms_task.project_id -> gsms_project.id
-ALTER TABLE `gsms_task`
-    ADD CONSTRAINT `fk_task_project`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `gsms_project`(`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_iteration_project';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`project_id`) REFERENCES `gsms_project`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 17. gsms_task.iteration_id -> gsms_iteration.id
-ALTER TABLE `gsms_task`
-    ADD CONSTRAINT `fk_task_iteration`
-    FOREIGN KEY (`iteration_id`)
-    REFERENCES `gsms_iteration`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_iteration_creator';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`create_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 18. gsms_task.assignee_id -> sys_user.id
-ALTER TABLE `gsms_task`
-    ADD CONSTRAINT `fk_task_assignee`
-    FOREIGN KEY (`assignee_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_iteration_updater';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`update_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 19. gsms_task.create_user_id -> sys_user.id
-ALTER TABLE `gsms_task`
-    ADD CONSTRAINT `fk_task_creator`
-    FOREIGN KEY (`create_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+-- 16-20. gsms_task 外键
+SET @table_name = 'gsms_task';
 
--- 20. gsms_task.update_user_id -> sys_user.id
-ALTER TABLE `gsms_task`
-    ADD CONSTRAINT `fk_task_updater`
-    FOREIGN KEY (`update_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_task_project';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`project_id`) REFERENCES `gsms_project`(`id`) ON DELETE CASCADE ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 21. gsms_work_hour.user_id -> sys_user.id
-ALTER TABLE `gsms_work_hour`
-    ADD CONSTRAINT `fk_work_hour_user`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_task_iteration';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`iteration_id`) REFERENCES `gsms_iteration`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 22. gsms_work_hour.project_id -> gsms_project.id
-ALTER TABLE `gsms_work_hour`
-    ADD CONSTRAINT `fk_work_hour_project`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `gsms_project`(`id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_task_assignee';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`assignee_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 23. gsms_work_hour.task_id -> gsms_task.id
-ALTER TABLE `gsms_work_hour`
-    ADD CONSTRAINT `fk_work_hour_task`
-    FOREIGN KEY (`task_id`)
-    REFERENCES `gsms_task`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_task_creator';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`create_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 24. gsms_work_hour.create_user_id -> sys_user.id
-ALTER TABLE `gsms_work_hour`
-    ADD CONSTRAINT `fk_work_hour_creator`
-    FOREIGN KEY (`create_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+SET @constraint_name = 'fk_task_updater';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`update_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 25. gsms_work_hour.update_user_id -> sys_user.id
-ALTER TABLE `gsms_work_hour`
-    ADD CONSTRAINT `fk_work_hour_updater`
-    FOREIGN KEY (`update_user_id`)
-    REFERENCES `sys_user`(`id`)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE;
+-- 21-25. gsms_work_hour 外键
+SET @table_name = 'gsms_work_hour';
+
+SET @constraint_name = 'fk_work_hour_user';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`user_id`) REFERENCES `sys_user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @constraint_name = 'fk_work_hour_project';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`project_id`) REFERENCES `gsms_project`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @constraint_name = 'fk_work_hour_task';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`task_id`) REFERENCES `gsms_task`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @constraint_name = 'fk_work_hour_creator';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`create_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @constraint_name = 'fk_work_hour_updater';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = @dbname AND TABLE_NAME = @table_name AND CONSTRAINT_NAME = @constraint_name) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE `', @table_name, '` ADD CONSTRAINT `', @constraint_name, '` FOREIGN KEY (`update_user_id`) REFERENCES `sys_user`(`id`) ON DELETE SET NULL ON UPDATE CASCADE')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- ============================================
--- 第五部分：性能优化索引（20+个）
+-- 第五部分：性能优化索引
 -- ============================================
+
+-- 创建索引的存储过程
+DELIMITER $$
+DROP PROCEDURE IF EXISTS create_index_if_not_exists$$
+CREATE PROCEDURE create_index_if_not_exists(
+  IN p_table_name VARCHAR(255),
+  IN p_index_name VARCHAR(255),
+  IN p_index_definition TEXT
+)
+BEGIN
+  DECLARE index_count INT;
+
+  SELECT COUNT(*) INTO index_count
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = p_table_name
+    AND INDEX_NAME = p_index_name;
+
+  IF index_count = 0 THEN
+    SET @sql = CONCAT('CREATE INDEX `', p_index_name, '` ON `', p_table_name, '` (', p_index_definition, ')');
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END$$
+DELIMITER ;
 
 -- 外键字段索引（15个）
-CREATE INDEX `idx_user_department_id` ON `sys_user`(`department_id`);
-CREATE INDEX `idx_user_role_user_id` ON `sys_user_role`(`user_id`);
-CREATE INDEX `idx_user_role_role_id` ON `sys_user_role`(`role_id`);
-CREATE INDEX `idx_role_permission_role_id` ON `role_permission`(`role_id`);
-CREATE INDEX `idx_role_permission_permission_id` ON `role_permission`(`permission_id`);
-CREATE INDEX `idx_project_manager_id` ON `gsms_project`(`manager_id`);
-CREATE INDEX `idx_project_create_user_id` ON `gsms_project`(`create_user_id`);
-CREATE INDEX `idx_project_member_project_id` ON `gsms_project_member`(`project_id`);
-CREATE INDEX `idx_project_member_user_id` ON `gsms_project_member`(`user_id`);
-CREATE INDEX `idx_iteration_project_id` ON `gsms_iteration`(`project_id`);
-CREATE INDEX `idx_task_project_id` ON `gsms_task`(`project_id`);
-CREATE INDEX `idx_task_iteration_id` ON `gsms_task`(`iteration_id`);
-CREATE INDEX `idx_task_assignee_id` ON `gsms_task`(`assignee_id`);
-CREATE INDEX `idx_work_hour_project_id` ON `gsms_work_hour`(`project_id`);
-CREATE INDEX `idx_work_hour_task_id` ON `gsms_work_hour`(`task_id`);
+CALL create_index_if_not_exists('sys_user', 'idx_user_department_id', 'department_id');
+CALL create_index_if_not_exists('sys_user_role', 'idx_user_role_user_id', 'user_id');
+CALL create_index_if_not_exists('sys_user_role', 'idx_user_role_role_id', 'role_id');
+CALL create_index_if_not_exists('role_permission', 'idx_role_permission_role_id', 'role_id');
+CALL create_index_if_not_exists('role_permission', 'idx_role_permission_permission_id', 'permission_id');
+CALL create_index_if_not_exists('gsms_project', 'idx_project_manager_id', 'manager_id');
+CALL create_index_if_not_exists('gsms_project', 'idx_project_create_user_id', 'create_user_id');
+CALL create_index_if_not_exists('gsms_project_member', 'idx_project_member_project_id', 'project_id');
+CALL create_index_if_not_exists('gsms_project_member', 'idx_project_member_user_id', 'user_id');
+CALL create_index_if_not_exists('gsms_iteration', 'idx_iteration_project_id', 'project_id');
+CALL create_index_if_not_exists('gsms_task', 'idx_task_project_id', 'project_id');
+CALL create_index_if_not_exists('gsms_task', 'idx_task_iteration_id', 'iteration_id');
+CALL create_index_if_not_exists('gsms_task', 'idx_task_assignee_id', 'assignee_id');
+CALL create_index_if_not_exists('gsms_work_hour', 'idx_work_hour_project_id', 'project_id');
+CALL create_index_if_not_exists('gsms_work_hour', 'idx_work_hour_task_id', 'task_id');
 
 -- 高频查询索引（10个）
+CALL create_index_if_not_exists('gsms_task', 'idx_task_status', 'status');
+CALL create_index_if_not_exists('gsms_task', 'idx_task_type_priority', 'type, priority');
+CALL create_index_if_not_exists('gsms_task', 'idx_task_create_time', 'create_time');
+CALL create_index_if_not_exists('gsms_work_hour', 'idx_workhour_status_date', 'status, work_date');
+CALL create_index_if_not_exists('gsms_work_hour', 'idx_workhour_user_date', 'user_id, work_date');
+CALL create_index_if_not_exists('gsms_project', 'idx_project_status', 'status');
+CALL create_index_if_not_exists('gsms_project', 'idx_project_create_time', 'create_time');
+CALL create_index_if_not_exists('gsms_iteration', 'idx_iteration_status', 'status');
+CALL create_index_if_not_exists('gsms_iteration', 'idx_iteration_plan_start_date', 'plan_start_date');
+CALL create_index_if_not_exists('sys_user', 'idx_user_status', 'status');
+CALL create_index_if_not_exists('sys_department', 'idx_department_parent_id', 'parent_id');
+CALL create_index_if_not_exists('sys_department', 'idx_department_level_sort', 'level, sort');
 
--- 任务表索引
-CREATE INDEX `idx_task_status` ON `gsms_task`(`status`);
-CREATE INDEX `idx_task_type_priority` ON `gsms_task`(`type`, `priority`);
-CREATE INDEX `idx_task_create_time` ON `gsms_task`(`create_time`);
-
--- 工时表索引
-CREATE INDEX `idx_workhour_status_date` ON `gsms_work_hour`(`status`, `work_date`);
-CREATE INDEX `idx_workhour_user_date` ON `gsms_work_hour`(`user_id`, `work_date`);
-
--- 项目表索引
-CREATE INDEX `idx_project_status` ON `gsms_project`(`status`);
-CREATE INDEX `idx_project_create_time` ON `gsms_project`(`create_time`);
-
--- 迭代表索引
-CREATE INDEX `idx_iteration_status` ON `gsms_iteration`(`status`);
-CREATE INDEX `idx_iteration_plan_start_date` ON `gsms_iteration`(`plan_start_date`);
-
--- 用户表索引
-CREATE INDEX `idx_user_status` ON `sys_user`(`status`);
-
--- 部门表索引
-CREATE INDEX `idx_department_parent_id` ON `sys_department`(`parent_id`);
-CREATE INDEX `idx_department_level_sort` ON `sys_department`(`level`, `sort`);
+DROP PROCEDURE IF EXISTS create_index_if_not_exists;
 
 -- ============================================
 -- 第六部分：创建操作日志表（审计中心）
