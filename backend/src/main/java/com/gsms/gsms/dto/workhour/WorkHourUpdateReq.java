@@ -2,9 +2,12 @@ package com.gsms.gsms.dto.workhour;
 
 import com.gsms.gsms.model.enums.WorkHourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * 工时记录更新请求
@@ -24,8 +27,10 @@ public class WorkHourUpdateReq {
     private Long taskId;
     
     @NotNull(message = "工作日期不能为空")
-    @Schema(description = "工作日期", example = "2025-01-01")
-    private Date workDate;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "工作日期（格式：yyyy-MM-dd）", example = "2025-01-01", required = true)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate workDate;
     
     @NotNull(message = "工时数不能为空")
     @Schema(description = "工时数", example = "8.0")
@@ -62,11 +67,11 @@ public class WorkHourUpdateReq {
         this.taskId = taskId;
     }
 
-    public Date getWorkDate() {
+    public LocalDate getWorkDate() {
         return workDate;
     }
 
-    public void setWorkDate(Date workDate) {
+    public void setWorkDate(LocalDate workDate) {
         this.workDate = workDate;
     }
 

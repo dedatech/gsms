@@ -4,7 +4,7 @@ import com.gsms.gsms.dto.BasePageQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * 工时记录查询请求
@@ -21,13 +21,13 @@ public class WorkHourQueryReq extends BasePageQuery {
     @Schema(description = "任务ID", example = "1")
     private Long taskId;
     
-    @Schema(description = "开始日期", example = "2025-01-01")
+    @Schema(description = "开始日期（格式：yyyy-MM-dd）", example = "2025-01-01")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date startDate;
-    
-    @Schema(description = "结束日期", example = "2025-01-31")
+    private LocalDate startDate;
+
+    @Schema(description = "结束日期（格式：yyyy-MM-dd）", example = "2025-01-31")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date endDate;
+    private LocalDate endDate;
 
     // Getter and Setter
     public Long getUserId() {
@@ -54,19 +54,19 @@ public class WorkHourQueryReq extends BasePageQuery {
         this.taskId = taskId;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 }

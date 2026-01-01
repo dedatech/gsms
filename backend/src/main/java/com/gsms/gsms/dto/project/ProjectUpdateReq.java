@@ -2,11 +2,13 @@ package com.gsms.gsms.dto.project;
 
 import com.gsms.gsms.model.enums.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * 项目更新请求（继承公共字段 + 更新专属字段）
@@ -35,17 +37,25 @@ public class ProjectUpdateReq {
     @Schema(description = "项目状态", example = "IN_PROGRESS")
     private ProjectStatus status;
 
-    @Schema(description = "计划开始日期", example = "2025-01-01")
-    private Date planStartDate;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "计划开始日期（格式：yyyy-MM-dd）", example = "2025-01-01")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate planStartDate;
 
-    @Schema(description = "计划结束日期", example = "2025-12-31")
-    private Date planEndDate;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "计划结束日期（格式：yyyy-MM-dd）", example = "2025-12-31")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate planEndDate;
 
-    @Schema(description = "实际开始日期", example = "2025-01-05")
-    private Date actualStartDate;
-    
-    @Schema(description = "实际结束日期", example = "2025-12-25")
-    private Date actualEndDate;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "实际开始日期（格式：yyyy-MM-dd）", example = "2025-01-05")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate actualStartDate;
+
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "实际结束日期（格式：yyyy-MM-dd）", example = "2025-12-25")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate actualEndDate;
 
     // Getter and Setter
     public Long getId() {
@@ -98,36 +108,36 @@ public class ProjectUpdateReq {
         this.status = status;
     }
 
-    public Date getPlanStartDate() {
+    public LocalDate getPlanStartDate() {
         return planStartDate;
     }
 
-    public void setPlanStartDate(Date planStartDate) {
+    public void setPlanStartDate(LocalDate planStartDate) {
         this.planStartDate = planStartDate;
     }
 
-    public Date getPlanEndDate() {
+    public LocalDate getPlanEndDate() {
         return planEndDate;
     }
 
-    public void setPlanEndDate(Date planEndDate) {
+    public void setPlanEndDate(LocalDate planEndDate) {
         this.planEndDate = planEndDate;
     }
 
 
-    public Date getActualStartDate() {
+    public LocalDate getActualStartDate() {
         return actualStartDate;
     }
 
-    public void setActualStartDate(Date actualStartDate) {
+    public void setActualStartDate(LocalDate actualStartDate) {
         this.actualStartDate = actualStartDate;
     }
 
-    public Date getActualEndDate() {
+    public LocalDate getActualEndDate() {
         return actualEndDate;
     }
 
-    public void setActualEndDate(Date actualEndDate) {
+    public void setActualEndDate(LocalDate actualEndDate) {
         this.actualEndDate = actualEndDate;
     }
 }

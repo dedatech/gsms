@@ -3,8 +3,11 @@ package com.gsms.gsms.model.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.enums.WorkHourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 工时记录实体类
@@ -38,9 +41,10 @@ public class WorkHour {
     /**
      * 工作日期
      */
-    @Schema(description = "工作日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date workDate;
+    @Schema(description = "工作日期", example = "2024-01-01")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate workDate;
 
     /**
      * 工时数
@@ -75,16 +79,18 @@ public class WorkHour {
     /**
      * 创建时间
      */
-    @Schema(description = "创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
-    
+    @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
     /**
      * 更新时间
      */
-    @Schema(description = "更新时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    @Schema(description = "更新时间", example = "2024-01-01 10:30:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
     
     /**
      * 是否删除
@@ -125,11 +131,11 @@ public class WorkHour {
         this.taskId = taskId;
     }
 
-    public Date getWorkDate() {
+    public LocalDate getWorkDate() {
         return workDate;
     }
 
-    public void setWorkDate(Date workDate) {
+    public void setWorkDate(LocalDate workDate) {
         this.workDate = workDate;
     }
 
@@ -173,19 +179,19 @@ public class WorkHour {
         this.updateUserId = updateUserId;
     }
 
-    public Date getCreateTime() {
+    public LocalDateTime getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
     }
 
-    public Date getUpdateTime() {
+    public LocalDateTime getUpdateTime() {
         return updateTime;
     }
-    
-    public void setUpdateTime(Date updateTime) {
+
+    public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
     }
     

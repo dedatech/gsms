@@ -2,11 +2,13 @@ package com.gsms.gsms.dto.project;
 
 import com.gsms.gsms.model.enums.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * 项目创建请求（继承公共字段）
@@ -33,11 +35,19 @@ public class ProjectCreateReq {
     @Schema(description = "项目状态", example = "IN_PROGRESS")
     private ProjectStatus status;
 
-    @Schema(description = "计划开始日期", example = "2025-01-01")
-    private Date planStartDate;
+    /**
+     * 计划开始日期
+     */
+    @NotNull(message = "计划开始日期不能为空")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "计划开始日期（格式：yyyy-MM-dd）", example = "2025-01-01", required = true)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate planStartDate;
 
-    @Schema(description = "计划结束日期", example = "2025-12-31")
-    private Date planEndDate;
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
+    @Schema(description = "计划结束日期（格式：yyyy-MM-dd）", example = "2025-12-31")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate planEndDate;
 
     // Getter and Setter
     public String getName() {
@@ -80,19 +90,19 @@ public class ProjectCreateReq {
         this.status = status;
     }
 
-    public Date getPlanStartDate() {
+    public LocalDate getPlanStartDate() {
         return planStartDate;
     }
 
-    public void setPlanStartDate(Date planStartDate) {
+    public void setPlanStartDate(LocalDate planStartDate) {
         this.planStartDate = planStartDate;
     }
 
-    public Date getPlanEndDate() {
+    public LocalDate getPlanEndDate() {
         return planEndDate;
     }
 
-    public void setPlanEndDate(Date planEndDate) {
+    public void setPlanEndDate(LocalDate planEndDate) {
         this.planEndDate = planEndDate;
     }
 }
