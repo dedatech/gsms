@@ -1,0 +1,85 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  profiles:
+    active: dev  # 默认使用开发环境，生产环境改为 prod
+  datasource:
+    url: jdbc:mysql://localhost:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
+  # Flyway 数据库迁移配置
+  flyway:
+    enabled: true
+    # 迁移脚本位置
+    locations: classpath:db/migration
+    # 在已有数据库上建立基线（线上V1/V2未用Flyway，需要baseline）
+    baseline-on-migrate: true
+    # 基线版本号（设为2表示已有V1、V2，从V3开始执行）
+    baseline-version: 2
+    # 基线描述
+    baseline-description: "Baseline for existing database with V1 and V2 applied"
+    # 编码
+    encoding: UTF-8
+    # SQL 脚本占位符前缀（避免与 MyBatis 冲突）
+    placeholder-replacement: false
+    # 校验迁移脚本（线上未使用Flyway，首次引入时设为false）
+    validate-on-migrate: true
+    # 允许乱序迁移（生产环境建议false）
+    out-of-order: false
+    # 清理模式（生产环境必须false）
+    clean-disabled: true
+
+# 日志配置
+logging:
+  level:
+    com.gsms.gsms: INFO
+    org.springframework: WARN
+    org.mybatis: DEBUG
+  file:
+    path: ./logs
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.gsms.gsms.model.entity
+  type-enums-package: com.gsms.gsms.model.enums
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+  global-config:
+    db-config:
+      # 逻辑删除配置（如果需要）
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# PageHelper 分页配置
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+  pageSizeZero: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.gsms.gsms.controller
+  paths-to-match: /api/**

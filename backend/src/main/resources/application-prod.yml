@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: gsms
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:gsms}
+    password: ${SPRING_DATASOURCE_PASSWORD:gsms123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+
+# Flyway 配置
+flyway:
+  enabled: true
+  locations: classpath:db/migration
+  baseline-on-migrate: true
+  validate-on-migrate: true
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  type-aliases-package: com.gsms.gsms.domain.entity
+  type-enums-package: com.gsms.gsms.model.enums
+  default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:gsms-secret-key-2024-production-change-this-in-production}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.gsms.gsms: INFO
+    com.gsms.gsms.repository: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: /app/logs/gsms.log
+    max-size: 100MB
+    max-history: 30
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  tomcat:
+    max-threads: 200
+    accept-count: 100
+
+# Spring Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Test files
+src/test/
+**/test/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Frontend (not needed in backend build)
+frontend/
+
+# Migration scripts (Docker uses its own init)
+backend/src/main/resources/db/migration/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+jenkins/
+
+# Deployment
+deployment/
+docker-compose.yml
+Dockerfile*
