@@ -34,7 +34,7 @@ public class UserInfoResp {
     @Schema(description = "用户状态")
     private UserStatus status;
 
-    @Schema(description = "创建时间")
+    @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;

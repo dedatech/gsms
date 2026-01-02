@@ -79,9 +79,5 @@ pagehelper:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
   packages-to-scan: com.gsms.gsms.controller
   paths-to-match: /api/**

@@ -33,12 +33,12 @@ public class DepartmentInfoResp {
     @Schema(description = "备注")
     private String remark;
 
-    @Schema(description = "创建时间")
+    @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @Schema(description = "更新时间")
+    @Schema(description = "更新时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
