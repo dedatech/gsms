@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -157,7 +158,7 @@ public class TaskServiceImpl implements TaskService {
             task.getStatus() == TaskStatus.DONE &&
             existTask.getStatus() != TaskStatus.DONE &&
             task.getActualEndDate() == null) {
-            task.setActualEndDate(new java.util.Date());
+            task.setActualEndDate(LocalDate.now());
         }
 
         // 如果任务状态更新为进行中且实际开始日期未设置，则自动设置实际开始日期
@@ -165,7 +166,7 @@ public class TaskServiceImpl implements TaskService {
             task.getStatus() == TaskStatus.IN_PROGRESS &&
             (existTask.getStatus() == TaskStatus.TODO || existTask.getStatus() == null) &&
             task.getActualStartDate() == null) {
-            task.setActualStartDate(new java.util.Date());
+            task.setActualStartDate(LocalDate.now());
         }
 
         task.setUpdateUserId(currentUserId);

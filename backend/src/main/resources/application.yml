@@ -19,6 +19,8 @@ spring:
     time-zone: Asia/Shanghai
     serialization:
       write-dates-as-timestamps: false
+    # 禁用 ISO 8601 格式，使用自定义格式
+    default-property-inclusion: non_null
   # Flyway 数据库迁移配置
   flyway:
     enabled: true

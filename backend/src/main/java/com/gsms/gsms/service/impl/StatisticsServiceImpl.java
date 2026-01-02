@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, Object> getProjectWorkHourStatistics(Long projectId, Date startDate, Date endDate) {
+    public Map<String, Object> getProjectWorkHourStatistics(Long projectId, LocalDate startDate, LocalDate endDate) {
         logger.debug("统计项目工时: projectId={}, startDate={}, endDate={}", projectId, startDate, endDate);
 
         Map<String, Object> result = new HashMap<>();
@@ -65,7 +66,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, Object> getUserWorkHourStatistics(Long userId, Date startDate, Date endDate) {
+    public Map<String, Object> getUserWorkHourStatistics(Long userId, LocalDate startDate, LocalDate endDate) {
         logger.debug("统计用户工时: userId={}, startDate={}, endDate={}", userId, startDate, endDate);
 
         Map<String, Object> result = new HashMap<>();
@@ -95,7 +96,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, Object> getDepartmentWorkHourStatistics(Long departmentId, Date startDate, Date endDate) {
+    public Map<String, Object> getDepartmentWorkHourStatistics(Long departmentId, LocalDate startDate, LocalDate endDate) {
         logger.debug("统计部门工时: departmentId={}, startDate={}, endDate={}", departmentId, startDate, endDate);
 
         Map<String, Object> result = new HashMap<>();
@@ -192,14 +193,14 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, Object> getWorkHourTrendStatistics(Long projectId, Long userId, Date startDate, Date endDate) {
+    public Map<String, Object> getWorkHourTrendStatistics(Long projectId, Long userId, LocalDate startDate, LocalDate endDate) {
         logger.debug("统计工时趋势: projectId={}, userId={}, startDate={}, endDate={}", projectId, userId, startDate, endDate);
 
         Map<String, Object> result = new HashMap<>();
 
         List<WorkHour> workHours = workHourMapper.selectByCondition(userId, projectId, null, startDate, endDate);
 
-        Map<Date, BigDecimal> dailyHoursMap = workHours.stream()
+        Map<LocalDate, BigDecimal> dailyHoursMap = workHours.stream()
                 .collect(Collectors.groupingBy(
                         WorkHour::getWorkDate,
                         Collectors.reducing(BigDecimal.ZERO, WorkHour::getHours, BigDecimal::add)

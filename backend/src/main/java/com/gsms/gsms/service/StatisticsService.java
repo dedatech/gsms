@@ -1,5 +1,6 @@
 package com.gsms.gsms.service;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public interface StatisticsService {
      * @param endDate 结束日期（可选）
      * @return 包含totalHours、userHoursDistribution等统计数据的Map
      */
-    Map<String, Object> getProjectWorkHourStatistics(Long projectId, Date startDate, Date endDate);
+    Map<String, Object> getProjectWorkHourStatistics(Long projectId, LocalDate startDate, LocalDate endDate);
 
     /**
      * 获取用户工时统计数据
@@ -31,7 +32,7 @@ public interface StatisticsService {
      * @param endDate 结束日期（可选）
      * @return 包含totalHours、projectHoursDistribution等统计数据的Map
      */
-    Map<String, Object> getUserWorkHourStatistics(Long userId, Date startDate, Date endDate);
+    Map<String, Object> getUserWorkHourStatistics(Long userId, LocalDate startDate, LocalDate endDate);
 
     /**
      * 获取部门工时统计数据
@@ -43,7 +44,7 @@ public interface StatisticsService {
      * @param endDate 结束日期（可选）
      * @return 包含totalHours、userHoursDistribution等统计数据的Map
      */
-    Map<String, Object> getDepartmentWorkHourStatistics(Long departmentId, Date startDate, Date endDate);
+    Map<String, Object> getDepartmentWorkHourStatistics(Long departmentId, LocalDate startDate, LocalDate endDate);
 
     /**
      * 获取任务工时统计数据
@@ -76,5 +77,5 @@ public interface StatisticsService {
      * @param endDate 结束日期
      * @return 包含trendData、totalHours等统计数据的Map
      */
-    Map<String, Object> getWorkHourTrendStatistics(Long projectId, Long userId, Date startDate, Date endDate);
+    Map<String, Object> getWorkHourTrendStatistics(Long projectId, Long userId, LocalDate startDate, LocalDate endDate);
 }

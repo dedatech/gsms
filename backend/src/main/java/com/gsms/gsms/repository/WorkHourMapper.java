@@ -5,6 +5,7 @@ import com.gsms.gsms.model.entity.WorkHour;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -51,8 +52,8 @@ public interface WorkHourMapper extends BaseMapper<WorkHour> {
      * @return 工时记录列表
      */
     List<WorkHour> selectByCondition(@Param("userId") Long userId, @Param("projectId") Long projectId, 
-                                   @Param("taskId") Long taskId, @Param("startDate") Date startDate, 
-                                   @Param("endDate") Date endDate);
+                                   @Param("taskId") Long taskId, @Param("startDate") LocalDate startDate,
+                                   @Param("endDate") LocalDate endDate);
 
     /**
      * 插入工时记录

@@ -2,6 +2,7 @@ package com.gsms.gsms.service;
 
 import com.gsms.gsms.model.entity.WorkHour;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public interface WorkHourService {
      * @param endDate 结束日期
      * @return 工时记录列表
      */
-    List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, Date startDate, Date endDate);
+    List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, LocalDate startDate, LocalDate endDate);
 
     /**
      * 创建工时记录

@@ -11,6 +11,7 @@ import com.gsms.gsms.service.WorkHourService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class WorkHourServiceImpl implements WorkHourService {
     }
 
     @Override
-    public List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, Date startDate, Date endDate) {
+    public List<WorkHour> getWorkHoursByCondition(Long userId, Long projectId, Long taskId, LocalDate startDate, LocalDate endDate) {
         Long currentUserId = UserContext.getCurrentUserId();
         // 具备全局工时查看权限的用户可以按任意条件查询
         if (authService.canViewAllWorkHours(currentUserId)) {

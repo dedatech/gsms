@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Map;
 
@@ -44,8 +45,8 @@ public class StatisticsController {
     @GetMapping("/project/{projectId}")
     public Result<Map<String, Object>> getProjectWorkHourStatistics(
             @Parameter(description = "项目ID", required = true) @PathVariable Long projectId,
-            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询项目工时统计: projectId={}, startDate={}, endDate={}", projectId, startDate, endDate);
         Map<String, Object> statistics = statisticsService.getProjectWorkHourStatistics(projectId, startDate, endDate);
         logger.info("项目工时统计查询成功: projectId={}, totalHours={}", projectId, statistics.get("totalHours"));
@@ -66,8 +67,8 @@ public class StatisticsController {
     @GetMapping("/user/{userId}")
     public Result<Map<String, Object>> getUserWorkHourStatistics(
             @Parameter(description = "用户ID", required = true) @PathVariable Long userId,
-            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询用户工时统计: userId={}, startDate={}, endDate={}", userId, startDate, endDate);
         Map<String, Object> statistics = statisticsService.getUserWorkHourStatistics(userId, startDate, endDate);
         logger.info("用户工时统计查询成功: userId={}, totalHours={}", userId, statistics.get("totalHours"));
@@ -88,8 +89,8 @@ public class StatisticsController {
     @GetMapping("/department/{departmentId}")
     public Result<Map<String, Object>> getDepartmentWorkHourStatistics(
             @Parameter(description = "部门ID", required = true) @PathVariable Long departmentId,
-            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询部门工时统计: departmentId={}, startDate={}, endDate={}", departmentId, startDate, endDate);
         Map<String, Object> statistics = statisticsService.getDepartmentWorkHourStatistics(departmentId, startDate, endDate);
         logger.info("部门工时统计查询成功: departmentId={}, totalHours={}", departmentId, statistics.get("totalHours"));
@@ -148,8 +149,8 @@ public class StatisticsController {
     public Result<Map<String, Object>> getWorkHourTrendStatistics(
             @Parameter(description = "项目ID") @RequestParam(required = false) Long projectId,
             @Parameter(description = "用户ID") @RequestParam(required = false) Long userId,
-            @Parameter(description = "开始日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @Parameter(description = "结束日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @Parameter(description = "开始日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @Parameter(description = "结束日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询工时趋势统计: projectId={}, userId={}, startDate={}, endDate={}", projectId, userId, startDate, endDate);
         Map<String, Object> statistics = statisticsService.getWorkHourTrendStatistics(projectId, userId, startDate, endDate);
         logger.info("工时趋势统计查询成功: totalHours={}", statistics.get("totalHours"));
