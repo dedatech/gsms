@@ -15,6 +15,7 @@ frontend/.env.local
 .idea/
 .vscode/
 .cursor/
+.claude/
 *.iml
 *.iws
 *.ipr
