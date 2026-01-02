@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -110,7 +111,7 @@ public class WorkHourControllerTest extends BaseControllerTest {
             workHour.setUserId(testUser.getId());
             workHour.setProjectId(testProjectId);
             workHour.setTaskId(testTask.getId());
-            workHour.setWorkDate(new Date());
+            workHour.setWorkDate(new Date().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
             workHour.setHours(new BigDecimal("8.00"));
             workHour.setContent("开发任务");
             workHour.setStatus(WorkHourStatus.SAVED);
@@ -156,7 +157,7 @@ public class WorkHourControllerTest extends BaseControllerTest {
         WorkHourCreateReq req = new WorkHourCreateReq();
         req.setProjectId(testProjectId);
         req.setTaskId(testTask.getId());
-        req.setWorkDate(new Date());
+        req.setWorkDate(new Date().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
         req.setHours(new BigDecimal("4.00"));
         req.setContent("测试工时记录");
 
@@ -177,7 +178,7 @@ public class WorkHourControllerTest extends BaseControllerTest {
         req.setId(testWorkHour.getId());
         req.setProjectId(testProjectId);
         req.setTaskId(testTask.getId());
-        req.setWorkDate(new Date());
+        req.setWorkDate(new Date().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
         req.setHours(new BigDecimal("6.00"));
         req.setContent("更新后的工时记录");
         req.setStatus(WorkHourStatus.SUBMITTED);
