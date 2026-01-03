@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -78,9 +79,8 @@ public class IterationControllerTest extends BaseControllerTest {
             iterationCreateReq.setName("Sprint 1");
             iterationCreateReq.setDescription("第一个迭代");
             iterationCreateReq.setStatus(IterationStatus.NOT_STARTED);
-            iterationCreateReq.setPlanStartDate(new Date());
-            Date endDate2 = new Date();
-            endDate2.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+            iterationCreateReq.setPlanStartDate(LocalDate.now());
+            LocalDate endDate2 = LocalDate.now();
             iterationCreateReq.setPlanEndDate(endDate2);
 
             testIteration = iterationService.create(iterationCreateReq);
@@ -125,9 +125,8 @@ public class IterationControllerTest extends BaseControllerTest {
         createReq.setName("Sprint 2");
         createReq.setDescription("第二个迭代");
         createReq.setStatus(IterationStatus.IN_PROGRESS);
-        createReq.setPlanStartDate(new Date());
-        Date endDate2w = new Date();
-        endDate2w.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+        createReq.setPlanStartDate(LocalDate.now());
+        LocalDate endDate2w = LocalDate.now();
         createReq.setPlanEndDate(endDate2w);
 
         mockMvc.perform(post("/api/iterations")

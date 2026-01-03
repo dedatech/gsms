@@ -37,9 +37,21 @@ public class UserConverter {
         user.setEmail(req.getEmail());
         user.setPhone(req.getPhone());
         user.setDepartmentId(req.getDepartmentId());
+        user.setStatus(req.getStatus());
         return user;
     }
-
+    /**
+     * 创建请求转用户实体
+     */
+    public static User toUser(UserQueryReq req) {
+        if (req == null) {
+            return null;
+        }
+        User user = new User();
+        user.setUsername(req.getUsername());
+        user.setStatus(req.getStatus());
+        return user;
+    }
     /**
      * 更新请求转用户实体
      */
@@ -55,6 +67,7 @@ public class UserConverter {
         user.setEmail(req.getEmail());
         user.setPhone(req.getPhone());
         user.setDepartmentId(req.getDepartmentId());
+        user.setStatus(req.getStatus());
         return user;
     }
 

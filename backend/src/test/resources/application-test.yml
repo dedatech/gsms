@@ -16,18 +16,20 @@ spring:
     clean-disabled: false
     validate-on-migrate: false
 
+# MyBatis-Plus 配置（测试环境必须显式配置）
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.gsms.gsms.model.entity
+  # 🎯 关键：枚举包扫描路径
   type-enums-package: com.gsms.gsms.model.enums
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 🎯 关键：指定 MyBatis-Plus 枚举类型处理器
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
   global-config:
     db-config:
-      # 逻辑删除配置（如果需要）
-      logic-delete-field: deleted
+      logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
 
@@ -37,3 +39,5 @@ logging:
     com.gsms.gsms: DEBUG
     org.springframework: WARN
     org.mybatis: DEBUG
+    # 添加 MyBatis-Plus 枚举处理器调试日志
+    com.baomidou.mybatisplus: DEBUG

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -87,9 +88,8 @@ public class TaskControllerTest extends BaseControllerTest {
             iterationCreateReq.setProjectId(testProject.getId());
             iterationCreateReq.setName("Sprint 1");
             iterationCreateReq.setStatus(IterationStatus.IN_PROGRESS);
-            iterationCreateReq.setPlanStartDate(new Date());
-            Date planEndDate = new Date();
-            planEndDate.setTime(System.currentTimeMillis() + 14L * 24 * 60 * 60 * 1000);
+            iterationCreateReq.setPlanStartDate(LocalDate.now());
+            LocalDate planEndDate = LocalDate.now();
             iterationCreateReq.setPlanEndDate(planEndDate);
             testIteration = iterationService.create(iterationCreateReq);
 
@@ -103,9 +103,8 @@ public class TaskControllerTest extends BaseControllerTest {
             taskCreateReq.setPriority(TaskPriority.HIGH);
             taskCreateReq.setAssigneeId(testUser.getId());
             taskCreateReq.setStatus(TaskStatus.TODO);
-            taskCreateReq.setPlanStartDate(new Date());
-            Date taskPlanEndDate = new Date();
-            taskPlanEndDate.setTime(System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000);
+            taskCreateReq.setPlanStartDate(LocalDate.now());
+            LocalDate taskPlanEndDate = LocalDate.now();
             taskCreateReq.setPlanEndDate(taskPlanEndDate);
             taskCreateReq.setEstimateHours(new java.math.BigDecimal("40.0"));
 
@@ -131,7 +130,7 @@ public class TaskControllerTest extends BaseControllerTest {
         mockMvc.perform(get("/api/tasks/" + nonExistId)
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(3001)); // TASK_NOT_FOUND
+                .andExpect(jsonPath("$.code").value(4001)); // TASK_NOT_FOUND
     }
 
     @Test

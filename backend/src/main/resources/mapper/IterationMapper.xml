@@ -44,7 +44,7 @@
             AND project_id = #{projectId}
         </if>
         <if test="status != null">
-            AND status = #{status}
+            AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
         </if>
         AND is_deleted = 0
         ORDER BY plan_start_date DESC
@@ -58,7 +58,7 @@
             AND project_id = #{projectId}
         </if>
         <if test="status != null">
-            AND status = #{status}
+            AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
         </if>
         AND is_deleted = 0
         ORDER BY plan_start_date DESC

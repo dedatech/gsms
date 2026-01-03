@@ -21,13 +21,22 @@ public enum ProjectStatus {
         this.desc = desc;
     }
 
-    @JsonValue  // Jackson 序列化为JSON时输出的值
+    public String getName() {
+        return this.name();
+    }
+
     public Integer getCode() {
         return code;
     }
 
     public String getDesc() {
         return desc;
+    }
+
+    @JsonValue  // Jackson 序列化为JSON时输出的值（枚举的 name）
+    @Override
+    public String toString() {
+        return this.name();
     }
 
     /**

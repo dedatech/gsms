@@ -57,10 +57,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageResult<UserInfoResp> findAll(UserQueryReq userQueryReq) {
         logger.debug("根据条件分页查询用户: userQueryReq={}", userQueryReq);
-
+        User user =  UserConverter.toUser(userQueryReq);
         // 使用PageHelper进行分页
         PageHelper.startPage(userQueryReq.getPageNum(), userQueryReq.getPageSize());
-        List<User> users = userMapper.findAll(userQueryReq.getUsername(), userQueryReq.getStatus());
+        List<User> users = userMapper.findAll(user);
 
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);

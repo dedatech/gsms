@@ -88,7 +88,10 @@ public class ProjectServiceImpl implements ProjectService {
             projects = projectMapper.selectByCondition(query);
         } else {
             // 普通用户只查询自己参与的项目（在SQL层过滤）
-            projects = projectMapper.selectAccessibleProjectsByCondition(currentUserId, query);
+            query.setManagerId(currentUserId);
+            projects = projectMapper.selectAccessibleProjectsByCondition(
+                query
+            );
         }
 
         log.info("projects.size(): {}", projects.size());

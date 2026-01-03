@@ -25,14 +25,16 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    # 默认枚举类型处理器（已在主配置中设置，这里可省略）
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
   global-config:
     db-config:
       logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
-  type-aliases-package: com.gsms.gsms.domain.entity
-  type-enums-package: com.gsms.gsms.model.enums
-  default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+  # 以下配置已在主配置中设置，这里可省略或根据需要覆盖
+  # type-aliases-package: com.gsms.gsms.model.entity
+  # type-enums-package: com.gsms.gsms.model.enums
 
 # JWT 配置
 jwt:

@@ -62,26 +62,26 @@
                 AND name LIKE CONCAT('%', #{name}, '%')
             </if>
             <if test="status != null">
-                AND status = #{status}
+                AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
         ORDER BY create_time DESC
     </select>
 
     <!-- 根据条件查询用户可访问的项目（基于项目成员表） -->
-    <select id="selectAccessibleProjectsByCondition" resultMap="ProjectResultMap">
+    <select id="selectAccessibleProjectsByCondition"  resultMap="ProjectResultMap">
         SELECT DISTINCT p.id, p.name, p.code, p.description, p.manager_id, p.status,
                p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date,
                p.create_user_id, p.update_user_id, p.create_time, p.update_time, p.is_deleted
         FROM gsms_project p
         INNER JOIN gsms_project_member pm ON p.id = pm.project_id AND pm.is_deleted = 0
         <where>
-            AND p.is_deleted = 0 AND pm.user_id = #{userId}
-            <if test="project.name != null and project.name != ''">
-                AND p.name LIKE CONCAT('%', #{project.name}, '%')
+            AND p.is_deleted = 0 AND pm.user_id = #{managerId}
+            <if test="name != null and name != ''">
+                AND p.name LIKE CONCAT('%', #{name}, '%')
             </if>
-            <if test="project.status != null">
-                AND p.status = #{project.status}
+            <if test="status != null">
+                AND p.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
         ORDER BY p.create_time DESC

@@ -1,5 +1,6 @@
 package com.gsms.gsms.dto.user;
 
+import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -24,6 +25,14 @@ public class UserUpdateReq {
     @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
     private String password;
 
+    /**
+     * 确认密码
+     */
+    @Schema(description = "确认密码", example = "123456")
+    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
+    private String confirmPassword;
+
+
     @Schema(description = "昵称", example = "张三")
     private String nickname;
 
@@ -34,6 +43,18 @@ public class UserUpdateReq {
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     @Schema(description = "电话", example = "13800138000")
     private String phone;
+
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
+
+    @Schema(description = "用户状态", example = "NORMAL")
+    private UserStatus status;
 
     @Schema(description = "部门ID", example = "1")
     private Long departmentId;

@@ -10,7 +10,8 @@
         <result column="email" property="email"/>
         <result column="phone" property="phone"/>
         <result column="department_id" property="departmentId"/>
-        <result column="status" property="status" 
+        <!-- 显式指定枚举类型处理器 -->
+        <result column="status" property="status"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="update_time" property="updateTime"/>
         <result column="is_deleted" property="isDeleted"/>
@@ -29,21 +30,14 @@
     </select>
 
     <!-- 根据用户名查询用户 -->
-    <select id="selectByUsername" parameterType="string" resultMap="UserResultMap">
+    <select id="selectByUsername" parameterType="java.lang.String" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM `sys_user`
         WHERE username = #{username} AND is_deleted = 0
     </select>
 
-    <!-- 查询所有用户 -->
-    <select id="selectAll" resultMap="UserResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM `sys_user`
-        WHERE is_deleted = 0
-    </select>
-
     <!-- 根据条件查询用户 -->
-    <select id="findAll" resultMap="UserResultMap">
+    <select id="findAll" parameterType="com.gsms.gsms.model.entity.User" resultMap="UserResultMap">
         SELECT <include refid="selectAllFields"/>
         FROM `sys_user`
         <where>
@@ -59,11 +53,11 @@
     </select>
 
     <!-- 插入用户 -->
-    <insert id="insert" parameterType="com.gsms.gsms.model.entity.User"
-            useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `sys_user`(username, password, nickname, email, phone, department_id, status)
-        VALUES(#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{departmentId}, 
-               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler})
+    <insert id="insert" parameterType="com.gsms.gsms.model.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `sys_user` (username, password, nickname, email, phone, department_id, status, create_user_id, update_user_id)
+        VALUES (#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{departmentId},
+                #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
+                #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新用户 -->
@@ -77,6 +71,7 @@
             <if test="phone != null and phone != ''">phone = #{phone},</if>
             <if test="departmentId != null">department_id = #{departmentId},</if>
             <if test="status != null">status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
+            <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
             update_time = CURRENT_TIMESTAMP
         </set>
         WHERE id = #{id}

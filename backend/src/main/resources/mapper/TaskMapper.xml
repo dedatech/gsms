@@ -71,7 +71,7 @@
                 AND assignee_id = #{assigneeId}
             </if>
             <if test="status != null">
-                AND status = #{status}
+                AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
         ORDER BY create_time DESC
@@ -79,8 +79,8 @@
 
     <!-- 根据条件查询用户可访问的任务（基于项目成员表） -->
     <select id="selectAccessibleTasksByCondition" resultMap="TaskResultMap">
-        SELECT DISTINCT t.id, t.project_id, t.iteration_id, t.title, t.description, t.type, t.priority, 
-               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date, 
+        SELECT DISTINCT t.id, t.project_id, t.iteration_id, t.title, t.description, t.type, t.priority,
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
                t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
         FROM gsms_task t
         INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
@@ -93,7 +93,7 @@
                 AND t.assignee_id = #{assigneeId}
             </if>
             <if test="status != null">
-                AND t.status = #{status}
+                AND t.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
         ORDER BY t.create_time DESC

@@ -17,13 +17,22 @@ public enum IterationStatus {
         this.desc = desc;
     }
 
-    @JsonValue
     public Integer getCode() {
         return code;
     }
 
     public String getDesc() {
         return desc;
+    }
+
+    public String getName() {
+        return this.name();
+    }
+
+    @JsonValue  // Jackson 序列化为JSON时输出的值（枚举的 name）
+    @Override
+    public String toString() {
+        return this.name();
     }
 
     public static IterationStatus fromCode(Integer code) {

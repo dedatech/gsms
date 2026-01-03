@@ -1,6 +1,8 @@
 package com.gsms.gsms.dto.user;
 
+import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -35,6 +37,17 @@ public class UserCreateReq {
 
     @Schema(description = "部门ID", example = "1")
     private Long departmentId;
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
+
+    @Schema(description = "用户状态", example = "NORMAL")
+    private UserStatus status;
 
     public String getUsername() {
         return username;

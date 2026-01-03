@@ -42,10 +42,10 @@ public interface ProjectMapper extends BaseMapper<Project> {
     /**
      * 根据条件查询用户可访问的项目（基于项目成员表）
      * @param userId 用户ID
-     * @param project 查询条件（项目名称、状态等）
+     * @param project 项目查询条件
      * @return 项目列表
      */
-    List<Project> selectAccessibleProjectsByCondition(@Param("userId") Long userId, Project project);
+    List<Project> selectAccessibleProjectsByCondition(Project project);
 
     /**
      * 插入项目

@@ -56,10 +56,12 @@ logging:
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.gsms.gsms.model.entity
+  # 枚举包扫描路径，用于自动注册枚举类型处理器
   type-enums-package: com.gsms.gsms.model.enums
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 默认枚举类型处理器（使用 MyBatis-Plus 的枚举处理器）
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
   global-config:
     db-config:

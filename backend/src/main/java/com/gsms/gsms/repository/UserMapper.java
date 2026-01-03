@@ -2,6 +2,7 @@ package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.UserStatus;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -27,18 +28,12 @@ public interface UserMapper extends BaseMapper<User> {
     User selectByUsername(@Param("username") String username);
 
     /**
-     * 查询所有用户
-     * @return 用户列表
-     */
-    List<User> selectAll();
-
-    /**
      * 根据条件查询用户
      * @param username 用户名（模糊匹配）
      * @param status 用户状态
      * @return 用户列表
      */
-    List<User> findAll(@Param("username") String username, @Param("status") Integer status);
+    List<User> findAll(User user);
 
     /**
      * 插入用户
