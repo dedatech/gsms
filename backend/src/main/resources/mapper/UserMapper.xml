@@ -99,4 +99,12 @@
         FROM `sys_user`
         WHERE department_id = #{departmentId} AND is_deleted = 0
     </select>
+
+    <!-- 查询所有用户 -->
+    <select id="selectAll" resultMap="UserResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM `sys_user`
+        WHERE is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
 </mapper>

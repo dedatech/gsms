@@ -69,4 +69,10 @@ public interface UserMapper extends BaseMapper<User> {
      * @return 用户列表
      */
     List<User> selectByDepartmentId(@Param("departmentId") Long departmentId);
+
+    /**
+     * 查询所有用户
+     * @return 用户列表
+     */
+    List<User> selectAll();
 }

@@ -3,7 +3,6 @@ package com.gsms.gsms.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.model.entity.User;
-import com.gsms.gsms.model.entity.Department;
 import com.gsms.gsms.model.enums.UserStatus;
 import com.gsms.gsms.model.enums.errorcode.UserErrorCode;
 import com.gsms.gsms.dto.user.UserInfoResp;
@@ -18,18 +17,18 @@ import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.repository.DepartmentMapper;
 import com.gsms.gsms.service.UserService;
+import com.gsms.gsms.service.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
  * Service层接收DTO，内部转换为Entity
+ * 使用CacheService优化查询性能
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -37,10 +36,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final DepartmentMapper departmentMapper;
+    private final CacheService cacheService;
 
-    public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper) {
+    public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper, CacheService cacheService) {
         this.userMapper = userMapper;
         this.departmentMapper = departmentMapper;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -48,19 +49,18 @@ public class UserServiceImpl implements UserService {
         logger.debug("根据ID查询用户: {}", id);
         User user = getUserById(id);
         UserInfoResp resp = UserInfoResp.from(user);
-        enrichUserInfoResp(resp);
+        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
         return resp;
     }
 
     @Override
     public UserInfoResp getByUsername(String username) {
         logger.debug("根据用户名查询用户: {}", username);
-        User user = userMapper.selectByUsername(username);
-        if (user == null) {
-            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
-        }
+        // 从缓存获取用户
+        User user = cacheService.getUserByUsername(username)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
         UserInfoResp resp = UserInfoResp.from(user);
-        enrichUserInfoResp(resp);
+        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
         return resp;
     }
 
@@ -75,8 +75,8 @@ public class UserServiceImpl implements UserService {
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);
 
-        // 批量填充关联信息
-        enrichUserInfoRespList(userInfoRespList);
+        // 使用 CacheService 批量填充关联信息
+        cacheService.enrichUserInfoRespList(userInfoRespList);
 
         return PageResult.success(userInfoRespList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
@@ -109,9 +109,13 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
         }
 
+        // 重新查询获取完整数据（包含 createTime、updateTime 等数据库默认值）
+        User createdUser = userMapper.selectById(user.getId());
+        cacheService.putUser(createdUser);
+
         logger.info("用户创建成功: {}", user.getUsername());
-        UserInfoResp resp = UserInfoResp.from(user);
-        enrichUserInfoResp(resp);
+        UserInfoResp resp = UserInfoResp.from(createdUser);
+        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
         return resp;
     }
 
@@ -144,11 +148,13 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_UPDATE_FAILED);
         }
 
-        logger.info("用户更新成功: {}", user.getId());
-        // 重新查询获取更新后的数据
+        // 更新缓存：重新查询获取完整数据
         User updatedUser = userMapper.selectById(user.getId());
+        cacheService.putUser(updatedUser);
+
+        logger.info("用户更新成功: {}", user.getId());
         UserInfoResp resp = UserInfoResp.from(updatedUser);
-        enrichUserInfoResp(resp);
+        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
         return resp;
     }
 
@@ -165,6 +171,9 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_DELETE_FAILED);
         }
 
+        // 从缓存中移除
+        cacheService.removeUser(id);
+
         logger.info("用户删除成功: {}", id);
     }
 
@@ -172,10 +181,10 @@ public class UserServiceImpl implements UserService {
     public User login(String username, String password) {
         logger.info("用户登录: {}", username);
 
-        User user = userMapper.selectByUsername(username);
-        if (user == null) {
-            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
-        }
+        // 从缓存获取用户
+        User user = cacheService.getUserByUsername(username)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
         if (!PasswordUtil.verify(password, user.getPassword())) {
             throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
         }
@@ -193,100 +202,5 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
         return user;
-    }
-
-    /**
-     * 填充用户响应的关联信息（部门名称、创建人姓名、更新人姓名）
-     */
-    private void enrichUserInfoResp(UserInfoResp resp) {
-        if (resp == null) {
-            return;
-        }
-
-        // 查询部门名称
-        if (resp.getDepartmentId() != null) {
-            Department department = departmentMapper.selectById(resp.getDepartmentId());
-            if (department != null) {
-                resp.setDepartmentName(department.getName());
-            }
-        }
-
-        // 查询创建人姓名
-        if (resp.getCreateUserId() != null) {
-            User creator = userMapper.selectById(resp.getCreateUserId());
-            if (creator != null) {
-                resp.setCreateUserName(creator.getNickname());
-            }
-        }
-
-        // 查询更新人姓名
-        if (resp.getUpdateUserId() != null) {
-            User updater = userMapper.selectById(resp.getUpdateUserId());
-            if (updater != null) {
-                resp.setUpdateUserName(updater.getNickname());
-            }
-        }
-    }
-
-    /**
-     * 批量填充用户响应的关联信息（优化性能，减少数据库查询次数）
-     */
-    private void enrichUserInfoRespList(List<UserInfoResp> respList) {
-        if (respList == null || respList.isEmpty()) {
-            return;
-        }
-
-        // 收集所有需要查询的ID
-        List<Long> departmentIds = respList.stream()
-                .map(UserInfoResp::getDepartmentId)
-                .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toList());
-
-        List<Long> userIds = respList.stream()
-                .flatMap(resp -> java.util.stream.Stream.of(resp.getCreateUserId(), resp.getUpdateUserId()))
-                .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toList());
-
-        // 使用批量查询优化性能
-        final Map<Long, String> departmentMap;
-        if (departmentIds.isEmpty()) {
-            departmentMap = java.util.Collections.emptyMap();
-        } else {
-            List<Department> departments = departmentMapper.selectByIds(departmentIds);
-            departmentMap = departments.stream()
-                    .collect(Collectors.toMap(
-                            Department::getId,
-                            Department::getName,
-                            (existing, replacement) -> existing
-                    ));
-        }
-
-        final Map<Long, String> userMap;
-        if (userIds.isEmpty()) {
-            userMap = java.util.Collections.emptyMap();
-        } else {
-            List<User> users = userMapper.selectByIds(userIds);
-            userMap = users.stream()
-                    .collect(Collectors.toMap(
-                            User::getId,
-                            User::getNickname,
-                            (existing, replacement) -> existing
-                    ));
-        }
-
-        // 填充数据
-        respList.forEach(resp -> {
-            if (resp.getDepartmentId() != null) {
-                resp.setDepartmentName(departmentMap.get(resp.getDepartmentId()));
-            }
-            if (resp.getCreateUserId() != null) {
-                resp.setCreateUserName(userMap.get(resp.getCreateUserId()));
-            }
-            if (resp.getUpdateUserId() != null) {
-                resp.setUpdateUserName(userMap.get(resp.getUpdateUserId()));
-            }
-        });
     }
 }
