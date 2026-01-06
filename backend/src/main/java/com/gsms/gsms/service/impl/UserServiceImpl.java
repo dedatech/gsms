@@ -3,6 +3,7 @@ package com.gsms.gsms.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.entity.Department;
 import com.gsms.gsms.model.enums.UserStatus;
 import com.gsms.gsms.model.enums.errorcode.UserErrorCode;
 import com.gsms.gsms.dto.user.UserInfoResp;
@@ -15,6 +16,7 @@ import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.PasswordUtil;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.UserMapper;
+import com.gsms.gsms.repository.DepartmentMapper;
 import com.gsms.gsms.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -32,16 +36,20 @@ public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserMapper userMapper;
+    private final DepartmentMapper departmentMapper;
 
-    public UserServiceImpl(UserMapper userMapper) {
+    public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper) {
         this.userMapper = userMapper;
+        this.departmentMapper = departmentMapper;
     }
 
     @Override
     public UserInfoResp getById(Long id) {
         logger.debug("根据ID查询用户: {}", id);
         User user = getUserById(id);
-        return UserInfoResp.from(user);
+        UserInfoResp resp = UserInfoResp.from(user);
+        enrichUserInfoResp(resp);
+        return resp;
     }
 
     @Override
@@ -51,7 +59,9 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
-        return UserInfoResp.from(user);
+        UserInfoResp resp = UserInfoResp.from(user);
+        enrichUserInfoResp(resp);
+        return resp;
     }
 
     @Override
@@ -64,6 +74,9 @@ public class UserServiceImpl implements UserService {
 
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);
+
+        // 批量填充关联信息
+        enrichUserInfoRespList(userInfoRespList);
 
         return PageResult.success(userInfoRespList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
@@ -97,7 +110,9 @@ public class UserServiceImpl implements UserService {
         }
 
         logger.info("用户创建成功: {}", user.getUsername());
-        return UserInfoResp.from(user);
+        UserInfoResp resp = UserInfoResp.from(user);
+        enrichUserInfoResp(resp);
+        return resp;
     }
 
     @Override
@@ -132,7 +147,9 @@ public class UserServiceImpl implements UserService {
         logger.info("用户更新成功: {}", user.getId());
         // 重新查询获取更新后的数据
         User updatedUser = userMapper.selectById(user.getId());
-        return UserInfoResp.from(updatedUser);
+        UserInfoResp resp = UserInfoResp.from(updatedUser);
+        enrichUserInfoResp(resp);
+        return resp;
     }
 
     @Override
@@ -176,5 +193,93 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
         return user;
+    }
+
+    /**
+     * 填充用户响应的关联信息（部门名称、创建人姓名、更新人姓名）
+     */
+    private void enrichUserInfoResp(UserInfoResp resp) {
+        if (resp == null) {
+            return;
+        }
+
+        // 查询部门名称
+        if (resp.getDepartmentId() != null) {
+            Department department = departmentMapper.selectById(resp.getDepartmentId());
+            if (department != null) {
+                resp.setDepartmentName(department.getName());
+            }
+        }
+
+        // 查询创建人姓名
+        if (resp.getCreateUserId() != null) {
+            User creator = userMapper.selectById(resp.getCreateUserId());
+            if (creator != null) {
+                resp.setCreateUserName(creator.getNickname());
+            }
+        }
+
+        // 查询更新人姓名
+        if (resp.getUpdateUserId() != null) {
+            User updater = userMapper.selectById(resp.getUpdateUserId());
+            if (updater != null) {
+                resp.setUpdateUserName(updater.getNickname());
+            }
+        }
+    }
+
+    /**
+     * 批量填充用户响应的关联信息（优化性能，减少数据库查询次数）
+     */
+    private void enrichUserInfoRespList(List<UserInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+
+        // 收集所有需要查询的ID
+        List<Long> departmentIds = respList.stream()
+                .map(UserInfoResp::getDepartmentId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<Long> userIds = respList.stream()
+                .flatMap(resp -> java.util.stream.Stream.of(resp.getCreateUserId(), resp.getUpdateUserId()))
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 批量查询部门
+        Map<Long, String> departmentMap = departmentIds.stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            Department dept = departmentMapper.selectById(id);
+                            return dept != null ? dept.getName() : null;
+                        }
+                ));
+
+        // 批量查询用户
+        Map<Long, String> userMap = userIds.stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            User user = userMapper.selectById(id);
+                            return user != null ? user.getNickname() : null;
+                        }
+                ));
+
+        // 填充数据
+        respList.forEach(resp -> {
+            if (resp.getDepartmentId() != null) {
+                resp.setDepartmentName(departmentMap.get(resp.getDepartmentId()));
+            }
+            if (resp.getCreateUserId() != null) {
+                resp.setCreateUserName(userMap.get(resp.getCreateUserId()));
+            }
+            if (resp.getUpdateUserId() != null) {
+                resp.setUpdateUserName(userMap.get(resp.getUpdateUserId()));
+            }
+        });
     }
 }
