@@ -249,25 +249,32 @@ public class UserServiceImpl implements UserService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        // 批量查询部门
-        Map<Long, String> departmentMap = departmentIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> {
-                            Department dept = departmentMapper.selectById(id);
-                            return dept != null ? dept.getName() : null;
-                        }
-                ));
+        // 使用批量查询优化性能
+        final Map<Long, String> departmentMap;
+        if (departmentIds.isEmpty()) {
+            departmentMap = java.util.Collections.emptyMap();
+        } else {
+            List<Department> departments = departmentMapper.selectByIds(departmentIds);
+            departmentMap = departments.stream()
+                    .collect(Collectors.toMap(
+                            Department::getId,
+                            Department::getName,
+                            (existing, replacement) -> existing
+                    ));
+        }
 
-        // 批量查询用户
-        Map<Long, String> userMap = userIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> {
-                            User user = userMapper.selectById(id);
-                            return user != null ? user.getNickname() : null;
-                        }
-                ));
+        final Map<Long, String> userMap;
+        if (userIds.isEmpty()) {
+            userMap = java.util.Collections.emptyMap();
+        } else {
+            List<User> users = userMapper.selectByIds(userIds);
+            userMap = users.stream()
+                    .collect(Collectors.toMap(
+                            User::getId,
+                            User::getNickname,
+                            (existing, replacement) -> existing
+                    ));
+        }
 
         // 填充数据
         respList.forEach(resp -> {

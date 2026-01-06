@@ -11,10 +11,17 @@ import java.util.List;
 public interface DepartmentMapper extends BaseMapper<Department> {
     Department selectById(@Param("id") Long id);
 
+    /**
+     * 批量根据ID列表查询部门
+     * @param ids 部门ID列表
+     * @return 部门列表
+     */
+    List<Department> selectByIds(@Param("ids") List<Long> ids);
+
     List<Department> selectAll();
 
     List<Department> selectByParentId(@Param("parentId") Long parentId);
-    
+
     List<Department> selectByCondition(@Param("name") String name, @Param("parentId") Long parentId);
 
     int insert(Department department);

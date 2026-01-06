@@ -21,6 +21,13 @@ public interface UserMapper extends BaseMapper<User> {
     User selectById(@Param("id") Long id);
 
     /**
+     * 批量根据ID列表查询用户
+     * @param ids 用户ID列表
+     * @return 用户列表
+     */
+    List<User> selectByIds(@Param("ids") List<Long> ids);
+
+    /**
      * 根据用户名查询用户
      * @param username 用户名
      * @return 用户实体
