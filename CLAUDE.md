@@ -336,6 +336,7 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 
 ## 参考文档
 
+- **缓存技术决策**：`docs/caching-technical-decisions.md` - 缓存方案对比（ConcurrentHashMap vs Caffeine vs Redis）、Spring 单例原理
 - **数据库优化**：`docs/DATABASE_OPTIMIZATION.md` - 表分类、审计字段、外键约束设计
 - **调试指南**：`docs/DEBUG_PROCESS_WALKTHROUGH.md` - 远程调试、断点、变量查看
 - **前后端联调**：`docs/development/frontend-backend-setup.md` - CORS、代理、认证配置
