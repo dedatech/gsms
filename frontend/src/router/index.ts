@@ -54,6 +54,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '迭代管理', requiresAuth: true },
       },
       {
+        path: 'iterations/:id',
+        name: 'IterationDetail',
+        component: () => import('@/views/iteration/IterationDetail.vue'),
+        meta: { title: '迭代详情', requiresAuth: true },
+      },
+      {
         path: 'workhours',
         name: 'WorkHours',
         component: () => import('@/views/workhour/WorkHourList.vue'),
