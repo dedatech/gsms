@@ -30,10 +30,22 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '项目管理', requiresAuth: true },
       },
       {
+        path: 'projects/:id',
+        name: 'ProjectDetail',
+        component: () => import('@/views/project/ProjectDetail.vue'),
+        meta: { title: '项目详情', requiresAuth: true },
+      },
+      {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/task/TaskList.vue'),
         meta: { title: '任务管理', requiresAuth: true },
+      },
+      {
+        path: 'tasks/:id',
+        name: 'TaskDetail',
+        component: () => import('@/views/task/TaskDetail.vue'),
+        meta: { title: '任务详情', requiresAuth: true },
       },
       {
         path: 'iterations',

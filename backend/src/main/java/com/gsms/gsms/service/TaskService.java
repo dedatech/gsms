@@ -4,6 +4,7 @@ import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
+import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 
@@ -37,6 +38,13 @@ public interface TaskService {
      * @return 更新后的任务实体
      */
     Task update(TaskUpdateReq updateReq);
+
+    /**
+     * 更新任务状态（轻量级接口，支持拖拽和快捷状态变更）
+     * @param updateReq 状态更新请求DTO
+     * @return 更新后的任务实体
+     */
+    Task updateStatus(TaskStatusUpdateReq updateReq);
 
     /**
      * 删除任务

@@ -5,15 +5,16 @@
     <resultMap id="TaskResultMap" type="com.gsms.gsms.model.entity.Task">
         <id column="id" property="id"/>
         <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
         <result column="iteration_id" property="iterationId"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
-        <result column="type" property="type" 
+        <result column="type" property="type"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
-        <result column="priority" property="priority" 
+        <result column="priority" property="priority"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="assignee_id" property="assigneeId"/>
-        <result column="status" property="status" 
+        <result column="status" property="status"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="plan_start_date" property="planStartDate"/>
         <result column="plan_end_date" property="planEndDate"/>
@@ -60,30 +61,34 @@
 
     <!-- 根据条件查询任务 -->
     <select id="selectByCondition" resultMap="TaskResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_task
+        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, t.title, t.description, t.type, t.priority,
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
         <where>
-            AND is_deleted = 0
+            AND t.is_deleted = 0
             <if test="projectId != null">
-                AND project_id = #{projectId}
+                AND t.project_id = #{projectId}
             </if>
             <if test="assigneeId != null">
-                AND assignee_id = #{assigneeId}
+                AND t.assignee_id = #{assigneeId}
             </if>
             <if test="status != null">
-                AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+                AND t.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
-        ORDER BY create_time DESC
+        ORDER BY t.create_time DESC
     </select>
 
     <!-- 根据条件查询用户可访问的任务（基于项目成员表） -->
     <select id="selectAccessibleTasksByCondition" resultMap="TaskResultMap">
-        SELECT DISTINCT t.id, t.project_id, t.iteration_id, t.title, t.description, t.type, t.priority,
+        SELECT DISTINCT t.id, t.project_id, p.name as project_name, t.iteration_id, t.title, t.description, t.type, t.priority,
                t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
                t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
         FROM gsms_task t
         INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
+        LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
         <where>
             AND t.is_deleted = 0 AND pm.user_id = #{userId}
             <if test="projectId != null">
@@ -132,6 +137,17 @@
             <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
             update_time = CURRENT_TIMESTAMP
         </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新任务状态（支持将 actualStartDate 和 actualEndDate 更新为 null） -->
+    <update id="updateStatus" parameterType="com.gsms.gsms.model.entity.Task">
+        UPDATE gsms_task
+        SET status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
+            actual_start_date = #{actualStartDate},
+            actual_end_date = #{actualEndDate},
+            update_user_id = #{updateUserId},
+            update_time = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>
 

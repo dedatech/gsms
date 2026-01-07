@@ -12,6 +12,11 @@ export const getProjectList = (params: ProjectQuery) => {
   return request.get('/projects', { params })
 }
 
+// 获取项目详情
+export const getProjectDetail = (id: number) => {
+  return request.get(`/projects/${id}`)
+}
+
 // 创建项目
 export interface ProjectCreateReq {
   name: string
@@ -40,4 +45,19 @@ export const updateProject = (data: ProjectUpdateReq) => {
 // 删除项目
 export const deleteProject = (id: number) => {
   return request.delete(`/projects/${id}`)
+}
+
+// 获取项目成员列表
+export const getProjectMembers = (projectId: number) => {
+  return request.get(`/projects/${projectId}/members`)
+}
+
+// 添加项目成员
+export const addProjectMember = (projectId: number, userId: number, roleType: number) => {
+  return request.post(`/projects/${projectId}/members`, [userId], { params: { roleType } })
+}
+
+// 移除项目成员
+export const removeProjectMember = (projectId: number, userId: number) => {
+  return request.delete(`/projects/${projectId}/members/${userId}`)
 }

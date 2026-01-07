@@ -1,5 +1,6 @@
 package com.gsms.gsms.service.impl;
 
+import com.gsms.gsms.dto.project.ProjectMemberResp;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
 import com.gsms.gsms.infra.exception.BusinessException;
@@ -9,16 +10,17 @@ import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.AuthService;
+import com.gsms.gsms.service.CacheService;
 import com.gsms.gsms.service.ProjectMemberService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 项目成员服务实现
@@ -31,12 +33,15 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     private final ProjectMapper projectMapper;
     private final UserMapper userMapper;
     private final AuthService authService;
+    private final CacheService cacheService;
 
-    public ProjectMemberServiceImpl(ProjectMemberMapper projectMemberMapper, ProjectMapper projectMapper, UserMapper userMapper, AuthService authService) {
+    public ProjectMemberServiceImpl(ProjectMemberMapper projectMemberMapper, ProjectMapper projectMapper,
+                                   UserMapper userMapper, AuthService authService, CacheService cacheService) {
         this.projectMemberMapper = projectMemberMapper;
         this.projectMapper = projectMapper;
         this.userMapper = userMapper;
         this.authService = authService;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -54,6 +59,34 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(projectId);
         logger.info("查询到{}个项目成员", members.size());
         return members;
+    }
+
+    @Override
+    public List<ProjectMemberResp> listMembersRespByProjectId(Long projectId) {
+        logger.info("查询项目成员响应列表: projectId={}", projectId);
+        List<ProjectMember> members = listMembersByProjectId(projectId);
+
+        // 转换为响应DTO并填充用户名和角色名
+        List<ProjectMemberResp> respList = members.stream().map(member -> {
+            ProjectMemberResp resp = new ProjectMemberResp();
+            resp.setId(member.getId());
+            resp.setUserId(member.getUserId());
+            resp.setRoleType(member.getRoleType());
+            resp.setCreateTime(member.getCreateTime());
+
+            // 填充用户名
+            String nickname = cacheService.getUserNicknameById(member.getUserId());
+            resp.setNickname(nickname);
+
+            // 填充角色名
+            String roleName = ProjectMemberRole.fromCode(member.getRoleType()).getDesc();
+            resp.setRoleName(roleName);
+
+            return resp;
+        }).collect(Collectors.toList());
+
+        logger.info("查询到{}个项目成员响应", respList.size());
+        return respList;
     }
 
     @Override

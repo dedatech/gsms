@@ -8,6 +8,7 @@ import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
+import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
@@ -123,6 +124,11 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
+        // 设置默认状态为待办
+        if (task.getStatus() == null) {
+            task.setStatus(TaskStatus.TODO);
+        }
+
         task.setCreateUserId(currentUserId);
         task.setUpdateUserId(currentUserId);
 
@@ -189,6 +195,86 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public Task updateStatus(TaskStatusUpdateReq updateReq) {
+        logger.info("更新任务状态: taskId={}, status={}", updateReq.getId(), updateReq.getStatus());
+
+        // 检查任务是否存在
+        Task existTask = taskMapper.selectById(updateReq.getId());
+        if (existTask == null) {
+            throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+        }
+
+        // 鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, existTask.getProjectId());
+
+        TaskStatus newStatus = updateReq.getStatus();
+        TaskStatus oldStatus = existTask.getStatus();
+
+        // 创建更新实体
+        Task task = new Task();
+        task.setId(updateReq.getId());
+        task.setStatus(newStatus);
+        task.setUpdateUserId(currentUserId);
+
+        // 处理实际开始时间
+        LocalDate actualStartDate = null;
+        if (updateReq.getActualStartDate() != null) {
+            // 用户手动提供，优先使用
+            actualStartDate = updateReq.getActualStartDate();
+        } else {
+            // 根据状态转换自动设置
+            if (newStatus == TaskStatus.IN_PROGRESS && oldStatus != TaskStatus.IN_PROGRESS) {
+                // TODO/DONE → IN_PROGRESS：设置实际开始时间
+                actualStartDate = LocalDate.now();
+            } else if (newStatus == TaskStatus.DONE && oldStatus == TaskStatus.TODO) {
+                // TODO → DONE（跳跃）：设置实际开始时间
+                actualStartDate = LocalDate.now();
+            } else if (newStatus == TaskStatus.TODO && oldStatus == TaskStatus.IN_PROGRESS) {
+                // IN_PROGRESS → TODO：清空实际开始时间
+                actualStartDate = null;
+            } else if (newStatus == TaskStatus.TODO && oldStatus == TaskStatus.DONE) {
+                // DONE → TODO（跳跃）：清空实际开始时间
+                actualStartDate = null;
+            } else {
+                // 其他情况保持原值
+                actualStartDate = existTask.getActualStartDate();
+            }
+        }
+        task.setActualStartDate(actualStartDate);
+
+        // 处理实际结束时间
+        LocalDate actualEndDate = null;
+        if (updateReq.getActualEndDate() != null) {
+            // 用户手动提供，优先使用
+            actualEndDate = updateReq.getActualEndDate();
+        } else {
+            // 根据状态转换自动设置
+            if (newStatus == TaskStatus.DONE && oldStatus != TaskStatus.DONE) {
+                // TODO/IN_PROGRESS → DONE：设置实际结束时间
+                actualEndDate = LocalDate.now();
+            } else if (newStatus != TaskStatus.DONE && oldStatus == TaskStatus.DONE) {
+                // DONE → TODO/IN_PROGRESS：清空实际结束时间（重新打开任务）
+                actualEndDate = null;
+            } else {
+                // 其他情况保持原值
+                actualEndDate = existTask.getActualEndDate();
+            }
+        }
+        task.setActualEndDate(actualEndDate);
+
+        int result = taskMapper.updateStatus(task);
+        if (result <= 0) {
+            throw new BusinessException(TaskErrorCode.TASK_UPDATE_FAILED);
+        }
+
+        logger.info("任务状态更新成功: {}, 实际开始时间={}, 实际结束时间={}",
+                    task.getId(), task.getActualStartDate(), task.getActualEndDate());
+        return taskMapper.selectById(task.getId());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         logger.info("删除任务: {}", id);
         // 检查任务是否存在
@@ -212,7 +298,7 @@ public class TaskServiceImpl implements TaskService {
     // ========== 内部方法：数据填充 ==========
 
     /**
-     * 填充单个 TaskInfoResp 的创建人、更新人信息
+     * 填充单个 TaskInfoResp 的创建人、更新人、负责人信息
      */
     private void enrichTaskInfoResp(TaskInfoResp resp) {
         if (resp.getCreateUserId() != null) {
@@ -222,6 +308,10 @@ public class TaskServiceImpl implements TaskService {
         if (resp.getUpdateUserId() != null) {
             String updaterName = cacheService.getUserNicknameById(resp.getUpdateUserId());
             resp.setUpdateUserName(updaterName);
+        }
+        if (resp.getAssigneeId() != null) {
+            String assigneeName = cacheService.getUserNicknameById(resp.getAssigneeId());
+            resp.setAssigneeName(assigneeName);
         }
     }
 

@@ -102,8 +102,8 @@ public class ProjectController {
      */
     @GetMapping("/{projectId}/members")
     @Operation(summary = "查询项目成员列表")
-    public Result<List<ProjectMember>> listProjectMembers(@PathVariable Long projectId) {
-        List<ProjectMember> members = projectMemberService.listMembersByProjectId(projectId);
+    public Result<List<com.gsms.gsms.dto.project.ProjectMemberResp>> listProjectMembers(@PathVariable Long projectId) {
+        List<com.gsms.gsms.dto.project.ProjectMemberResp> members = projectMemberService.listMembersRespByProjectId(projectId);
         return Result.success(members);
     }
 

@@ -71,14 +71,25 @@ const handleLogin = async () => {
 
     loading.value = true
     try {
-      const res = await login(loginForm)
+      const res: any = await login(loginForm)
+      console.log('登录响应:', res) // 调试日志
+
+      // 根据实际后端响应结构调整
+      const token = res.token || res.data?.token || res
+      console.log('保存的 token:', token) // 调试日志
+
+      if (!token) {
+        throw new Error('登录失败：未获取到 token')
+      }
+
       // 保存 token 和用户名
-      localStorage.setItem('token', res.token)
+      localStorage.setItem('token', token)
       localStorage.setItem('username', loginForm.username)
       ElMessage.success('登录成功')
       // 跳转到首页
       router.push('/projects')
     } catch (error: any) {
+      console.error('登录错误:', error)
       ElMessage.error(error.message || '登录失败')
     } finally {
       loading.value = false

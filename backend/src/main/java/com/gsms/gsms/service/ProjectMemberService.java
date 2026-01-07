@@ -1,5 +1,6 @@
 package com.gsms.gsms.service;
 
+import com.gsms.gsms.dto.project.ProjectMemberResp;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
 
@@ -20,6 +21,14 @@ public interface ProjectMemberService {
      * @return 项目成员列表
      */
     List<ProjectMember> listMembersByProjectId(Long projectId);
+
+    /**
+     * 查询指定项目的成员列表（包含用户信息）
+     *
+     * @param projectId 项目ID
+     * @return 项目成员响应列表（包含用户名、角色名等）
+     */
+    List<ProjectMemberResp> listMembersRespByProjectId(Long projectId);
 
     /**
      * 为项目批量添加成员

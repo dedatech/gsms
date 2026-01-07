@@ -3,6 +3,7 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
+import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.infra.common.Result;
@@ -91,6 +92,22 @@ public class TaskController {
         Task updatedTask = taskService.update(req);
         TaskInfoResp resp = TaskInfoResp.from(updatedTask);
         logger.info("任务更新成功: {}", updatedTask.getId());
+        return Result.success(resp);
+    }
+
+    /**
+     * 更新任务状态（轻量级接口，支持拖拽和快捷状态变更）
+     *
+     * @param req 任务状态更新请求对象
+     * @return 更新后的任务信息
+     */
+    @PutMapping("/status")
+    @Operation(summary = "更新任务状态")
+    public Result<TaskInfoResp> updateStatus(@RequestBody @Valid TaskStatusUpdateReq req) {
+        logger.info("更新任务状态: taskId={}, status={}", req.getId(), req.getStatus());
+        Task updatedTask = taskService.updateStatus(req);
+        TaskInfoResp resp = TaskInfoResp.from(updatedTask);
+        logger.info("任务状态更新成功: {}", updatedTask.getId());
         return Result.success(resp);
     }
 

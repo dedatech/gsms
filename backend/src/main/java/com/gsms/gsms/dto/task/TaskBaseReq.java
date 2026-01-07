@@ -9,7 +9,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -46,12 +45,10 @@ public abstract class TaskBaseReq {
     @Schema(description = "任务状态", example = "TODO")
     private TaskStatus status;
 
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
     @Schema(description = "计划开始日期（格式：yyyy-MM-dd）", example = "2025-01-01")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate planStartDate;
 
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
     @Schema(description = "计划结束日期（格式：yyyy-MM-dd）", example = "2025-01-10")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate planEndDate;

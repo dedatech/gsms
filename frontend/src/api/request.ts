@@ -29,11 +29,27 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { code, message, data } = response.data
+    const { data } = response
+
+    // 检查是否是 PageResult 格式（有 total, pageNum, pageSize 等字段）
+    // PageResult 继承自 Result<List<T>>，所以会有 code, message, data, total 等字段
+    if (data.total !== undefined && (data.pageNum !== undefined || data.pageSize !== undefined)) {
+      // 转换为前端期望的格式 { list: data.data, total: data.total, ... }
+      return {
+        list: data.data,
+        total: data.total,
+        pageNum: data.pageNum,
+        pageSize: data.pageSize,
+        totalPages: data.totalPages
+      }
+    }
+
+    // 处理标准 Result 格式
+    const { code, message, data: resultData } = data
 
     // 成功响应
     if (code === 200) {
-      return data
+      return resultData
     }
 
     // 业务错误

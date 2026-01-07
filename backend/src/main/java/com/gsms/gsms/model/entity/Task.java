@@ -1,5 +1,7 @@
 package com.gsms.gsms.model.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
@@ -27,6 +29,13 @@ public class Task {
      */
     @Schema(description = "项目ID")
     private Long projectId;
+
+    /**
+     * 项目名称（非数据库字段，用于关联查询）
+     */
+    @Schema(description = "项目名称")
+    @TableField(exist = false)
+    private String projectName;
 
     /**
      * 迭代ID
@@ -92,6 +101,7 @@ public class Task {
     @Schema(description = "实际开始日期", example = "2024-01-02")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private LocalDate actualStartDate;
 
     /**
@@ -100,6 +110,7 @@ public class Task {
     @Schema(description = "实际结束日期", example = "2024-01-09")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private LocalDate actualEndDate;
 
     /**
@@ -157,6 +168,14 @@ public class Task {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public Long getIterationId() {

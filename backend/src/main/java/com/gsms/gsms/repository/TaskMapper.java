@@ -68,6 +68,13 @@ public interface TaskMapper extends BaseMapper<Task> {
     int update(Task task);
 
     /**
+     * 更新任务状态（支持将 actualStartDate 和 actualEndDate 更新为 null）
+     * @param task 任务实体
+     * @return 影响行数
+     */
+    int updateStatus(Task task);
+
+    /**
      * 根据ID删除任务
      * @param id 任务ID
      * @return 影响行数

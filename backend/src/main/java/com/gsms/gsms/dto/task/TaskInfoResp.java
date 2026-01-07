@@ -24,6 +24,9 @@ public class TaskInfoResp {
     
     @Schema(description = "项目ID")
     private Long projectId;
+
+    @Schema(description = "项目名称")
+    private String projectName;
     
     @Schema(description = "迭代ID")
     private Long iterationId;
@@ -42,7 +45,10 @@ public class TaskInfoResp {
     
     @Schema(description = "负责人ID")
     private Long assigneeId;
-    
+
+    @Schema(description = "负责人姓名")
+    private String assigneeName;
+
     @Schema(description = "任务状态")
     private TaskStatus status;
 
@@ -105,6 +111,14 @@ public class TaskInfoResp {
         this.projectId = projectId;
     }
 
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
     public Long getIterationId() {
         return iterationId;
     }
@@ -151,6 +165,14 @@ public class TaskInfoResp {
 
     public void setAssigneeId(Long assigneeId) {
         this.assigneeId = assigneeId;
+    }
+
+    public String getAssigneeName() {
+        return assigneeName;
+    }
+
+    public void setAssigneeName(String assigneeName) {
+        this.assigneeName = assigneeName;
     }
 
     public TaskStatus getStatus() {
@@ -248,10 +270,11 @@ public class TaskInfoResp {
         if (task == null) {
             return null;
         }
-        
+
         TaskInfoResp resp = new TaskInfoResp();
         resp.setId(task.getId());
         resp.setProjectId(task.getProjectId());
+        resp.setProjectName(task.getProjectName());
         resp.setIterationId(task.getIterationId());
         resp.setTitle(task.getTitle());
         resp.setDescription(task.getDescription());
