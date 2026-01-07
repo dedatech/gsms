@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +65,29 @@ public class TaskInfoResp {
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate actualEndDate;
-    
+
+    @Schema(description = "创建人ID")
+    private Long createUserId;
+
+    @Schema(description = "创建人姓名")
+    private String createUserName;
+
+    @Schema(description = "更新人ID")
+    private Long updateUserId;
+
+    @Schema(description = "更新人姓名")
+    private String updateUserName;
+
+    @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
+    @Schema(description = "更新时间", type = "string", example = "2024-01-01 10:30:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;
+
     // Getter and Setter
     public Long getId() {
         return id;
@@ -169,7 +192,55 @@ public class TaskInfoResp {
     public void setActualEndDate(LocalDate actualEndDate) {
         this.actualEndDate = actualEndDate;
     }
-    
+
+    public Long getCreateUserId() {
+        return createUserId;
+    }
+
+    public void setCreateUserId(Long createUserId) {
+        this.createUserId = createUserId;
+    }
+
+    public String getCreateUserName() {
+        return createUserName;
+    }
+
+    public void setCreateUserName(String createUserName) {
+        this.createUserName = createUserName;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
+    }
+
+    public String getUpdateUserName() {
+        return updateUserName;
+    }
+
+    public void setUpdateUserName(String updateUserName) {
+        this.updateUserName = updateUserName;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
     /**
      * 将 Task 实体转换为 TaskInfoResp
      */
@@ -192,7 +263,11 @@ public class TaskInfoResp {
         resp.setPlanEndDate(task.getPlanEndDate());
         resp.setActualStartDate(task.getActualStartDate());
         resp.setActualEndDate(task.getActualEndDate());
-        
+        resp.setCreateUserId(task.getCreateUserId());
+        resp.setUpdateUserId(task.getUpdateUserId());
+        resp.setCreateTime(task.getCreateTime());
+        resp.setUpdateTime(task.getUpdateTime());
+
         return resp;
     }
     

@@ -55,6 +55,15 @@ public class IterationInfoResp {
     @Schema(description = "创建人ID")
     private Long createUserId;
 
+    @Schema(description = "创建人姓名")
+    private String createUserName;
+
+    @Schema(description = "更新人ID")
+    private Long updateUserId;
+
+    @Schema(description = "更新人姓名")
+    private String updateUserName;
+
     @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -146,6 +155,30 @@ public class IterationInfoResp {
         this.createUserId = createUserId;
     }
 
+    public String getCreateUserName() {
+        return createUserName;
+    }
+
+    public void setCreateUserName(String createUserName) {
+        this.createUserName = createUserName;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
+    }
+
+    public String getUpdateUserName() {
+        return updateUserName;
+    }
+
+    public void setUpdateUserName(String updateUserName) {
+        this.updateUserName = updateUserName;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -181,6 +214,7 @@ public class IterationInfoResp {
         resp.setActualStartDate(iteration.getActualStartDate());
         resp.setActualEndDate(iteration.getActualEndDate());
         resp.setCreateUserId(iteration.getCreateUserId());
+        resp.setUpdateUserId(iteration.getUpdateUserId());
         resp.setCreateTime(iteration.getCreateTime());
         resp.setUpdateTime(iteration.getUpdateTime());
 

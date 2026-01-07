@@ -1,7 +1,5 @@
 package com.gsms.gsms.service;
 
-import com.gsms.gsms.dto.user.UserInfoResp;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -13,11 +11,9 @@ import java.util.Optional;
  * 1. 系统启动时加载所有数据到内存（缓存预热）
  * 2. 增删改操作时同步更新缓存
  * 3. 使用 ConcurrentHashMap 保证线程安全
- * 4. 提供直接提取数据的方法，避免暴露整个 Map
+ * 4. 只提供基础数据查询，不提供业务填充方法
  */
 public interface CacheService {
-
-    // ========== User 缓存操作 ==========
 
     /**
      * 根据 ID 获取用户昵称（从缓存）
@@ -32,19 +28,6 @@ public interface CacheService {
      * @return 部门名称，不存在返回 null
      */
     String getDepartmentNameById(Long departmentId);
-
-    /**
-     * 批量填充用户响应的关联信息（从缓存）
-     * 自动填充 departmentName, createUserName, updateUserName
-     * @param respList 用户响应列表
-     */
-    void enrichUserInfoRespList(List<UserInfoResp> respList);
-
-    /**
-     * 填充单个用户响应的关联信息（从缓存）
-     * @param resp 用户响应
-     */
-    void enrichUserInfoResp(UserInfoResp resp);
 
     /**
      * 根据 ID 获取用户实体（从缓存，供内部使用）

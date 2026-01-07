@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         logger.debug("根据ID查询用户: {}", id);
         User user = getUserById(id);
         UserInfoResp resp = UserInfoResp.from(user);
-        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
+        enrichUserInfoResp(resp);
         return resp;
     }
 
@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
         User user = cacheService.getUserByUsername(username)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
         UserInfoResp resp = UserInfoResp.from(user);
-        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
+        enrichUserInfoResp(resp);
         return resp;
     }
 
@@ -75,8 +75,8 @@ public class UserServiceImpl implements UserService {
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<UserInfoResp> userInfoRespList = UserInfoResp.from(users);
 
-        // 使用 CacheService 批量填充关联信息
-        cacheService.enrichUserInfoRespList(userInfoRespList);
+        // 批量填充关联信息
+        enrichUserInfoRespList(userInfoRespList);
 
         return PageResult.success(userInfoRespList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
 
         logger.info("用户创建成功: {}", user.getUsername());
         UserInfoResp resp = UserInfoResp.from(createdUser);
-        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
+        enrichUserInfoResp(resp);
         return resp;
     }
 
@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
         logger.info("用户更新成功: {}", user.getId());
         UserInfoResp resp = UserInfoResp.from(updatedUser);
-        cacheService.enrichUserInfoResp(resp);  // 使用 CacheService 填充
+        enrichUserInfoResp(resp);
         return resp;
     }
 
@@ -202,5 +202,40 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
         }
         return user;
+    }
+
+    // ========== 内部方法：数据填充 ==========
+
+    /**
+     * 填充单个 UserInfoResp 的创建人、更新人、部门信息
+     */
+    private void enrichUserInfoResp(UserInfoResp resp) {
+        // 填充创建人信息
+        if (resp.getCreateUserId() != null) {
+            String creatorName = cacheService.getUserNicknameById(resp.getCreateUserId());
+            resp.setCreateUserName(creatorName);
+        }
+        // 填充更新人信息
+        if (resp.getUpdateUserId() != null) {
+            String updaterName = cacheService.getUserNicknameById(resp.getUpdateUserId());
+            resp.setUpdateUserName(updaterName);
+        }
+        // 填充部门信息
+        if (resp.getDepartmentId() != null) {
+            String departmentName = cacheService.getDepartmentNameById(resp.getDepartmentId());
+            resp.setDepartmentName(departmentName);
+        }
+    }
+
+    /**
+     * 批量填充 UserInfoResp 列表的创建人、更新人、部门信息
+     */
+    private void enrichUserInfoRespList(List<UserInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+        for (UserInfoResp resp : respList) {
+            enrichUserInfoResp(resp);
+        }
     }
 }

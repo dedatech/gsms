@@ -18,6 +18,7 @@ import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.TaskService;
+import com.gsms.gsms.service.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,11 +37,14 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
     private final ProjectMemberMapper projectMemberMapper;
     private final AuthService authService;
+    private final CacheService cacheService;
 
-    public TaskServiceImpl(TaskMapper taskMapper, ProjectMemberMapper projectMemberMapper, AuthService authService) {
+    public TaskServiceImpl(TaskMapper taskMapper, ProjectMemberMapper projectMemberMapper,
+                           AuthService authService, CacheService cacheService) {
         this.taskMapper = taskMapper;
         this.projectMemberMapper = projectMemberMapper;
         this.authService = authService;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -91,6 +95,9 @@ public class TaskServiceImpl implements TaskService {
         // 转换为响应DTO
         PageInfo<Task> pageInfo = new PageInfo<>(tasks);
         List<TaskInfoResp> respList = TaskInfoResp.from(tasks);
+
+        // 使用缓存填充创建人、更新人信息
+        enrichTaskInfoRespList(respList);
 
         // 返回分页结果
         return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
@@ -200,5 +207,33 @@ public class TaskServiceImpl implements TaskService {
         }
 
         logger.info("任务删除成功: {}", id);
+    }
+
+    // ========== 内部方法：数据填充 ==========
+
+    /**
+     * 填充单个 TaskInfoResp 的创建人、更新人信息
+     */
+    private void enrichTaskInfoResp(TaskInfoResp resp) {
+        if (resp.getCreateUserId() != null) {
+            String creatorName = cacheService.getUserNicknameById(resp.getCreateUserId());
+            resp.setCreateUserName(creatorName);
+        }
+        if (resp.getUpdateUserId() != null) {
+            String updaterName = cacheService.getUserNicknameById(resp.getUpdateUserId());
+            resp.setUpdateUserName(updaterName);
+        }
+    }
+
+    /**
+     * 批量填充 TaskInfoResp 列表的创建人、更新人信息
+     */
+    private void enrichTaskInfoRespList(List<TaskInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+        for (TaskInfoResp resp : respList) {
+            enrichTaskInfoResp(resp);
+        }
     }
 }

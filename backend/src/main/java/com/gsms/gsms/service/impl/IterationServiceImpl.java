@@ -14,6 +14,7 @@ import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.IterationMapper;
 import com.gsms.gsms.service.IterationService;
+import com.gsms.gsms.service.CacheService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +27,11 @@ import java.util.List;
 public class IterationServiceImpl implements IterationService {
 
     private final IterationMapper iterationMapper;
+    private final CacheService cacheService;
 
-    public IterationServiceImpl(IterationMapper iterationMapper) {
+    public IterationServiceImpl(IterationMapper iterationMapper, CacheService cacheService) {
         this.iterationMapper = iterationMapper;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -37,7 +40,9 @@ public class IterationServiceImpl implements IterationService {
         if (iteration == null) {
             throw new BusinessException(IterationErrorCode.ITERATION_NOT_FOUND);
         }
-        return IterationInfoResp.from(iteration);
+        IterationInfoResp resp = IterationInfoResp.from(iteration);
+        enrichIterationInfoResp(resp);
+        return resp;
     }
 
     @Override
@@ -46,6 +51,10 @@ public class IterationServiceImpl implements IterationService {
         List<Iteration> list = iterationMapper.selectByCondition(req.getProjectId(), req.getStatus());
         PageInfo<Iteration> pageInfo = new PageInfo<>(list);
         List<IterationInfoResp> respList = IterationInfoResp.from(list);
+
+        // 使用缓存填充创建人、更新人信息
+        enrichIterationInfoRespList(respList);
+
         return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
@@ -98,6 +107,34 @@ public class IterationServiceImpl implements IterationService {
         int result = iterationMapper.deleteById(id);
         if (result <= 0) {
             throw new BusinessException(IterationErrorCode.ITERATION_DELETE_FAILED);
+        }
+    }
+
+    // ========== 内部方法：数据填充 ==========
+
+    /**
+     * 填充单个 IterationInfoResp 的创建人、更新人信息
+     */
+    private void enrichIterationInfoResp(IterationInfoResp resp) {
+        if (resp.getCreateUserId() != null) {
+            String creatorName = cacheService.getUserNicknameById(resp.getCreateUserId());
+            resp.setCreateUserName(creatorName);
+        }
+        if (resp.getUpdateUserId() != null) {
+            String updaterName = cacheService.getUserNicknameById(resp.getUpdateUserId());
+            resp.setUpdateUserName(updaterName);
+        }
+    }
+
+    /**
+     * 批量填充 IterationInfoResp 列表的创建人、更新人信息
+     */
+    private void enrichIterationInfoRespList(List<IterationInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+        for (IterationInfoResp resp : respList) {
+            enrichIterationInfoResp(resp);
         }
     }
 }

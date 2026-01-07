@@ -1,6 +1,5 @@
 package com.gsms.gsms.service.impl;
 
-import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.model.entity.User;
 import com.gsms.gsms.model.entity.Department;
 import com.gsms.gsms.repository.UserMapper;
@@ -80,62 +79,6 @@ public class CacheServiceImpl implements CacheService {
         }
         Department department = departmentCache.get(departmentId);
         return department != null ? department.getName() : null;
-    }
-
-    @Override
-    public void enrichUserInfoRespList(List<UserInfoResp> respList) {
-        if (respList == null || respList.isEmpty()) {
-            return;
-        }
-
-        // 直接访问缓存 Map，避免重复调用方法
-        respList.forEach(resp -> {
-            if (resp.getDepartmentId() != null) {
-                Department dept = departmentCache.get(resp.getDepartmentId());
-                if (dept != null) {
-                    resp.setDepartmentName(dept.getName());
-                }
-            }
-            if (resp.getCreateUserId() != null) {
-                User creator = userCache.get(resp.getCreateUserId());
-                if (creator != null) {
-                    resp.setCreateUserName(creator.getNickname());
-                }
-            }
-            if (resp.getUpdateUserId() != null) {
-                User updater = userCache.get(resp.getUpdateUserId());
-                if (updater != null) {
-                    resp.setUpdateUserName(updater.getNickname());
-                }
-            }
-        });
-    }
-
-    @Override
-    public void enrichUserInfoResp(UserInfoResp resp) {
-        if (resp == null) {
-            return;
-        }
-
-        // 直接访问缓存 Map
-        if (resp.getDepartmentId() != null) {
-            Department dept = departmentCache.get(resp.getDepartmentId());
-            if (dept != null) {
-                resp.setDepartmentName(dept.getName());
-            }
-        }
-        if (resp.getCreateUserId() != null) {
-            User creator = userCache.get(resp.getCreateUserId());
-            if (creator != null) {
-                resp.setCreateUserName(creator.getNickname());
-            }
-        }
-        if (resp.getUpdateUserId() != null) {
-            User updater = userCache.get(resp.getUpdateUserId());
-            if (updater != null) {
-                resp.setUpdateUserName(updater.getNickname());
-            }
-        }
     }
 
     @Override

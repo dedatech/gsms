@@ -17,6 +17,7 @@ import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.ProjectService;
+import com.gsms.gsms.service.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -35,11 +36,14 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     private final ProjectMemberMapper projectMemberMapper;
     private final AuthService authService;
+    private final CacheService cacheService;
 
-    public ProjectServiceImpl(ProjectMapper projectMapper, ProjectMemberMapper projectMemberMapper, AuthService authService) {
+    public ProjectServiceImpl(ProjectMapper projectMapper, ProjectMemberMapper projectMemberMapper,
+                             AuthService authService, CacheService cacheService) {
         this.projectMapper = projectMapper;
         this.projectMemberMapper = projectMemberMapper;
         this.authService = authService;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -54,7 +58,9 @@ public class ProjectServiceImpl implements ProjectService {
         // 鉴权再查询
         Long currentUserId = UserContext.getCurrentUserId();
         authService.checkProjectAccess(currentUserId, id);
-        return ProjectInfoResp.from(project);
+        ProjectInfoResp resp = ProjectInfoResp.from(project);
+        enrichProjectInfoResp(resp);
+        return resp;
     }
 
     /**
@@ -98,6 +104,10 @@ public class ProjectServiceImpl implements ProjectService {
 
         PageInfo<Project> pageInfo = new PageInfo<>(projects);
         List<ProjectInfoResp> respList = ProjectInfoResp.from(projects);
+
+        // 使用缓存填充创建人、更新人信息
+        enrichProjectInfoRespList(respList);
+
         return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
     }
 
@@ -174,6 +184,34 @@ public class ProjectServiceImpl implements ProjectService {
         int result = projectMapper.deleteById(id);
         if (result <= 0) {
             throw new BusinessException(ProjectErrorCode.PROJECT_DELETE_FAILED);
+        }
+    }
+
+    // ========== 内部方法：数据填充 ==========
+
+    /**
+     * 填充单个 ProjectInfoResp 的创建人、更新人信息
+     */
+    private void enrichProjectInfoResp(ProjectInfoResp resp) {
+        if (resp.getCreateUserId() != null) {
+            String creatorName = cacheService.getUserNicknameById(resp.getCreateUserId());
+            resp.setCreateUserName(creatorName);
+        }
+        if (resp.getUpdateUserId() != null) {
+            String updaterName = cacheService.getUserNicknameById(resp.getUpdateUserId());
+            resp.setUpdateUserName(updaterName);
+        }
+    }
+
+    /**
+     * 批量填充 ProjectInfoResp 列表的创建人、更新人信息
+     */
+    private void enrichProjectInfoRespList(List<ProjectInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+        for (ProjectInfoResp resp : respList) {
+            enrichProjectInfoResp(resp);
         }
     }
 }
