@@ -1,11 +1,14 @@
 # GSMS 工时管理系统 - 项目现状与完善计划
 
-**文档版本：** 1.2
+**文档版本：** 1.3
 **创建时间：** 2025-12-30
-**最后更新：** 2026-01-07
-**项目完成度：** 90% ⬆️ (+5%)
+**最后更新：** 2026-01-08
+**项目完成度：** 92% ⬆️ (+2%)
 
 **最新进展** ✨：
+- ✅ 项目列表看板视图改造（前端）
+- ✅ 认证管理优化（Pinia Store + 拦截器）
+- ✅ 前端中文化（Element Plus 中文语言包）
 - ✅ 迭代管理模块（前端完整实现）
 - ✅ 工时管理模块（前端完整实现）
 - ✅ 任务看板拖拽功能
@@ -89,19 +92,31 @@
 
 ---
 
-#### 1.3 项目模块 (Project) ✅ 95%
+#### 1.3 项目模块 (Project) ✅ 100%
 
 **已完成功能：**
 - ✅ 项目 CRUD
 - ✅ 项目成员管理 (ProjectMember)
-- ✅ 项目状态管理 (TODO/IN_PROGRESS/COMPLETED/CANCELLED)
+- ✅ 项目状态管理 (NOT_STARTED/IN_PROGRESS/SUSPENDED/ARCHIVED)
 - ✅ 项目列表分页查询
 - ✅ 基于成员权限的访问控制
+- ✅ 看板视图（前端）✨ **[2026-01-08]**
+  - 4列状态展示（未开始、进行中、已暂停、已归档）
+  - 项目卡片完整信息展示
+  - 拖拽更新状态功能
+  - 看板/列表视图切换
+- ✅ 中文分页组件（前端）✨ **[2026-01-08]**
+  - 完全中文化（共 X 条, X条/页）
+  - 看板视图自动隐藏分页
 - ❌ Controller 层测试缺失
 
 **待完善：**
 - ⚠️ 补充 `ProjectControllerTest.java`
-- ⚠️ 完善项目成员权限检查逻辑
+
+**技术亮点** ✨：
+- 使用 `computed` 优化性能，按状态过滤项目
+- 完整的拖拽事件处理（dragstart, dragover, drop）
+- 拖拽视觉反馈样式
 
 ---
 
@@ -1017,6 +1032,97 @@ CREATE INDEX idx_workhour_status ON gsms_workhour(status);
 
 ## 更新日志
 
+### 2026-01-08 - 前端架构优化与认证管理重构 ✨
+
+**核心改进**：
+- ✅ **认证管理重构** - 使用 Pinia Store + Axios 拦截器
+  - 创建 `frontend/src/stores/auth.ts` - 认证状态集中管理
+  - JWT Token 自动解析和验证
+  - 响应式用户信息（token、userId、username）
+  - Token 过期检测和自动清除
+  - 提供 `getCurrentUserId()` 工具方法
+  - 401 错误自动处理（清除认证并跳转登录）
+
+- ✅ **Axios 拦截器优化**
+  - 请求拦截器：从 auth store 获取 token
+  - 响应拦截器：401 错误调用 `clearAuth()`
+  - 使用 router 导航替代 window.location
+
+- ✅ **应用启动恢复认证**
+  - 应用启动时调用 `authStore.restoreAuth()`
+  - 自动从 localStorage 恢复认证信息
+  - 验证 token 有效性
+
+- ✅ **登录组件简化**
+  - 使用 `authStore.setAuth()` 替代直接操作 localStorage
+  - 代码从 20+ 行简化为 1 行
+
+**技术优势**：
+- 🎯 响应式状态管理（Pinia）
+- 🎯 集中化认证逻辑
+- 🎯 自动 JWT 解析
+- 🎯 类型安全（TypeScript）
+- 🎯 易于维护和测试
+- 🎯 统一的错误处理
+
+**影响文件**：
+- 新增：`frontend/src/stores/auth.ts` (143 行)
+- 修改：`frontend/src/api/request.ts`
+- 修改：`frontend/src/main.ts`
+- 修改：`frontend/src/views/auth/LoginView.vue`
+- 修改：`frontend/src/views/workhour/WorkHourList.vue`
+
+**相关文档**：
+- 前端架构文档：`docs/development/frontend-architecture.md`
+
+---
+
+### 2026-01-08 - 项目列表看板视图与中文化 ✨
+
+**新增功能**：
+- ✅ **项目列表看板视图**
+  - 4列状态展示（未开始、进行中、已暂停、已归档）
+  - 项目卡片完整信息展示（名称、编码、描述、经理、时间）
+  - 拖拽更新状态功能（HTML5 Drag & Drop API）
+  - 拖拽视觉反馈（拖拽样式、目标高亮）
+  - 看板/列表视图流畅切换
+  - 视觉反馈和动画效果
+
+- ✅ **中文分页组件**
+  - Element Plus 中文语言包配置
+  - 完全中文化（共 X 条, X条/页）
+  - 看板视图智能隐藏分页
+  - 列表视图正常显示分页
+
+- ✅ **API 类型优化**
+  - 状态字段类型从 `number` 改为 `string`
+  - 统一使用字符串枚举值（NOT_STARTED, IN_PROGRESS 等）
+
+**技术实现**：
+- 使用 `computed` 优化性能，按状态过滤项目
+- 完整的拖拽事件处理（dragstart, dragover, drop）
+- 拖拽时添加 CSS 类实现视觉反馈
+- Element Plus locale 配置
+
+**测试验证**：
+- ✅ 看板视图正常显示
+- ✅ 拖拽功能正常工作
+- ✅ 视图切换流畅
+- ✅ 中文分页正常显示
+- ✅ 搜索功能正常
+- ✅ 状态筛选正常
+
+**影响文件**：
+- `frontend/src/views/project/ProjectList.vue` (300 行修改)
+- `frontend/src/api/project.ts` (6 行修改)
+- `frontend/src/main.ts` (5 行修改)
+- `frontend/src/components.d.ts` (1 行新增)
+
+**提交记录**：
+- `da63fae` - feat: 实现项目列表看板视图和中文本地化
+
+---
+
 ### 2026-01-07 - 任务状态更新功能 ✨
 
 **新增功能**：
@@ -1088,4 +1194,13 @@ CREATE INDEX idx_workhour_status ON gsms_workhour(status);
 
 **文档维护：** 本文档应随项目进展持续更新
 
-**最后更新：** 2026-01-07
+**最后更新：** 2026-01-08
+
+**新增文档**：
+- ✅ 前端架构文档：`docs/development/frontend-architecture.md` (2026-01-08)
+  - 技术栈与项目结构
+  - Pinia Store 状态管理
+  - 认证管理架构
+  - API 请求设计
+  - 组件设计规范
+  - 最佳实践指南
