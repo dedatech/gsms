@@ -1,5 +1,7 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
+import router from '@/router'
+import { useAuthStore } from '@/stores/auth'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
@@ -13,11 +15,14 @@ const service: AxiosInstance = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 从 localStorage 获取 token
-    const token = localStorage.getItem('token')
+    // 从 auth store 获取 token
+    const authStore = useAuthStore()
+    const token = authStore.token
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
   },
   (error) => {
@@ -66,8 +71,10 @@ service.interceptors.response.use(
       switch (status) {
         case 401:
           ElMessage.error('未授权，请重新登录')
-          localStorage.removeItem('token')
-          window.location.href = '/login'
+          // 清除认证信息并跳转到登录页
+          const authStore = useAuthStore()
+          authStore.clearAuth()
+          router.push('/login')
           break
         case 403:
           ElMessage.error('没有权限访问')

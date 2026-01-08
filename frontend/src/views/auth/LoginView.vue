@@ -41,8 +41,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { login } from '@/api/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -72,19 +74,19 @@ const handleLogin = async () => {
     loading.value = true
     try {
       const res: any = await login(loginForm)
-      console.log('登录响应:', res) // 调试日志
+      console.log('登录响应:', res)
 
       // 根据实际后端响应结构调整
       const token = res.token || res.data?.token || res
-      console.log('保存的 token:', token) // 调试日志
+      console.log('获取的 token:', token)
 
       if (!token) {
         throw new Error('登录失败：未获取到 token')
       }
 
-      // 保存 token 和用户名
-      localStorage.setItem('token', token)
-      localStorage.setItem('username', loginForm.username)
+      // 使用 auth store 保存认证信息
+      authStore.setAuth(token, loginForm.username)
+
       ElMessage.success('登录成功')
       // 跳转到首页
       router.push('/projects')

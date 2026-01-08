@@ -216,6 +216,15 @@ import { Plus, Edit, Delete, Clock, Calendar, DataLine, Sum } from '@element-plu
 import { getWorkHourList, createWorkHour, updateWorkHour, deleteWorkHour, getUserWorkHourStatistics, type WorkHourInfo } from '@/api/workhour'
 import { getProjectList } from '@/api/project'
 import { getTaskList } from '@/api/task'
+import { useAuthStore } from '@/stores/auth'
+
+// 获取 auth store
+const authStore = useAuthStore()
+
+// 获取当前用户ID
+const getCurrentUserId = (): number => {
+  return authStore.getCurrentUserId() || 1
+}
 
 // 查询表单
 const queryForm = reactive({
