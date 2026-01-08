@@ -3,7 +3,7 @@ import request from './request'
 // 获取项目列表
 export interface ProjectQuery {
   name?: string
-  status?: number
+  status?: string
   pageNum?: number
   pageSize?: number
 }
@@ -23,7 +23,7 @@ export interface ProjectCreateReq {
   code: string
   description?: string
   managerId: number
-  status: number
+  status: string
 }
 
 export const createProject = (data: ProjectCreateReq) => {
@@ -35,7 +35,7 @@ export interface ProjectUpdateReq {
   id: number
   name?: string
   description?: string
-  status?: number
+  status?: string
 }
 
 export const updateProject = (data: ProjectUpdateReq) => {

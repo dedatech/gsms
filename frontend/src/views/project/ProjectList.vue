@@ -30,64 +30,89 @@
         </el-select>
         <el-button-group>
           <el-button
-            :type="viewMode === 'card' ? 'primary' : ''"
-            :icon="Grid"
-            @click="viewMode = 'card'"
-          />
+            :type="viewMode === 'kanban' ? 'primary' : ''"
+            @click="viewMode = 'kanban'"
+          >
+            <el-icon><Grid /></el-icon>
+            看板
+          </el-button>
           <el-button
             :type="viewMode === 'table' ? 'primary' : ''"
-            :icon="List"
             @click="viewMode = 'table'"
-          />
+          >
+            <el-icon><List /></el-icon>
+            列表
+          </el-button>
         </el-button-group>
       </div>
     </div>
 
-    <!-- 卡片视图 -->
-    <div v-if="viewMode === 'card'" class="card-view">
+    <!-- 看板视图 -->
+    <div v-if="viewMode === 'kanban'" class="kanban-view">
       <el-row :gutter="16">
-        <el-col v-for="project in projectList" :key="project.id" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="project-card" shadow="hover">
-            <div class="card-header">
-              <div class="project-icon" :style="{ backgroundColor: getStatusColor(project.status) }">
-                <el-icon :size="24"><FolderOpened /></el-icon>
-              </div>
-              <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, project)">
-                <el-icon class="more-icon" @click.stop><MoreFilled /></el-icon>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="view" :icon="View">查看</el-dropdown-item>
-                    <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
-                    <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-            <div class="card-body" @click="handleView(project)">
-              <h3 class="project-name">{{ project.name }}</h3>
-              <p class="project-code">{{ project.code }}</p>
-              <p class="project-description">{{ project.description || '暂无描述' }}</p>
-            </div>
-            <div class="card-footer">
-              <div class="project-meta">
-                <el-tag :type="getStatusType(project.status)" size="small">
-                  {{ getStatusText(project.status) }}
-                </el-tag>
-                <span class="meta-item">
-                  <el-icon><User /></el-icon>
-                  {{ getManagerName(project.managerId) || '未设置' }}
-                </span>
-              </div>
-              <div class="project-time">
-                <span>{{ formatDate(project.createTime) }}</span>
+        <el-col v-for="status in projectStatuses" :key="status.value" :xs="24" :sm="12" :md="6">
+          <div
+            class="kanban-column"
+            :data-status="status.value"
+            @dragover.prevent="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop="handleDrop"
+          >
+            <div class="column-header">
+              <div class="column-title">
+                <div class="status-dot" :style="{ backgroundColor: status.color }"></div>
+                <span>{{ status.label }}</span>
+                <span class="project-count">{{ getProjectsByStatus(status.value).length }}</span>
               </div>
             </div>
-          </el-card>
+            <div class="column-body">
+              <div
+                v-for="project in getProjectsByStatus(status.value)"
+                :key="project.id"
+                class="project-card"
+                draggable="true"
+                @dragstart="handleDragStart(project, $event)"
+                @click="handleView(project)"
+              >
+                <div class="card-header">
+                  <div class="project-icon" :style="{ backgroundColor: status.color }">
+                    <el-icon :size="20"><FolderOpened /></el-icon>
+                  </div>
+                  <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, project)">
+                    <el-icon class="more-icon" @click.stop><MoreFilled /></el-icon>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="view" :icon="View">查看</el-dropdown-item>
+                        <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
+                        <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </div>
+                <h3 class="project-name">{{ project.name }}</h3>
+                <p class="project-code">{{ project.code }}</p>
+                <p class="project-description">{{ project.description || '暂无描述' }}</p>
+                <div class="card-footer">
+                  <div class="project-meta">
+                    <span class="meta-item">
+                      <el-icon><User /></el-icon>
+                      {{ getManagerName(project.managerId) || '未设置' }}
+                    </span>
+                  </div>
+                  <div class="project-time">
+                    <span>{{ formatDate(project.createTime) }}</span>
+                  </div>
+                </div>
+              </div>
+              <el-empty
+                v-if="getProjectsByStatus(status.value).length === 0"
+                description="暂无项目"
+                :image-size="60"
+              />
+            </div>
+          </div>
         </el-col>
       </el-row>
-
-      <!-- 空状态 -->
-      <el-empty v-if="projectList.length === 0" description="暂无项目数据" />
     </div>
 
     <!-- 表格视图 -->
@@ -165,13 +190,14 @@
     </div>
 
     <!-- 分页 -->
-    <div v-if="total > 0" class="pagination">
+    <div v-if="total > 0 && viewMode === 'table'" class="pagination">
       <el-pagination
         v-model:current-page="searchForm.pageNum"
         v-model:page-size="searchForm.pageSize"
         :total="total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
+        :pager-count="7"
         @size-change="fetchProjects"
         @current-change="fetchProjects"
       />
@@ -227,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -248,7 +274,93 @@ import { getAllUsers, type UserInfo } from '@/api/user'
 const router = useRouter()
 
 // 视图模式
-const viewMode = ref<'card' | 'table'>('card')
+const viewMode = ref<'kanban' | 'table'>('kanban')
+
+// 项目状态配置
+const projectStatuses = [
+  { label: '未开始', value: 'NOT_STARTED', color: '#d9d9d9' },
+  { label: '进行中', value: 'IN_PROGRESS', color: '#1890ff' },
+  { label: '已暂停', value: 'SUSPENDED', color: '#faad14' },
+  { label: '已归档', value: 'ARCHIVED', color: '#8c8c8c' }
+]
+
+// 拖拽相关
+const draggedProject = ref<any>(null)
+
+// 根据状态获取项目（使用computed以优化性能和响应式）
+const notStartedProjects = computed(() => projectList.value.filter(project => project.status === 'NOT_STARTED'))
+const inProgressProjects = computed(() => projectList.value.filter(project => project.status === 'IN_PROGRESS'))
+const suspendedProjects = computed(() => projectList.value.filter(project => project.status === 'SUSPENDED'))
+const archivedProjects = computed(() => projectList.value.filter(project => project.status === 'ARCHIVED'))
+
+// 辅助函数：根据状态值返回对应项目列表
+const getProjectsByStatus = (status: string) => {
+  const statusMap: Record<string, any[]> = {
+    'NOT_STARTED': notStartedProjects.value,
+    'IN_PROGRESS': inProgressProjects.value,
+    'SUSPENDED': suspendedProjects.value,
+    'ARCHIVED': archivedProjects.value
+  }
+  return statusMap[status] || []
+}
+
+// 拖拽开始
+const handleDragStart = (project: any, event: DragEvent) => {
+  draggedProject.value = project
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('text/plain', project.id.toString())
+    event.dataTransfer.effectAllowed = 'move'
+  }
+  // 添加拖拽样式
+  ;(event.target as HTMLElement).classList.add('dragging')
+}
+
+// 拖拽经过
+const handleDragOver = (event: DragEvent) => {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  // 添加拖拽悬停样式
+  const column = (event.currentTarget as HTMLElement)
+  column.classList.add('drag-over')
+}
+
+// 拖拽离开
+const handleDragLeave = (event: DragEvent) => {
+  const column = (event.currentTarget as HTMLElement)
+  column.classList.remove('drag-over')
+}
+
+// 放置项目
+const handleDrop = async (event: DragEvent) => {
+  event.preventDefault()
+  const targetStatus = (event.currentTarget as HTMLElement).getAttribute('data-status')
+
+  // 移除拖拽样式
+  const draggingElements = document.querySelectorAll('.dragging')
+  draggingElements.forEach(el => el.classList.remove('dragging'))
+
+  // 移除所有列的拖拽悬停样式
+  const dragOverElements = document.querySelectorAll('.drag-over')
+  dragOverElements.forEach(el => el.classList.remove('drag-over'))
+
+  if (draggedProject.value && targetStatus && draggedProject.value.status !== targetStatus) {
+    try {
+      await updateProject({
+        id: draggedProject.value.id,
+        status: targetStatus
+      })
+      ElMessage.success('项目状态已更新')
+      fetchProjects() // 刷新项目列表
+    } catch (error) {
+      console.error('更新项目状态失败:', error)
+      ElMessage.error('更新项目状态失败')
+    }
+  }
+
+  draggedProject.value = null
+}
 
 // 搜索表单
 const searchForm = reactive({
@@ -517,32 +629,92 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 卡片视图 */
-.card-view {
+/* 看板视图 */
+.kanban-view {
   margin-bottom: 24px;
 }
 
-.project-card {
+.kanban-column {
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
   margin-bottom: 16px;
+  transition: all 0.3s;
+}
+
+.kanban-column.drag-over {
+  background: #e6f7ff;
+  box-shadow: 0 0 0 2px #1890ff inset;
+}
+
+.column-header {
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.project-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #8c8c8c;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.column-body {
+  padding: 16px;
+  min-height: 400px;
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+.project-card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.3s;
 }
 
 .project-card:hover {
-  transform: translateY(-4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.project-card.dragging {
+  opacity: 0.5;
+  cursor: move;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .project-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -550,7 +722,7 @@ onMounted(() => {
 }
 
 .more-icon {
-  font-size: 20px;
+  font-size: 18px;
   color: #8c8c8c;
   cursor: pointer;
   transition: color 0.3s;
@@ -560,14 +732,9 @@ onMounted(() => {
   color: #333;
 }
 
-.card-body {
-  margin-bottom: 16px;
-  cursor: pointer;
-}
-
 .project-name {
   margin: 0 0 8px 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #333;
   overflow: hidden;
@@ -582,15 +749,15 @@ onMounted(() => {
 }
 
 .project-description {
-  margin: 0;
-  font-size: 14px;
+  margin: 0 0 12px 0;
+  font-size: 12px;
   color: #595959;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 42px;
+  min-height: 36px;
 }
 
 .card-footer {
@@ -604,7 +771,6 @@ onMounted(() => {
 .project-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .meta-item {
@@ -612,7 +778,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #8c8c8c;
+  color: #595959;
 }
 
 .project-time {
