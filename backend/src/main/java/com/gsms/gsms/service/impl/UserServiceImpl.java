@@ -9,6 +9,7 @@ import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.UserConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
@@ -191,6 +192,41 @@ public class UserServiceImpl implements UserService {
 
         logger.info("用户登录成功: {}", username);
         return user;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(PasswordChangeReq req) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        logger.info("用户修改密码: userId={}", currentUserId);
+
+        // 获取当前用户
+        User user = getUserById(currentUserId);
+
+        // 验证旧密码
+        if (!PasswordUtil.verify(req.getOldPassword(), user.getPassword())) {
+            logger.warn("用户修改密码失败 - 旧密码错误: userId={}", currentUserId);
+            throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
+        }
+
+        // 加密新密码
+        String encryptedNewPassword = PasswordUtil.encrypt(req.getNewPassword());
+
+        // 更新密码
+        user.setPassword(encryptedNewPassword);
+        user.setPasswordResetRequired(0); // 清除密码重置标志
+        user.setUpdateUserId(currentUserId);
+
+        int result = userMapper.update(user);
+        if (result <= 0) {
+            throw new BusinessException(UserErrorCode.USER_UPDATE_FAILED);
+        }
+
+        // 更新缓存
+        User updatedUser = userMapper.selectById(currentUserId);
+        cacheService.putUser(updatedUser);
+
+        logger.info("用户密码修改成功: userId={}", currentUserId);
     }
 
     /**

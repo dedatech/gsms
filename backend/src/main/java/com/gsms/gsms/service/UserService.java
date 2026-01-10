@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -60,4 +61,10 @@ public interface UserService {
      * @return 登录成功的用户实体
      */
     User login(String username, String password);
+
+    /**
+     * 修改密码
+     * @param req 修改密码请求DTO
+     */
+    void changePassword(PasswordChangeReq req);
 }

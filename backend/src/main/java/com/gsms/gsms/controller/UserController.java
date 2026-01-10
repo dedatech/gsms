@@ -7,6 +7,7 @@ import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserRegisterReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.utils.JwtUtil;
@@ -122,5 +123,16 @@ public class UserController {
         UserInfoResp resp = userService.create(createReq);
         logger.info("用户注册成功: {}", resp.getUsername());
         return Result.success(resp);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PutMapping("/password")
+    @Operation(summary = "修改密码")
+    public Result<String> changePassword(@Valid @RequestBody PasswordChangeReq req) {
+        logger.info("用户修改密码");
+        userService.changePassword(req);
+        return Result.success("密码修改成功，请重新登录");
     }
 }

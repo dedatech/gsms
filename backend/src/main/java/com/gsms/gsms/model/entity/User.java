@@ -68,6 +68,13 @@ public class User {
     private UserStatus status;
 
     /**
+     * 是否需要重置密码
+     */
+    @Schema(description = "是否需要重置密码（0-否，1-是）")
+    @TableField("password_reset_required")
+    private Integer passwordResetRequired;
+
+    /**
      * 创建时间
      */
     @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
@@ -169,6 +176,14 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public Integer getPasswordResetRequired() {
+        return passwordResetRequired;
+    }
+
+    public void setPasswordResetRequired(Integer passwordResetRequired) {
+        this.passwordResetRequired = passwordResetRequired;
     }
 
     public LocalDateTime getCreateTime() {
