@@ -51,7 +51,7 @@ public class DepartmentControllerTest extends BaseControllerTest {
         testUser.setPassword("password");
         testUser.setNickname(userResp.getNickname());
 
-        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
+        testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
 
         // 创建测试部门
         DepartmentCreateReq deptCreateReq = new DepartmentCreateReq();

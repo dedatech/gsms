@@ -72,7 +72,7 @@ public class TaskControllerTest extends BaseControllerTest {
         testUser.setUsername(userResp.getUsername());
         testUser.setPassword("password");
 
-        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
+        testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
 
         executeWithUserContext(testUser.getId(), () -> {
             // 创建测试项目

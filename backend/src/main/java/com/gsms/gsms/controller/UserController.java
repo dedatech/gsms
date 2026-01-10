@@ -29,9 +29,11 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;  // 新增注入
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtil jwtUtil) {  // 修改构造函数
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     /**
@@ -95,8 +97,8 @@ public class UserController {
     public Result<String> login(@Valid @RequestBody UserLoginReq req) {
         logger.info("用户登录: {}", req.getUsername());
         User user = userService.login(req.getUsername(), req.getPassword());
-        // 生成JWT Token
-        String token = JwtUtil.generateToken(user.getId(), user.getUsername());
+        // 使用注入的JwtUtil实例生成token
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         logger.info("用户登录成功: {}", user.getUsername());
         return Result.success("登录成功", token);
     }

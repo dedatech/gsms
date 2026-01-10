@@ -59,7 +59,7 @@ public class UserControllerTest extends BaseControllerTest {
         testUser.setStatus(userResp.getStatus());
 
         // 使用 JwtUtil 生成真实可验证的 Token
-        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
+        testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
     }
 
     @Test

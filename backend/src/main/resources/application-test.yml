@@ -1,0 +1,14 @@
+# JWT配置（测试环境）
+jwt:
+  secret: gsms_test_secret_key_for_testing_only
+  expiration: 3600000  # 1小时，便于测试过期逻辑
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gsms_test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
+logging:
+  level:
+    com.gsms.gsms: DEBUG

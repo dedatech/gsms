@@ -61,7 +61,7 @@ public class IterationControllerTest extends BaseControllerTest {
         testUser.setUsername(userResp.getUsername());
         testUser.setPassword("password");
 
-        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
+        testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
 
         // 创建测试项目
         ProjectCreateReq projectCreateReq = new ProjectCreateReq();

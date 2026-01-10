@@ -76,7 +76,7 @@ public class WorkHourControllerTest extends BaseControllerTest {
         testUser.setEmail(userResp.getEmail());
         testUser.setPhone(userResp.getPhone());
         testUser.setStatus(userResp.getStatus());
-        testToken = JwtUtil.generateToken(testUser.getId(), testUser.getUsername());
+        testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
 
         // 在用户上下文中创建测试项目
         testProjectId = executeWithUserContext(testUser.getId(), () -> {

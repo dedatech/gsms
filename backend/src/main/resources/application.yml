@@ -83,3 +83,8 @@ springdoc:
     path: /swagger-ui.html
   packages-to-scan: com.gsms.gsms.controller
   paths-to-match: /api/**
+
+# JWT配置
+jwt:
+  secret: gsms_dev_secret_key_2025  # 开发环境密钥
+  expiration: 86400000              # 24小时（毫秒）

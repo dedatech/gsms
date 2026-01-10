@@ -14,3 +14,8 @@ logging:
     com.gsms.gsms: DEBUG
     org.springframework: INFO
     org.mybatis: DEBUG
+
+# JWT配置（开发环境）
+jwt:
+  secret: gsms_dev_secret_key_2025
+  expiration: 86400000  # 24小时
