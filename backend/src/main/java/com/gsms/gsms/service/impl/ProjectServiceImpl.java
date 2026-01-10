@@ -131,10 +131,10 @@ public class ProjectServiceImpl implements ProjectService {
         if (result <= 0) {
             throw new BusinessException(ProjectErrorCode.PROJECT_CREATE_FAILED);
         }
-        // 反查数据库存入的项目信息,方便后续追加项目成员
-        Project createdProject = getByCode(project.getCode());
+
         // 将项目创建人加入项目成员，默认为项目管理员角色 1
-        projectMemberMapper.insertProjectMember(createdProject.getId(), currentUserId, 1, currentUserId);
+        // 注意：MyBatis会自动将生成的ID回填到project对象中，无需反查数据库
+        projectMemberMapper.insertProjectMember(project.getId(), currentUserId, 1, currentUserId);
 
         return ProjectInfoResp.from(project);
     }
