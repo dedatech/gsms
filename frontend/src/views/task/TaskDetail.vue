@@ -274,6 +274,7 @@ import {
 import { getTaskDetail, updateTask, updateTaskStatus, deleteTask } from '@/api/task'
 import { getProjectMembers } from '@/api/project'
 import { getAllUsers } from '@/api/user'
+import { getTaskStatusInfo, getTaskPriorityInfo } from '@/utils/statusMapping'
 
 const route = useRoute()
 const router = useRouter()
@@ -452,45 +453,11 @@ const handleDelete = () => {
     .catch(() => {})
 }
 
-// 获取状态类型
-const getStatusType = (status: any) => {
-  const types: Record<string, any> = {
-    'TODO': 'info',
-    'IN_PROGRESS': 'primary',
-    'DONE': 'success'
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: any) => {
-  const texts: Record<string, string> = {
-    'TODO': '待办',
-    'IN_PROGRESS': '进行中',
-    'DONE': '已完成'
-  }
-  return texts[status] || '未知'
-}
-
-// 获取优先级类型
-const getPriorityType = (priority: string) => {
-  const types: Record<string, any> = {
-    'LOW': 'info',
-    'MEDIUM': '',
-    'HIGH': 'warning'
-  }
-  return types[priority] || 'info'
-}
-
-// 获取优先级文本
-const getPriorityText = (priority: string) => {
-  const texts: Record<string, string> = {
-    'LOW': '低',
-    'MEDIUM': '中',
-    'HIGH': '高'
-  }
-  return texts[priority] || '未知'
-}
+// 获取任务状态和优先级信息
+const getStatusType = (status: string) => getTaskStatusInfo(status).type
+const getStatusText = (status: string) => getTaskStatusInfo(status).text
+const getPriorityType = (priority: string) => getTaskPriorityInfo(priority).type
+const getPriorityText = (priority: string) => getTaskPriorityInfo(priority).text
 
 // 获取类型文本
 const getTypeText = (type: string) => {

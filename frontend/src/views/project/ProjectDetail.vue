@@ -278,6 +278,7 @@ import {
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
 import { getTaskList, createTask, updateTask, deleteTask } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
+import { getProjectStatusInfo } from '@/utils/statusMapping'
 
 const route = useRoute()
 const router = useRouter()
@@ -534,27 +535,9 @@ const handleDeleteTask = (task: any) => {
     .catch(() => {})
 }
 
-// 获取状态类型
-const getStatusType = (status: any) => {
-  const types: Record<string, any> = {
-    'NOT_STARTED': 'info',
-    'IN_PROGRESS': 'primary',
-    'SUSPENDED': 'warning',
-    'ARCHIVED': ''
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: any) => {
-  const texts: Record<string, string> = {
-    'NOT_STARTED': '未开始',
-    'IN_PROGRESS': '进行中',
-    'SUSPENDED': '已暂停',
-    'ARCHIVED': '已归档'
-  }
-  return texts[status] || '未知'
-}
+// 获取项目状态信息
+const getStatusType = (status: string) => getProjectStatusInfo(status).type
+const getStatusText = (status: string) => getProjectStatusInfo(status).text
 
 // 获取角色类型
 const getRoleType = (roleType: number) => {

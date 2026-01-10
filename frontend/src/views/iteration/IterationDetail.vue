@@ -156,6 +156,7 @@ import {
   Files
 } from '@element-plus/icons-vue'
 import { getIterationDetail, updateIteration, deleteIteration } from '@/api/iteration'
+import { getIterationStatusInfo } from '@/utils/statusMapping'
 
 const route = useRoute()
 const router = useRouter()
@@ -268,25 +269,9 @@ const handleDelete = () => {
     .catch(() => {})
 }
 
-// 获取状态类型
-const getStatusType = (status: any) => {
-  const types: Record<string, any> = {
-    'NOT_STARTED': 'info',
-    'IN_PROGRESS': 'primary',
-    'COMPLETED': 'success'
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: any) => {
-  const texts: Record<string, string> = {
-    'NOT_STARTED': '未开始',
-    'IN_PROGRESS': '进行中',
-    'COMPLETED': '已完成'
-  }
-  return texts[status] || '未知'
-}
+// 获取迭代状态信息
+const getStatusType = (status: string) => getIterationStatusInfo(status).type
+const getStatusText = (status: string) => getIterationStatusInfo(status).text
 
 // 格式化日期时间
 const formatDateTime = (date: string) => {

@@ -217,6 +217,7 @@ import { getWorkHourList, createWorkHour, updateWorkHour, deleteWorkHour, getUse
 import { getProjectList } from '@/api/project'
 import { getTaskList } from '@/api/task'
 import { useAuthStore } from '@/stores/auth'
+import { getTaskStatusInfo, getTaskPriorityInfo, getWorkHourStatusInfo } from '@/utils/statusMapping'
 
 // 获取 auth store
 const authStore = useAuthStore()
@@ -282,25 +283,9 @@ const formRules: FormRules = {
   content: [{ required: true, message: '请输入工作内容', trigger: 'blur' }]
 }
 
-// 获取状态类型
-const getStatusType = (status: string) => {
-  const types: Record<string, any> = {
-    'SAVED': 'info',
-    'SUBMITTED': 'warning',
-    'CONFIRMED': 'success'
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: string) => {
-  const texts: Record<string, string> = {
-    'SAVED': '已保存',
-    'SUBMITTED': '已提交',
-    'CONFIRMED': '已确认'
-  }
-  return texts[status] || '未知'
-}
+// 获取工时状态信息
+const getStatusType = (status: string) => getWorkHourStatusInfo(status).type
+const getStatusText = (status: string) => getWorkHourStatusInfo(status).text
 
 // 获取工时列表
 const fetchWorkHours = async () => {

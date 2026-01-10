@@ -270,6 +270,7 @@ import {
 } from '@element-plus/icons-vue'
 import { getProjectList, createProject, updateProject, deleteProject } from '@/api/project'
 import { getAllUsers, type UserInfo } from '@/api/user'
+import { getProjectStatusOptions, getProjectStatusInfo } from '@/utils/statusMapping'
 
 const router = useRouter()
 
@@ -277,12 +278,7 @@ const router = useRouter()
 const viewMode = ref<'kanban' | 'table'>('kanban')
 
 // 项目状态配置
-const projectStatuses = [
-  { label: '未开始', value: 'NOT_STARTED', color: '#d9d9d9' },
-  { label: '进行中', value: 'IN_PROGRESS', color: '#1890ff' },
-  { label: '已暂停', value: 'SUSPENDED', color: '#faad14' },
-  { label: '已归档', value: 'ARCHIVED', color: '#8c8c8c' }
-]
+const projectStatuses = getProjectStatusOptions()
 
 // 拖拽相关
 const draggedProject = ref<any>(null)
@@ -537,38 +533,10 @@ const resetForm = () => {
   formRef.value?.clearValidate()
 }
 
-// 获取状态颜色
-const getStatusColor = (status: any) => {
-  const colors: Record<string, string> = {
-    'NOT_STARTED': '#d9d9d9',
-    'IN_PROGRESS': '#1890ff',
-    'SUSPENDED': '#faad14',
-    'ARCHIVED': '#8c8c8c'
-  }
-  return colors[status] || '#d9d9d9'
-}
-
-// 获取状态类型
-const getStatusType = (status: any) => {
-  const types: Record<string, any> = {
-    'NOT_STARTED': 'info',
-    'IN_PROGRESS': 'primary',
-    'SUSPENDED': 'warning',
-    'ARCHIVED': ''
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: any) => {
-  const texts: Record<string, string> = {
-    'NOT_STARTED': '未开始',
-    'IN_PROGRESS': '进行中',
-    'SUSPENDED': '已暂停',
-    'ARCHIVED': '已归档'
-  }
-  return texts[status] || '未知'
-}
+// 获取项目状态信息
+const getStatusColor = (status: string) => getProjectStatusInfo(status).color
+const getStatusType = (status: string) => getProjectStatusInfo(status).type
+const getStatusText = (status: string) => getProjectStatusInfo(status).text
 
 // 获取项目经理名称
 const getManagerName = (managerId: number) => {

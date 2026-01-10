@@ -323,6 +323,7 @@ import {
 import { getTaskList, createTask, updateTask, updateTaskStatus, deleteTask } from '@/api/task'
 import { getProjectList, getProjectMembers } from '@/api/project'
 import { getAllUsers, type UserInfo } from '@/api/user'
+import { getTaskStatusInfo, getTaskPriorityInfo, getTaskStatusOptions } from '@/utils/statusMapping'
 
 const router = useRouter()
 
@@ -330,11 +331,7 @@ const router = useRouter()
 const viewMode = ref<'kanban' | 'table'>('kanban')
 
 // 任务状态配置
-const taskStatuses = [
-  { label: '待办', value: 'TODO', color: '#d9d9d9' },
-  { label: '进行中', value: 'IN_PROGRESS', color: '#1890ff' },
-  { label: '已完成', value: 'DONE', color: '#52c41a' }
-]
+const taskStatuses = getTaskStatusOptions()
 
 // 搜索表单
 const searchForm = reactive({
@@ -635,44 +632,13 @@ const resetForm = () => {
 }
 
 // 获取优先级类型
-const getPriorityType = (priority: string) => {
-  const types: Record<string, any> = {
-    'LOW': 'info',
-    'MEDIUM': '',
-    'HIGH': 'warning'
-  }
-  return types[priority] || 'info'
-}
+// 获取优先级信息
+const getPriorityType = (priority: string) => getTaskPriorityInfo(priority).type
+const getPriorityText = (priority: string) => getTaskPriorityInfo(priority).text
 
-// 获取优先级文本
-const getPriorityText = (priority: string) => {
-  const texts: Record<string, string> = {
-    'LOW': '低',
-    'MEDIUM': '中',
-    'HIGH': '高'
-  }
-  return texts[priority] || '未知'
-}
-
-// 获取状态类型
-const getStatusType = (status: string) => {
-  const types: Record<string, any> = {
-    'TODO': 'info',
-    'IN_PROGRESS': 'primary',
-    'DONE': 'success'
-  }
-  return types[status] || 'info'
-}
-
-// 获取状态文本
-const getStatusText = (status: string) => {
-  const texts: Record<string, string> = {
-    'TODO': '待办',
-    'IN_PROGRESS': '进行中',
-    'DONE': '已完成'
-  }
-  return texts[status] || '未知'
-}
+// 获取状态信息
+const getStatusType = (status: string) => getTaskStatusInfo(status).type
+const getStatusText = (status: string) => getTaskStatusInfo(status).text
 
 // 获取类型文本
 const getTypeText = (type: string) => {
