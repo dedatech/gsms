@@ -8,6 +8,16 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:gsms123}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+# 生产环境数据库配置
+# 必须通过环境变量设置数据库密码，不要使用默认值
+# Docker部署示例：
+#   environment:
+#     - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/gsms
+#     - SPRING_DATASOURCE_USERNAME=gsms
+#     - SPRING_DATASOURCE_PASSWORD=your_secure_password
+# 或使用 .env 文件：
+#   SPRING_DATASOURCE_PASSWORD=your_secure_password
+
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
