@@ -382,12 +382,12 @@ const userList = ref<UserInfo[]>([])
 const projectMembers = ref<UserInfo[]>([])
 
 // 拖拽相关
-const draggedTask = ref<any>(null)
+const draggedTask = ref<TaskInfo | null>(null)
 
 // 获取用户列表
 const fetchUsers = async () => {
   try {
-    const res: any = await getAllUsers()
+    const res = await getAllUsers()
     if (res.list) {
       userList.value = res.list
     }
@@ -412,7 +412,7 @@ const getTasksByStatus = (status: string) => {
 }
 
 // 拖拽开始
-const handleDragStart = (task: any, event: DragEvent) => {
+const handleDragStart = (task: TaskInfo, event: DragEvent) => {
   draggedTask.value = task
   if (event.dataTransfer) {
     event.dataTransfer.setData('text/plain', task.id.toString())
@@ -472,7 +472,7 @@ const handleDrop = async (event: DragEvent) => {
 // 获取任务列表
 const fetchTasks = async () => {
   try {
-    const res: any = await getTaskList(searchForm)
+    const res = await getTaskList(searchForm)
     // PageResult 格式：{ list: [], total: 0 }
     taskList.value = res.list || []
     total.value = res.total || 0
@@ -484,7 +484,7 @@ const fetchTasks = async () => {
 // 获取项目列表
 const fetchProjects = async () => {
   try {
-    const res: any = await getProjectList({ pageNum: 1, pageSize: 100 })
+    const res = await getProjectList({ pageNum: 1, pageSize: 100 })
     projectList.value = res.list || []
   } catch (error) {
     console.error('获取项目列表失败:', error)
@@ -498,7 +498,7 @@ const fetchProjectMembers = async (projectId: number) => {
     return
   }
   try {
-    const res: any = await getProjectMembers(projectId)
+    const res = await getProjectMembers(projectId)
     console.log('项目成员响应:', res)
     // 根据实际API响应格式调整
     projectMembers.value = res || []
@@ -522,12 +522,12 @@ const handleCreate = () => {
 }
 
 // 查看任务
-const handleView = (task: any) => {
+const handleView = (task: TaskInfo) => {
   router.push(`/tasks/${task.id}`)
 }
 
 // 编辑任务
-const handleEdit = (task: any) => {
+const handleEdit = (task: TaskInfo) => {
   dialogTitle.value = '编辑任务'
   dialogVisible.value = true
   Object.assign(formData, {
@@ -544,7 +544,7 @@ const handleEdit = (task: any) => {
 }
 
 // 删除任务
-const handleDelete = (task: any) => {
+const handleDelete = (task: TaskInfo) => {
   ElMessageBox.confirm(`确定要删除任务 "${task.title}" 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -563,7 +563,7 @@ const handleDelete = (task: any) => {
 }
 
 // 卡片操作命令
-const handleCommand = (command: string, task: any) => {
+const handleCommand = (command: string, task: TaskInfo) => {
   if (command === 'edit') {
     handleEdit(task)
   } else if (command === 'delete') {

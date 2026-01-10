@@ -189,7 +189,7 @@ const editFormRules: FormRules = {
 // 获取迭代详情
 const fetchIteration = async () => {
   try {
-    const res: any = await getIterationDetail(iterationId.value)
+    const res = await getIterationDetail(iterationId.value)
     iteration.value = res
   } catch (error) {
     console.error('获取迭代详情失败:', error)

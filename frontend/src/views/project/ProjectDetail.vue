@@ -348,7 +348,7 @@ const memberFormRules: FormRules = {
 // 获取项目详情
 const fetchProject = async () => {
   try {
-    const res: any = await getProjectDetail(projectId.value)
+    const res = await getProjectDetail(projectId.value)
     project.value = res
   } catch (error) {
     console.error('获取项目详情失败:', error)
@@ -359,7 +359,7 @@ const fetchProject = async () => {
 // 获取项目成员
 const fetchMembers = async () => {
   try {
-    const res: any = await getProjectMembers(projectId.value)
+    const res = await getProjectMembers(projectId.value)
     members.value = res || []
   } catch (error) {
     console.error('获取项目成员失败:', error)
@@ -369,7 +369,7 @@ const fetchMembers = async () => {
 // 获取可用用户列表
 const fetchAvailableUsers = async () => {
   try {
-    const res: any = await getAllUsers()
+    const res = await getAllUsers()
     if (res.list) {
       // 过滤掉已经是项目成员的用户
       const memberIds = members.value.map(m => m.id)
@@ -384,7 +384,7 @@ const fetchAvailableUsers = async () => {
 const fetchTasks = async () => {
   try {
     taskSearchForm.projectId = projectId.value
-    const res: any = await getTaskList(taskSearchForm)
+    const res = await getTaskList(taskSearchForm)
     tasks.value = res.list || []
     taskTotal.value = res.total || 0
   } catch (error) {
@@ -480,7 +480,7 @@ const handleAddMemberSubmit = async () => {
 }
 
 // 移除成员
-const handleRemoveMember = (member: any) => {
+const handleRemoveMember = (member: ProjectMemberInfo) => {
   ElMessageBox.confirm(`确定要移除成员 "${member.nickname}" 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -505,19 +505,19 @@ const handleCreateTask = () => {
 }
 
 // 查看任务
-const handleViewTask = (task: any) => {
+const handleViewTask = (task: TaskInfo) => {
   ElMessage.info('查看任务功能开发中')
   console.log('查看任务:', task)
 }
 
 // 编辑任务
-const handleEditTask = (task: any) => {
+const handleEditTask = (task: TaskInfo) => {
   ElMessage.info('编辑任务功能开发中')
   console.log('编辑任务:', task)
 }
 
 // 删除任务
-const handleDeleteTask = (task: any) => {
+const handleDeleteTask = (task: TaskInfo) => {
   ElMessageBox.confirm(`确定要删除任务 "${task.title}" 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -550,7 +550,7 @@ const getRoleType = (roleType: number) => {
 }
 
 // 获取任务状态类型
-const getTaskStatusType = (status: any) => {
+const getTaskStatusType = (status: string) => {
   const types: Record<string, any> = {
     'TODO': 'info',
     'IN_PROGRESS': 'primary',
@@ -560,7 +560,7 @@ const getTaskStatusType = (status: any) => {
 }
 
 // 获取任务状态文本
-const getTaskStatusText = (status: any) => {
+const getTaskStatusText = (status: string) => {
   const texts: Record<string, string> = {
     'TODO': '待办',
     'IN_PROGRESS': '进行中',

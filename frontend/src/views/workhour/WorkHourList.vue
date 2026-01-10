@@ -291,7 +291,7 @@ const getStatusText = (status: string) => getWorkHourStatusInfo(status).text
 const fetchWorkHours = async () => {
   loading.value = true
   try {
-    const res: any = await getWorkHourList({
+    const res = await getWorkHourList({
       projectId: queryForm.projectId,
       startDate: queryForm.startDate,
       endDate: queryForm.endDate,
@@ -318,22 +318,22 @@ const fetchStatistics = async () => {
 
     // 获取今日工时
     const todayStr = today.toISOString().split('T')[0]
-    const todayRes: any = await getUserWorkHourStatistics(1, todayStr, todayStr)
+    const todayRes = await getUserWorkHourStatistics(1, todayStr, todayStr)
     statistics.todayHours = todayRes?.totalHours || 0
 
     // 获取本周工时
     const weekStartStr = weekStart.toISOString().split('T')[0]
     const todayStr2 = today.toISOString().split('T')[0]
-    const weekRes: any = await getUserWorkHourStatistics(1, weekStartStr, todayStr2)
+    const weekRes = await getUserWorkHourStatistics(1, weekStartStr, todayStr2)
     statistics.weekHours = weekRes?.totalHours || 0
 
     // 获取本月工时
     const monthStartStr = monthStart.toISOString().split('T')[0]
-    const monthRes: any = await getUserWorkHourStatistics(1, monthStartStr, todayStr2)
+    const monthRes = await getUserWorkHourStatistics(1, monthStartStr, todayStr2)
     statistics.monthHours = monthRes?.totalHours || 0
 
     // 获取总工时
-    const totalRes: any = await getUserWorkHourStatistics(1)
+    const totalRes = await getUserWorkHourStatistics(1)
     statistics.totalHours = totalRes?.totalHours || 0
   } catch (error) {
     console.error('获取统计数据失败:', error)
@@ -343,7 +343,7 @@ const fetchStatistics = async () => {
 // 获取项目列表
 const fetchProjects = async () => {
   try {
-    const res: any = await getProjectList({
+    const res = await getProjectList({
       pageNum: 1,
       pageSize: 1000
     })
@@ -360,7 +360,7 @@ const fetchTasks = async () => {
     return
   }
   try {
-    const res: any = await getTaskList({
+    const res = await getTaskList({
       projectId: formData.projectId,
       pageNum: 1,
       pageSize: 1000

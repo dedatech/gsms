@@ -301,7 +301,7 @@ const getProjectsByStatus = (status: string) => {
 }
 
 // 拖拽开始
-const handleDragStart = (project: any, event: DragEvent) => {
+const handleDragStart = (project: ProjectInfo, event: DragEvent) => {
   draggedProject.value = project
   if (event.dataTransfer) {
     event.dataTransfer.setData('text/plain', project.id.toString())
@@ -400,7 +400,7 @@ const userList = ref<UserInfo[]>([])
 // 获取用户列表
 const fetchUsers = async () => {
   try {
-    const res: any = await getAllUsers()
+    const res = await getAllUsers()
     if (res.list) {
       userList.value = res.list
     }
@@ -412,7 +412,7 @@ const fetchUsers = async () => {
 // 获取项目列表
 const fetchProjects = async () => {
   try {
-    const res: any = await getProjectList(searchForm)
+    const res = await getProjectList(searchForm)
     // PageResult 格式：{ list: [], total: 0 }
     projectList.value = res.list || []
     total.value = res.total || 0
@@ -435,12 +435,12 @@ const handleCreate = () => {
 }
 
 // 查看项目
-const handleView = (project: any) => {
+const handleView = (project: ProjectInfo) => {
   router.push(`/projects/${project.id}`)
 }
 
 // 编辑项目
-const handleEdit = (project: any) => {
+const handleEdit = (project: ProjectInfo) => {
   dialogTitle.value = '编辑项目'
   dialogVisible.value = true
   Object.assign(formData, {
@@ -454,7 +454,7 @@ const handleEdit = (project: any) => {
 }
 
 // 删除项目
-const handleDelete = (project: any) => {
+const handleDelete = (project: ProjectInfo) => {
   ElMessageBox.confirm(`确定要删除项目 "${project.name}" 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -473,7 +473,7 @@ const handleDelete = (project: any) => {
 }
 
 // 卡片操作命令
-const handleCommand = (command: string, project: any) => {
+const handleCommand = (command: string, project: ProjectInfo) => {
   if (command === 'view') {
     handleView(project)
   } else if (command === 'edit') {

@@ -224,7 +224,7 @@ const getStatusText = (status: string) => getIterationStatusInfo(status).text
 const fetchIterations = async () => {
   loading.value = true
   try {
-    const res: any = await getIterationList({
+    const res = await getIterationList({
       projectId: queryForm.projectId,
       status: queryForm.status,
       pageNum: pagination.pageNum,
@@ -243,7 +243,7 @@ const fetchIterations = async () => {
 // 获取项目列表
 const fetchProjects = async () => {
   try {
-    const res: any = await getProjectList({
+    const res = await getProjectList({
       pageNum: 1,
       pageSize: 1000
     })

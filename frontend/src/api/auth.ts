@@ -1,4 +1,5 @@
 import request from './request'
+import type { ApiResponse, LoginRequest, LoginResponse, UnknownError } from '@/types'
 
 // 用户登录
 export interface LoginReq {
@@ -8,11 +9,15 @@ export interface LoginReq {
 
 export interface LoginResp {
   token: string
-  userInfo: any
+  userInfo: {
+    id: number
+    username: string
+    nickname?: string
+  }
 }
 
-export const login = (data: LoginReq) => {
-  return request.post<any, LoginResp>('/users/login', data)
+export const login = (data: LoginReq): Promise<ApiResponse<LoginResp>> => {
+  return request.post('/users/login', data)
 }
 
 // 用户注册
@@ -24,11 +29,11 @@ export interface RegisterReq {
   phone: string
 }
 
-export const register = (data: RegisterReq) => {
+export const register = (data: RegisterReq): Promise<ApiResponse<string>> => {
   return request.post('/users/register', data)
 }
 
 // 获取用户信息
-export const getUserInfo = () => {
+export const getUserInfo = (): Promise<ApiResponse<unknown>> => {
   return request.get('/users/info')
 }

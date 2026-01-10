@@ -313,7 +313,7 @@ const editFormRules: FormRules = {
 // 获取任务详情
 const fetchTask = async () => {
   try {
-    const res: any = await getTaskDetail(taskId.value)
+    const res = await getTaskDetail(taskId.value)
     task.value = res
   } catch (error) {
     console.error('获取任务详情失败:', error)
@@ -326,7 +326,7 @@ const fetchProjectMembers = async () => {
   if (!task.value?.projectId) return
 
   try {
-    const res: any = await getProjectMembers(task.value.projectId)
+    const res = await getProjectMembers(task.value.projectId)
     projectMembers.value = res || []
   } catch (error) {
     console.error('获取项目成员失败:', error)

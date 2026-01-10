@@ -73,11 +73,11 @@ const handleLogin = async () => {
 
     loading.value = true
     try {
-      const res: any = await login(loginForm)
+      const res = await login(loginForm)
       console.log('登录响应:', res)
 
       // 根据实际后端响应结构调整
-      const token = res.token || res.data?.token || res
+      const token = res.data?.token || res
       console.log('获取的 token:', token)
 
       if (!token) {
@@ -90,9 +90,10 @@ const handleLogin = async () => {
       ElMessage.success('登录成功')
       // 跳转到首页
       router.push('/projects')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('登录错误:', error)
-      ElMessage.error(error.message || '登录失败')
+      const errorMsg = error instanceof Error ? error.message : '登录失败'
+      ElMessage.error(errorMsg)
     } finally {
       loading.value = false
     }
