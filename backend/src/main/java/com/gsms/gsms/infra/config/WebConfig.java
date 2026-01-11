@@ -1,7 +1,6 @@
 package com.gsms.gsms.infra.config;
 
 import com.gsms.gsms.infra.converter.StringToEnumConverterFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -10,8 +9,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-
 /**
  * Web配置类
  */
@@ -19,12 +16,11 @@ import java.util.List;
 public class WebConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
+    private final CorsProperties corsProperties;
 
-    @Value("${cors.allowed-origins}")
-    private List<String> allowedOrigins;
-
-    public WebConfig(JwtInterceptor jwtInterceptor) {
+    public WebConfig(JwtInterceptor jwtInterceptor, CorsProperties corsProperties) {
         this.jwtInterceptor = jwtInterceptor;
+        this.corsProperties = corsProperties;
     }
 
     /**
@@ -34,7 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins.toArray(new String[0]))
+                .allowedOrigins(corsProperties.getAllowedOrigins().toArray(new String[0]))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

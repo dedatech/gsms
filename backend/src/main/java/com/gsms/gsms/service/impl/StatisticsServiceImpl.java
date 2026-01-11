@@ -1,9 +1,12 @@
 package com.gsms.gsms.service.impl;
 
+import com.gsms.gsms.infra.utils.UserContext;
+import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.model.entity.User;
 import com.gsms.gsms.model.entity.WorkHour;
 import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.repository.WorkHourMapper;
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,11 +32,13 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final WorkHourMapper workHourMapper;
     private final TaskMapper taskMapper;
     private final UserMapper userMapper;
+    private final ProjectMapper projectMapper;
 
-    public StatisticsServiceImpl(WorkHourMapper workHourMapper, TaskMapper taskMapper, UserMapper userMapper) {
+    public StatisticsServiceImpl(WorkHourMapper workHourMapper, TaskMapper taskMapper, UserMapper userMapper, ProjectMapper projectMapper) {
         this.workHourMapper = workHourMapper;
         this.taskMapper = taskMapper;
         this.userMapper = userMapper;
+        this.projectMapper = projectMapper;
     }
 
     @Override
@@ -228,6 +234,101 @@ public class StatisticsServiceImpl implements StatisticsService {
         result.put("trendData", trendData);
 
         logger.info("工时趋势统计完成: totalHours={}, dataPoints={}", totalHours, trendData.size());
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getDashboardData() {
+        logger.debug("获取首页看板数据");
+
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("用户未登录");
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        LocalDate today = LocalDate.now();
+
+        // 获取用户可访问的项目列表
+        List<Project> allProjects = projectMapper.selectAccessibleProjects(userId);
+        result.put("projectCount", allProjects.size());
+
+        // 获取项目列表（限制5个）
+        List<Map<String, Object>> projectList = allProjects.stream()
+                .limit(5)
+                .map(project -> {
+                    Map<String, Object> projectData = new HashMap<>();
+                    projectData.put("id", project.getId());
+                    projectData.put("name", project.getName());
+                    projectData.put("code", project.getCode());
+                    projectData.put("status", project.getStatus());
+                    return projectData;
+                })
+                .collect(Collectors.toList());
+        result.put("projects", projectList);
+
+        // 获取用户的待办任务（TODO和IN_PROGRESS状态）
+        List<Task> allTodoTasks = new ArrayList<>();
+        List<Task> allTasks = taskMapper.selectAccessibleTasksByCondition(userId, null, userId, null);
+        for (Task task : allTasks) {
+            if (task.getStatus() == TaskStatus.TODO || task.getStatus() == TaskStatus.IN_PROGRESS) {
+                allTodoTasks.add(task);
+            }
+        }
+
+        result.put("pendingTaskCount", allTodoTasks.size());
+
+        // 获取待办任务列表（限制5个，按ID降序）
+        List<Map<String, Object>> taskList = allTodoTasks.stream()
+                .sorted((t1, t2) -> t2.getId().compareTo(t1.getId()))
+                .limit(5)
+                .map(task -> {
+                    Map<String, Object> taskData = new HashMap<>();
+                    taskData.put("id", task.getId());
+                    taskData.put("title", task.getTitle());
+                    taskData.put("status", task.getStatus());
+                    taskData.put("priority", task.getPriority());
+                    taskData.put("projectId", task.getProjectId());
+                    taskData.put("planEndDate", task.getPlanEndDate());
+                    return taskData;
+                })
+                .collect(Collectors.toList());
+        result.put("pendingTasks", taskList);
+
+        // 计算今日工时
+        List<WorkHour> todayWorkHours = workHourMapper.selectByCondition(userId, null, null, today, today);
+        BigDecimal todayHours = todayWorkHours.stream()
+                .map(WorkHour::getHours)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        result.put("todayHours", todayHours);
+
+        // 计算本周工时
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+        LocalDate weekEnd = today.with(DayOfWeek.SUNDAY);
+        List<WorkHour> weekWorkHours = workHourMapper.selectByCondition(userId, null, null, weekStart, weekEnd);
+        BigDecimal weekHours = weekWorkHours.stream()
+                .map(WorkHour::getHours)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        result.put("weekHours", weekHours);
+
+        // 计算本月工时
+        LocalDate monthStart = LocalDate.of(today.getYear(), today.getMonth(), 1);
+        LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
+        List<WorkHour> monthWorkHours = workHourMapper.selectByCondition(userId, null, null, monthStart, monthEnd);
+        BigDecimal monthHours = monthWorkHours.stream()
+                .map(WorkHour::getHours)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        result.put("monthHours", monthHours);
+
+        // 总工时
+        List<WorkHour> allWorkHours = workHourMapper.selectByCondition(userId, null, null, null, null);
+        BigDecimal totalHours = allWorkHours.stream()
+                .map(WorkHour::getHours)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        result.put("totalHours", totalHours);
+
+        logger.info("首页看板数据获取完成: userId={}, projectCount={}, pendingTaskCount={}, todayHours={}",
+                userId, allProjects.size(), allTodoTasks.size(), todayHours);
         return result;
     }
 }

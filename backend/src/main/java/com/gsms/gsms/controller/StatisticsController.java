@@ -156,4 +156,20 @@ public class StatisticsController {
         logger.info("工时趋势统计查询成功: totalHours={}", statistics.get("totalHours"));
         return Result.success(statistics);
     }
+
+    /**
+     * 获取首页看板数据
+     *
+     * 聚合当前用户的首页看板所需的所有统计数据
+     *
+     * @return 首页看板数据，包含项目数、待办任务数、今日工时、本周工时、待办任务列表、项目列表等
+     */
+    @Operation(summary = "获取首页看板数据")
+    @GetMapping("/dashboard")
+    public Result<Map<String, Object>> getDashboardData() {
+        logger.info("查询首页看板数据");
+        Map<String, Object> dashboardData = statisticsService.getDashboardData();
+        logger.info("首页看板数据查询成功: {}", dashboardData.keySet());
+        return Result.success(dashboardData);
+    }
 }

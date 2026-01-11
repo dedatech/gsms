@@ -78,4 +78,13 @@ public interface StatisticsService {
      * @return 包含trendData、totalHours等统计数据的Map
      */
     Map<String, Object> getWorkHourTrendStatistics(Long projectId, Long userId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * 获取首页看板数据
+     *
+     * 聚合当前用户的首页看板所需的所有统计数据
+     *
+     * @return 首页看板数据，包含项目数、待办任务数、今日工时、本周工时、待办任务列表、项目列表等
+     */
+    Map<String, Object> getDashboardData();
 }
