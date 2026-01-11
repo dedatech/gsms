@@ -30,10 +30,14 @@
             <el-icon><Refresh /></el-icon>
             <template #title>迭代管理</template>
           </el-menu-item>
-          <el-menu-item index="/workhours">
-            <el-icon><Clock /></el-icon>
-            <template #title>工时管理</template>
-          </el-menu-item>
+          <el-sub-menu index="workhours">
+            <template #title>
+              <el-icon><Clock /></el-icon>
+              <span>工时管理</span>
+            </template>
+            <el-menu-item index="/workhours/calendar">工时日历</el-menu-item>
+            <el-menu-item index="/workhours/list">工时列表</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
 

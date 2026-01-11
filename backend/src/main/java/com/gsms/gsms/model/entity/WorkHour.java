@@ -97,7 +97,19 @@ public class WorkHour {
      */
     @Schema(description = "是否删除")
     private Integer isDeleted;
-    
+
+    /**
+     * 项目名称（关联查询，非数据库字段）
+     */
+    @Schema(description = "项目名称")
+    private String projectName;
+
+    /**
+     * 任务名称（关联查询，非数据库字段）
+     */
+    @Schema(description = "任务名称")
+    private String taskName;
+
     // Getter和Setter方法
     public Long getId() {
         return id;
@@ -201,5 +213,21 @@ public class WorkHour {
     
     public void setIsDeleted(Integer isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
     }
 }

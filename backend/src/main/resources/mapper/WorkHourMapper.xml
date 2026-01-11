@@ -6,11 +6,13 @@
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
         <result column="task_id" property="taskId"/>
+        <result column="task_name" property="taskName"/>
         <result column="work_date" property="workDate"/>
         <result column="hours" property="hours"/>
         <result column="content" property="content"/>
-        <result column="status" property="status" 
+        <result column="status" property="status"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="create_user_id" property="createUserId"/>
         <result column="update_user_id" property="updateUserId"/>
@@ -18,64 +20,77 @@
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
 
-    <!-- 查询所有字段 -->
-    <sql id="selectAllFields">
-        id, user_id, project_id, task_id, work_date, hours, content, status, create_user_id, update_user_id, create_time, update_time, is_deleted
+    <!-- 查询所有字段（包含关联的项目和任务名称） -->
+    <sql id="selectAllFieldsWithJoins">
+        wh.id, wh.user_id, wh.project_id, p.name as project_name, wh.task_id, t.title as task_name,
+        wh.work_date, wh.hours, wh.content, wh.status, wh.create_user_id, wh.update_user_id,
+        wh.create_time, wh.update_time, wh.is_deleted
     </sql>
 
     <!-- 根据ID查询工时记录 -->
     <select id="selectById" parameterType="long" resultMap="WorkHourResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_work_hour
-        WHERE id = #{id} AND is_deleted = 0
+        SELECT <include refid="selectAllFieldsWithJoins"/>
+        FROM gsms_work_hour wh
+        LEFT JOIN gsms_project p ON wh.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_task t ON wh.task_id = t.id AND t.is_deleted = 0
+        WHERE wh.id = #{id} AND wh.is_deleted = 0
     </select>
 
     <!-- 根据用户ID查询工时记录 -->
     <select id="selectByUserId" parameterType="long" resultMap="WorkHourResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_work_hour
-        WHERE user_id = #{userId} AND is_deleted = 0
-        ORDER BY work_date DESC, create_time DESC
+        SELECT <include refid="selectAllFieldsWithJoins"/>
+        FROM gsms_work_hour wh
+        LEFT JOIN gsms_project p ON wh.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_task t ON wh.task_id = t.id AND t.is_deleted = 0
+        WHERE wh.user_id = #{userId} AND wh.is_deleted = 0
+        ORDER BY wh.work_date DESC, wh.create_time DESC
     </select>
 
     <!-- 根据项目ID查询工时记录 -->
     <select id="selectByProjectId" parameterType="long" resultMap="WorkHourResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_work_hour
-        WHERE project_id = #{projectId} AND is_deleted = 0
-        ORDER BY work_date DESC, create_time DESC
+        SELECT <include refid="selectAllFieldsWithJoins"/>
+        FROM gsms_work_hour wh
+        LEFT JOIN gsms_project p ON wh.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_task t ON wh.task_id = t.id AND t.is_deleted = 0
+        WHERE wh.project_id = #{projectId} AND wh.is_deleted = 0
+        ORDER BY wh.work_date DESC, wh.create_time DESC
     </select>
 
     <!-- 根据任务ID查询工时记录 -->
     <select id="selectByTaskId" parameterType="long" resultMap="WorkHourResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_work_hour
-        WHERE task_id = #{taskId} AND is_deleted = 0
-        ORDER BY work_date DESC, create_time DESC
+        SELECT <include refid="selectAllFieldsWithJoins"/>
+        FROM gsms_work_hour wh
+        LEFT JOIN gsms_project p ON wh.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_task t ON wh.task_id = t.id AND t.is_deleted = 0
+        WHERE wh.task_id = #{taskId} AND wh.is_deleted = 0
+        ORDER BY wh.work_date DESC, wh.create_time DESC
     </select>
 
     <!-- 根据条件查询工时记录 -->
     <select id="selectByCondition" resultMap="WorkHourResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_work_hour
+        SELECT <include refid="selectAllFieldsWithJoins"/>
+        FROM gsms_work_hour wh
+        LEFT JOIN gsms_project p ON wh.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_task t ON wh.task_id = t.id AND t.is_deleted = 0
         <where>
             <if test="userId != null">
-                AND user_id = #{userId}
+                AND wh.user_id = #{userId}
             </if>
             <if test="projectId != null">
-                AND project_id = #{projectId}
+                AND wh.project_id = #{projectId}
             </if>
             <if test="taskId != null">
-                AND task_id = #{taskId}
+                AND wh.task_id = #{taskId}
             </if>
             <if test="startDate != null">
-                AND work_date >= #{startDate}
+                AND wh.work_date >= #{startDate}
             </if>
             <if test="endDate != null">
-                AND work_date &lt;= #{endDate}
+                AND wh.work_date &lt;= #{endDate}
             </if>
+            AND wh.is_deleted = 0
         </where>
-        ORDER BY work_date DESC, create_time DESC
+        ORDER BY wh.work_date DESC, wh.create_time DESC
     </select>
 
     <!-- 插入工时记录 -->
