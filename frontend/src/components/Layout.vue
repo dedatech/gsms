@@ -14,6 +14,10 @@
           router
           class="sidebar-menu"
         >
+          <el-menu-item index="/dashboard">
+            <el-icon><Odometer /></el-icon>
+            <template #title>首页</template>
+          </el-menu-item>
           <el-menu-item index="/projects">
             <el-icon><FolderOpened /></el-icon>
             <template #title>项目管理</template>
@@ -94,6 +98,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
+  Odometer,
   FolderOpened,
   List,
   Refresh,

@@ -76,8 +76,8 @@ const handleLogin = async () => {
       const res = await login(loginForm)
       console.log('登录响应:', res)
 
-      // 根据实际后端响应结构调整
-      const token = res.data?.token || res
+      // 后端返回的data直接是token字符串
+      const token = res || res.data?.token
       console.log('获取的 token:', token)
 
       if (!token) {
@@ -88,8 +88,8 @@ const handleLogin = async () => {
       authStore.setAuth(token, loginForm.username)
 
       ElMessage.success('登录成功')
-      // 跳转到首页
-      router.push('/projects')
+      // 跳转到Dashboard首页
+      router.push('/dashboard')
     } catch (error: unknown) {
       console.error('登录错误:', error)
       const errorMsg = error instanceof Error ? error.message : '登录失败'

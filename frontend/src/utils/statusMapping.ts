@@ -40,7 +40,7 @@ export const PROJECT_STATUS_MAP: StatusMapConfig = {
     color: '#faad14'
   },
   ARCHIVED: {
-    type: '',
+    type: 'info',
     text: '已归档',
     color: '#8c8c8c'
   }
@@ -128,7 +128,7 @@ export const TASK_PRIORITY_MAP: StatusMapConfig = {
     color: '#13c2c2'
   },
   MEDIUM: {
-    type: '',
+    type: 'primary',
     text: '中',
     color: '#1890ff'
   },

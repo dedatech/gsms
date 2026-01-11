@@ -52,8 +52,8 @@ service.interceptors.response.use(
     // 处理标准 Result 格式
     const { code, message, data: resultData } = data
 
-    // 成功响应
-    if (code === 200) {
+    // 成功响应（支持 code=200 和 code=0 两种格式）
+    if (code === 200 || code === 0) {
       return resultData
     }
 

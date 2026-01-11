@@ -125,6 +125,13 @@ export const useAuthStore = defineStore('auth', () => {
     return userId.value || 0
   }
 
+  /**
+   * 获取Token
+   */
+  const getToken = (): string => {
+    return token.value
+  }
+
   return {
     // 状态
     token,
@@ -138,6 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     restoreAuth,
     getCurrentUserId,
+    getToken,
     parseToken
   }
 })

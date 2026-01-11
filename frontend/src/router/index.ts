@@ -24,6 +24,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/Dashboard.vue'),
+        meta: { title: '首页', requiresAuth: true },
+      },
+      {
         path: 'projects',
         name: 'Projects',
         component: () => import('@/views/project/ProjectList.vue'),
@@ -89,7 +95,7 @@ router.beforeEach((to, from, next) => {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.name === 'Login' && token) {
     // 已登录用户访问登录页，跳转到首页
-    next({ name: 'Projects' })
+    next({ name: 'Dashboard' })
   } else {
     next()
   }
