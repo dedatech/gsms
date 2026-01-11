@@ -7,6 +7,8 @@
         <result column="project_id" property="projectId"/>
         <result column="project_name" property="projectName"/>
         <result column="iteration_id" property="iterationId"/>
+        <result column="iteration_name" property="iterationName"/>
+        <result column="parent_id" property="parentId"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
         <result column="type" property="type"
@@ -29,8 +31,8 @@
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, project_id, iteration_id, title, description, type, priority, assignee_id, status, 
-        plan_start_date, plan_end_date, actual_start_date, actual_end_date, estimate_hours, 
+        id, project_id, iteration_id, parent_id, title, description, type, priority, assignee_id, status,
+        plan_start_date, plan_end_date, actual_start_date, actual_end_date, estimate_hours,
         create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
 
@@ -61,11 +63,12 @@
 
     <!-- 根据条件查询任务 -->
     <select id="selectByCondition" resultMap="TaskResultMap">
-        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, t.title, t.description, t.type, t.priority,
+        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
                t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
                t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
         FROM gsms_task t
         LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
         <where>
             AND t.is_deleted = 0
             <if test="projectId != null">
@@ -83,12 +86,13 @@
 
     <!-- 根据条件查询用户可访问的任务（基于项目成员表） -->
     <select id="selectAccessibleTasksByCondition" resultMap="TaskResultMap">
-        SELECT DISTINCT t.id, t.project_id, p.name as project_name, t.iteration_id, t.title, t.description, t.type, t.priority,
+        SELECT DISTINCT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
                t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
                t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
         FROM gsms_task t
         INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
         LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
         <where>
             AND t.is_deleted = 0 AND pm.user_id = #{userId}
             <if test="projectId != null">
@@ -107,13 +111,13 @@
     <!-- 插入任务 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.Task"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO gsms_task(project_id, iteration_id, title, description, type, priority, assignee_id, 
+        INSERT INTO gsms_task(project_id, iteration_id, parent_id, title, description, type, priority, assignee_id,
                         status, plan_start_date, plan_end_date, estimate_hours, create_user_id, update_user_id)
-        VALUES(#{projectId}, #{iterationId}, #{title}, #{description}, 
-               #{type, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
-               #{priority, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+        VALUES(#{projectId}, #{iterationId}, #{parentId}, #{title}, #{description},
+               #{type, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
+               #{priority, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
                #{assigneeId},
-               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}, 
+               #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
                #{planStartDate}, #{planEndDate}, #{estimateHours}, #{createUserId}, #{updateUserId})
     </insert>
 
@@ -123,6 +127,7 @@
         <set>
             <if test="projectId != null">project_id = #{projectId},</if>
             <if test="iterationId != null">iteration_id = #{iterationId},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
             <if test="title != null and title != ''">title = #{title},</if>
             <if test="description != null and description != ''">description = #{description},</if>
             <if test="type != null">type = #{type, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},</if>
@@ -155,4 +160,18 @@
     <update id="deleteById" parameterType="long">
         UPDATE gsms_task SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
+
+    <!-- 根据父任务ID查询子任务 -->
+    <select id="selectSubtasks" parameterType="map" resultMap="TaskResultMap">
+        SELECT DISTINCT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name,
+               t.parent_id, t.title, t.description, t.type, t.priority, t.assignee_id, t.status,
+               t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
+        LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
+        WHERE t.parent_id = #{parentId} AND t.is_deleted = 0 AND pm.user_id = #{userId}
+        ORDER BY t.create_time DESC
+    </select>
 </mapper>

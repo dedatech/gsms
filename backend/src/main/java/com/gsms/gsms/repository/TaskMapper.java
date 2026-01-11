@@ -80,4 +80,12 @@ public interface TaskMapper extends BaseMapper<Task> {
      * @return 影响行数
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 根据父任务ID查询子任务
+     * @param parentId 父任务ID
+     * @param userId 用户ID
+     * @return 子任务列表
+     */
+    List<Task> selectSubtasks(@Param("parentId") Long parentId, @Param("userId") Long userId);
 }

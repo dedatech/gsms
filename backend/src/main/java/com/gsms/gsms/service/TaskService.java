@@ -51,4 +51,11 @@ public interface TaskService {
      * @param id 任务ID
      */
     void delete(Long id);
+
+    /**
+     * 获取子任务列表
+     * @param parentId 父任务ID
+     * @return 子任务列表
+     */
+    java.util.List<TaskInfoResp> getSubtasks(Long parentId);
 }

@@ -5,9 +5,10 @@
     <resultMap id="IterationResultMap" type="com.gsms.gsms.model.entity.Iteration">
         <id column="id" property="id"/>
         <result column="project_id" property="projectId"/>
+        <result column="project_name" property="projectName"/>
         <result column="name" property="name"/>
         <result column="description" property="description"/>
-        <result column="status" property="status" 
+        <result column="status" property="status"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="plan_start_date" property="planStartDate"/>
         <result column="plan_end_date" property="planEndDate"/>
@@ -24,9 +25,12 @@
     </sql>
 
     <select id="selectById" parameterType="long" resultMap="IterationResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_iteration
-        WHERE id = #{id} AND is_deleted = 0
+        SELECT i.id, i.project_id, p.name as project_name, i.name, i.description, i.status,
+               i.plan_start_date, i.plan_end_date, i.actual_start_date, i.actual_end_date,
+               i.create_user_id, i.create_time, i.update_time, i.is_deleted
+        FROM gsms_iteration i
+        LEFT JOIN gsms_project p ON i.project_id = p.id
+        WHERE i.id = #{id} AND i.is_deleted = 0
     </select>
 
     <select id="selectByProjectId" parameterType="long" resultMap="IterationResultMap">
@@ -37,17 +41,20 @@
     </select>
 
     <select id="selectByCondition" resultMap="IterationResultMap">
-        SELECT <include refid="selectAllFields"/>
-        FROM gsms_iteration
+        SELECT i.id, i.project_id, p.name as project_name, i.name, i.description, i.status,
+               i.plan_start_date, i.plan_end_date, i.actual_start_date, i.actual_end_date,
+               i.create_user_id, i.create_time, i.update_time, i.is_deleted
+        FROM gsms_iteration i
+        LEFT JOIN gsms_project p ON i.project_id = p.id
         WHERE 1=1
         <if test="projectId != null">
-            AND project_id = #{projectId}
+            AND i.project_id = #{projectId}
         </if>
         <if test="status != null">
-            AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+            AND i.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
         </if>
-        AND is_deleted = 0
-        ORDER BY plan_start_date DESC
+        AND i.is_deleted = 0
+        ORDER BY i.plan_start_date DESC
     </select>
 
     <select id="selectByConditionWithStatus" parameterType="map" resultMap="IterationResultMap">

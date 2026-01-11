@@ -86,8 +86,77 @@
             关联任务
           </span>
         </template>
-        <div class="tab-content">
-          <el-empty description="关联任务功能开发中" :image-size="100" />
+        <div class="tab-content-tasks">
+          <div class="content-header">
+            <div class="header-title">
+              <h3>关联任务</h3>
+              <span class="subtitle">共 {{ taskTotal }} 个任务</span>
+            </div>
+            <el-button type="primary" :icon="Plus" @click="handleCreateTask">
+              添加任务
+            </el-button>
+          </div>
+
+          <!-- 任务统计 -->
+          <div class="task-stats">
+            <div class="stat-item">
+              <div class="stat-label">全部</div>
+              <div class="stat-value">{{ taskStats.total }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">待办</div>
+              <div class="stat-value todo">{{ taskStats.todo }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">进行中</div>
+              <div class="stat-value inProgress">{{ taskStats.inProgress }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">已完成</div>
+              <div class="stat-value done">{{ taskStats.done }}</div>
+            </div>
+          </div>
+
+          <!-- 任务列表 -->
+          <el-table :data="tasks" stripe v-loading="tasksLoading">
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="title" label="任务标题" min-width="200">
+              <template #default="{ row }">
+                <el-link type="primary" @click="goToTask(row.id)">{{ row.title }}</el-link>
+              </template>
+            </el-table-column>
+            <el-table-column prop="assigneeName" label="负责人" width="110">
+              <template #default="{ row }">
+                {{ row.assigneeName || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="90">
+              <template #default="{ row }">
+                <el-tag :type="getTaskStatusType(row.status)" size="small">
+                  {{ getTaskStatusText(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="priority" label="优先级" width="90">
+              <template #default="{ row }">
+                <el-tag :type="getPriorityType(row.priority)" size="small">
+                  {{ getPriorityText(row.priority) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="planEndDate" label="计划结束" width="110">
+              <template #default="{ row }">
+                {{ row.planEndDate || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="goToTask(row.id)">查看</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <el-empty v-if="!tasksLoading && tasks.length === 0" description="暂无关联任务" :image-size="100" />
         </div>
       </el-tab-pane>
     </el-tabs>
@@ -146,17 +215,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
   ArrowLeft,
   Edit,
   Delete,
-  Files
+  Files,
+  Plus
 } from '@element-plus/icons-vue'
 import { getIterationDetail, updateIteration, deleteIteration } from '@/api/iteration'
-import { getIterationStatusInfo } from '@/utils/statusMapping'
+import { getIterationStatusInfo, getTaskStatusInfo, getTaskPriorityInfo } from '@/utils/statusMapping'
+import { getTaskList, type TaskInfo } from '@/api/task'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,6 +241,27 @@ const activeCollapse = ref(['basic', 'date', 'creator'])
 
 // 迭代信息
 const iteration = ref<any>(null)
+
+// 任务相关
+const tasks = ref<TaskInfo[]>([])
+const tasksLoading = ref(false)
+
+// 任务统计
+const taskTotal = computed(() => tasks.value.length)
+const taskStats = computed(() => {
+  const stats = {
+    total: tasks.value.length,
+    todo: 0,
+    inProgress: 0,
+    done: 0
+  }
+  tasks.value.forEach(task => {
+    if (task.status === 'TODO') stats.todo++
+    else if (task.status === 'IN_PROGRESS') stats.inProgress++
+    else if (task.status === 'DONE') stats.done++
+  })
+  return stats
+})
 
 // 编辑对话框
 const editDialogVisible = ref(false)
@@ -197,6 +289,25 @@ const fetchIteration = async () => {
   }
 }
 
+// 获取关联任务
+const fetchTasks = async () => {
+  if (!iteration.value) return
+
+  tasksLoading.value = true
+  try {
+    const res = await getTaskList({
+      iterationId: iteration.value.id,
+      pageNum: 1,
+      pageSize: 100
+    })
+    tasks.value = res.list || []
+  } catch (error) {
+    console.error('获取关联任务失败:', error)
+  } finally {
+    tasksLoading.value = false
+  }
+}
+
 // 返回
 const goBack = () => {
   router.back()
@@ -207,6 +318,24 @@ const goToProject = () => {
   if (iteration.value?.projectId) {
     router.push(`/projects/${iteration.value.projectId}`)
   }
+}
+
+// 跳转到任务详情
+const goToTask = (taskId: number) => {
+  router.push(`/tasks/${taskId}`)
+}
+
+// 添加任务（跳转到创建页面，带上迭代ID和项目ID）
+const handleCreateTask = () => {
+  if (!iteration.value) return
+
+  router.push({
+    path: '/tasks/create',
+    query: {
+      projectId: iteration.value.projectId?.toString(),
+      iterationId: iteration.value.id.toString()
+    }
+  })
 }
 
 // 编辑迭代
@@ -273,6 +402,12 @@ const handleDelete = () => {
 const getStatusType = (status: string) => getIterationStatusInfo(status).type
 const getStatusText = (status: string) => getIterationStatusInfo(status).text
 
+// 获取任务状态和优先级信息
+const getTaskStatusType = (status: string) => getTaskStatusInfo(status).type
+const getTaskStatusText = (status: string) => getTaskStatusInfo(status).text
+const getPriorityType = (priority: string) => getTaskPriorityInfo(priority).type
+const getPriorityText = (priority: string) => getTaskPriorityInfo(priority).text
+
 // 格式化日期时间
 const formatDateTime = (date: string) => {
   if (!date) return '-'
@@ -281,6 +416,13 @@ const formatDateTime = (date: string) => {
 
 onMounted(() => {
   fetchIteration()
+})
+
+// 监听标签页切换，加载关联任务
+watch(activeTab, (newTab) => {
+  if (newTab === 'tasks' && iteration.value) {
+    fetchTasks()
+  }
 })
 </script>
 
@@ -347,6 +489,76 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.tab-content-tasks {
+  padding: 0;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+}
+
+.task-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.stat-value.todo {
+  color: #e6a23c;
+}
+
+.stat-value.inProgress {
+  color: #409eff;
+}
+
+.stat-value.done {
+  color: #67c23a;
 }
 
 /* 折叠面板 */

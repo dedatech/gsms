@@ -125,4 +125,19 @@ public class TaskController {
         logger.info("任务删除成功: {}", id);
         return Result.success("任务删除成功");
     }
+
+    /**
+     * 获取子任务列表
+     *
+     * @param id 父任务ID
+     * @return 子任务列表
+     */
+    @GetMapping("/{id}/subtasks")
+    @Operation(summary = "获取子任务列表")
+    public Result<java.util.List<TaskInfoResp>> getSubtasks(@PathVariable Long id) {
+        logger.info("获取子任务列表: parentId={}", id);
+        java.util.List<TaskInfoResp> subtasks = taskService.getSubtasks(id);
+        logger.info("成功获取子任务列表: parentId={}, count={}", id, subtasks.size());
+        return Result.success(subtasks);
+    }
 }

@@ -44,6 +44,19 @@ public class Task {
     private Long iterationId;
 
     /**
+     * 父任务ID
+     */
+    @Schema(description = "父任务ID")
+    private Long parentId;
+
+    /**
+     * 迭代名称（非数据库字段，用于关联查询）
+     */
+    @Schema(description = "迭代名称")
+    @TableField(exist = false)
+    private String iterationName;
+
+    /**
      * 任务标题
      */
     @Schema(description = "任务标题")
@@ -184,6 +197,22 @@ public class Task {
 
     public void setIterationId(Long iterationId) {
         this.iterationId = iterationId;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getIterationName() {
+        return iterationName;
+    }
+
+    public void setIterationName(String iterationName) {
+        this.iterationName = iterationName;
     }
 
     public String getTitle() {

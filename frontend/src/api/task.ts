@@ -1,9 +1,31 @@
 import request from './request'
 
+// 任务信息
+export interface TaskInfo {
+  id: number
+  title: string
+  description?: string
+  projectId: number
+  projectName?: string
+  iterationId?: number
+  iterationName?: string
+  assigneeId?: number
+  assigneeName?: string
+  status: number
+  priority: number
+  planStartDate?: string
+  planEndDate?: string
+  actualStartDate?: string
+  actualEndDate?: string
+  createTime?: string
+  updateTime?: string
+}
+
 // 任务查询参数
 export interface TaskQuery {
   projectId?: number
   assigneeId?: number
+  iterationId?: number
   status?: number
   pageNum?: number
   pageSize?: number
@@ -68,4 +90,9 @@ export const deleteTask = (id: number) => {
 // 获取任务详情
 export const getTaskDetail = (id: number) => {
   return request.get(`/tasks/${id}`)
+}
+
+// 获取子任务列表
+export const getSubtasks = (parentId: number) => {
+  return request.get(`/tasks/${parentId}/subtasks`)
 }

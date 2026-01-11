@@ -72,8 +72,15 @@
               <el-descriptions-item label="负责人">
                 {{ task?.assigneeName || '未分配' }}
               </el-descriptions-item>
-              <el-descriptions-item label="迭代">
-                {{ task?.iterationId || '-' }}
+              <el-descriptions-item label="所属迭代">
+                <el-link
+                  v-if="task?.iterationId"
+                  type="primary"
+                  @click="goToIteration"
+                >
+                  {{ task?.iterationName || `迭代${task?.iterationId}` }}
+                </el-link>
+                <span v-else>-</span>
               </el-descriptions-item>
               <el-descriptions-item label="任务描述" :span="2">
                 <div class="description-content">{{ task?.description || '暂无描述' }}</div>
@@ -130,8 +137,35 @@
             工时记录
           </span>
         </template>
-        <div class="tab-content">
-          <el-empty description="工时记录功能开发中" :image-size="100" />
+        <div class="tab-content-workhours">
+          <div class="content-header">
+            <div class="header-title">
+              <h3>工时记录</h3>
+              <span class="subtitle">总工时: {{ totalWorkHours }} 小时</span>
+            </div>
+            <el-button type="primary" :icon="Plus" @click="handleAddWorkHour">
+              登记工时
+            </el-button>
+          </div>
+
+          <el-table :data="workHours" stripe v-loading="workHoursLoading">
+            <el-table-column prop="workDate" label="日期" width="110" />
+            <el-table-column prop="hours" label="工时数" width="90">
+              <template #default="{ row }">
+                <span class="hours-text">{{ row.hours }} 小时</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="content" label="说明" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="createTime" label="创建时间" width="160" />
+            <el-table-column label="操作" width="150" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="handleEditWorkHour(row)">编辑</el-button>
+                <el-button link type="danger" @click="handleDeleteWorkHour(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <el-empty v-if="!workHoursLoading && workHours.length === 0" description="暂无工时记录" :image-size="100" />
         </div>
       </el-tab-pane>
 
@@ -143,8 +177,48 @@
             子任务
           </span>
         </template>
-        <div class="tab-content">
-          <el-empty description="子任务功能开发中" :image-size="100" />
+        <div class="subtasks-content">
+          <el-table
+            :data="subtasks"
+            v-loading="subtasksLoading"
+            row-key="id"
+            :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+            border
+            stripe
+            style="width: 100%"
+          >
+            <el-table-column prop="title" label="任务标题" min-width="200" />
+            <el-table-column prop="status" label="状态" width="100" align="center">
+              <template #default="{ row }">
+                <el-tag :type="getStatusType(row.status)" size="small">
+                  {{ getStatusText(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="priority" label="优先级" width="100" align="center">
+              <template #default="{ row }">
+                <el-tag :type="getPriorityType(row.priority)" size="small">
+                  {{ getPriorityText(row.priority) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="assigneeName" label="负责人" width="120" align="center">
+              <template #default="{ row }">
+                {{ row.assigneeName || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="planEndDate" label="截止日期" width="120" align="center">
+              <template #default="{ row }">
+                {{ row.planEndDate || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" align="center" fixed="right">
+              <template #default="{ row }">
+                <el-link type="primary" @click="goToTaskDetail(row.id)">查看</el-link>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-if="!subtasksLoading && subtasks.length === 0" description="暂无子任务" :image-size="100" />
         </div>
       </el-tab-pane>
 
@@ -254,11 +328,56 @@
         <el-button type="primary" @click="handleEditSubmit" :loading="editSubmitLoading">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 工时记录对话框 -->
+    <el-dialog
+      v-model="workHourDialogVisible"
+      :title="workHourEditMode ? '编辑工时' : '登记工时'"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="workHourFormRef" :model="workHourFormData" :rules="workHourFormRules" label-width="100px">
+        <el-form-item label="日期" prop="workDate">
+          <el-date-picker
+            v-model="workHourFormData.workDate"
+            type="date"
+            placeholder="选择日期"
+            style="width: 100%"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
+        <el-form-item label="工时数" prop="hours">
+          <el-input-number
+            v-model="workHourFormData.hours"
+            :min="0.5"
+            :max="24"
+            :step="0.5"
+            :precision="1"
+            style="width: 100%"
+          />
+          <span style="margin-left: 10px; color: #999">小时</span>
+        </el-form-item>
+        <el-form-item label="说明" prop="content">
+          <el-input
+            v-model="workHourFormData.content"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入工时说明"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="workHourDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleWorkHourSubmit" :loading="workHourSubmitLoading">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -269,12 +388,14 @@ import {
   Select,
   RefreshLeft,
   Clock,
-  Files
+  Files,
+  Plus
 } from '@element-plus/icons-vue'
-import { getTaskDetail, updateTask, updateTaskStatus, deleteTask } from '@/api/task'
+import { getTaskDetail, updateTask, updateTaskStatus, deleteTask, getSubtasks } from '@/api/task'
 import { getProjectMembers } from '@/api/project'
 import { getAllUsers } from '@/api/user'
 import { getTaskStatusInfo, getTaskPriorityInfo } from '@/utils/statusMapping'
+import { getWorkHourList, createWorkHour, updateWorkHour, deleteWorkHour, type WorkHourInfo } from '@/api/workhour'
 
 const route = useRoute()
 const router = useRouter()
@@ -291,6 +412,10 @@ const task = ref<any>(null)
 
 // 项目成员列表
 const projectMembers = ref<any[]>([])
+
+// 子任务列表
+const subtasks = ref<any[]>([])
+const subtasksLoading = ref(false)
 
 // 编辑对话框
 const editDialogVisible = ref(false)
@@ -309,6 +434,30 @@ const editFormData = reactive({
 const editFormRules: FormRules = {
   title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
 }
+
+// 工时记录相关
+const workHours = ref<WorkHourInfo[]>([])
+const workHoursLoading = ref(false)
+const workHourDialogVisible = ref(false)
+const workHourEditMode = ref(false)
+const workHourSubmitLoading = ref(false)
+const workHourFormRef = ref<FormInstance>()
+const workHourFormData = reactive({
+  id: 0,
+  workDate: '',
+  hours: 1,
+  content: ''
+})
+const workHourFormRules: FormRules = {
+  workDate: [{ required: true, message: '请选择日期', trigger: 'change' }],
+  hours: [{ required: true, message: '请输入工时数', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入工时说明', trigger: 'blur' }]
+}
+
+// 计算总工时
+const totalWorkHours = computed(() => {
+  return workHours.value.reduce((sum, item) => sum + item.hours, 0)
+})
 
 // 获取任务详情
 const fetchTask = async () => {
@@ -333,6 +482,41 @@ const fetchProjectMembers = async () => {
   }
 }
 
+// 获取子任务列表
+const fetchSubtasks = async () => {
+  if (!task.value?.id) return
+
+  subtasksLoading.value = true
+  try {
+    const res = await getSubtasks(task.value.id)
+    subtasks.value = res || []
+  } catch (error) {
+    console.error('获取子任务失败:', error)
+    ElMessage.error('获取子任务失败')
+  } finally {
+    subtasksLoading.value = false
+  }
+}
+
+// 获取工时记录
+const fetchWorkHours = async () => {
+  if (!task.value) return
+
+  workHoursLoading.value = true
+  try {
+    const res = await getWorkHourList({
+      taskId: taskId.value,
+      pageNum: 1,
+      pageSize: 100
+    })
+    workHours.value = res?.list || []
+  } catch (error) {
+    console.error('获取工时记录失败:', error)
+  } finally {
+    workHoursLoading.value = false
+  }
+}
+
 // 返回
 const goBack = () => {
   router.back()
@@ -344,6 +528,25 @@ const goToProject = () => {
     router.push(`/projects/${task.value.projectId}`)
   }
 }
+
+// 跳转到迭代详情
+const goToIteration = () => {
+  if (task.value?.iterationId) {
+    router.push(`/iterations/${task.value.iterationId}`)
+  }
+}
+
+// 跳转到任务详情
+const goToTaskDetail = (subtaskId: number) => {
+  router.push(`/tasks/${subtaskId}`)
+}
+
+// 监听标签页切换
+watch(activeTab, (newTab) => {
+  if (newTab === 'subtasks') {
+    fetchSubtasks()
+  }
+})
 
 // 开始任务
 const handleStartTask = async () => {
@@ -453,6 +656,98 @@ const handleDelete = () => {
     .catch(() => {})
 }
 
+// 添加工时记录
+const handleAddWorkHour = () => {
+  if (!task.value?.projectId) {
+    ElMessage.error('任务缺少项目信息')
+    return
+  }
+
+  // 重置表单
+  Object.assign(workHourFormData, {
+    id: 0,
+    workDate: new Date().toISOString().split('T')[0], // 默认今天
+    hours: 1,
+    content: ''
+  })
+  workHourEditMode.value = false
+  workHourDialogVisible.value = true
+}
+
+// 编辑工时记录
+const handleEditWorkHour = (row: WorkHourInfo) => {
+  Object.assign(workHourFormData, {
+    id: row.id,
+    workDate: row.workDate,
+    hours: row.hours,
+    content: row.content
+  })
+  workHourEditMode.value = true
+  workHourDialogVisible.value = true
+}
+
+// 提交工时记录
+const handleWorkHourSubmit = async () => {
+  if (!workHourFormRef.value) return
+
+  await workHourFormRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    workHourSubmitLoading.value = true
+    try {
+      if (workHourEditMode.value) {
+        // 编辑模式
+        await updateWorkHour({
+          id: workHourFormData.id,
+          projectId: task.value!.projectId,
+          taskId: taskId.value,
+          workDate: workHourFormData.workDate,
+          hours: workHourFormData.hours,
+          content: workHourFormData.content
+        })
+        ElMessage.success('更新成功')
+      } else {
+        // 新增模式
+        await createWorkHour({
+          projectId: task.value!.projectId,
+          taskId: taskId.value,
+          workDate: workHourFormData.workDate,
+          hours: workHourFormData.hours,
+          content: workHourFormData.content
+        })
+        ElMessage.success('登记成功')
+      }
+      workHourDialogVisible.value = false
+      fetchWorkHours() // 刷新列表
+    } catch (error) {
+      console.error('提交工时记录失败:', error)
+      ElMessage.error(workHourEditMode.value ? '更新失败' : '登记失败')
+    } finally {
+      workHourSubmitLoading.value = false
+    }
+  })
+}
+
+// 删除工时记录
+const handleDeleteWorkHour = (row: WorkHourInfo) => {
+  ElMessageBox.confirm(`确定要删除这条工时记录吗？`, '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        await deleteWorkHour(row.id)
+        ElMessage.success('删除成功')
+        fetchWorkHours() // 刷新列表
+      } catch (error) {
+        console.error('删除工时记录失败:', error)
+        ElMessage.error('删除失败')
+      }
+    })
+    .catch(() => {})
+}
+
 // 获取任务状态和优先级信息
 const getStatusType = (status: string) => getTaskStatusInfo(status).type
 const getStatusText = (status: string) => getTaskStatusInfo(status).text
@@ -478,6 +773,13 @@ const formatDateTime = (date: string) => {
 onMounted(() => {
   fetchTask()
   fetchProjectMembers()
+})
+
+// 监听标签页切换，加载工时记录
+watch(activeTab, (newTab) => {
+  if (newTab === 'workhours' && task.value) {
+    fetchWorkHours()
+  }
 })
 </script>
 
@@ -544,6 +846,42 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.tab-content-workhours {
+  padding: 0;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+}
+
+.hours-text {
+  font-weight: 500;
+  color: #409eff;
 }
 
 /* 折叠面板 */

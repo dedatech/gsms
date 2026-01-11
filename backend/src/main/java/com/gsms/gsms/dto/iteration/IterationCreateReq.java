@@ -6,7 +6,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 @Schema(description = "创建迭代请求")
@@ -27,12 +26,10 @@ public class IterationCreateReq {
     private IterationStatus status = IterationStatus.NOT_STARTED;
 
     @NotNull(message = "计划开始日期不能为空")
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
     @Schema(description = "计划开始日期（格式：yyyy-MM-dd）", example = "2024-01-01", required = true)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate planStartDate;
 
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
     @Schema(description = "计划结束日期（格式：yyyy-MM-dd）", example = "2024-01-31")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate planEndDate;

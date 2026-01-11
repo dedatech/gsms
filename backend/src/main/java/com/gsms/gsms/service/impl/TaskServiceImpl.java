@@ -295,6 +295,25 @@ public class TaskServiceImpl implements TaskService {
         logger.info("任务删除成功: {}", id);
     }
 
+    @Override
+    public java.util.List<TaskInfoResp> getSubtasks(Long parentId) {
+        logger.debug("获取子任务列表: parentId={}", parentId);
+
+        Long currentUserId = UserContext.getCurrentUserId();
+
+        // 鉴权 - 检查父任务是否存在且用户有访问权限
+        Task parentTask = taskMapper.selectByIdForUser(parentId, currentUserId);
+        if (parentTask == null) {
+            throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+        }
+
+        // 查询子任务
+        List<Task> subtasks = taskMapper.selectSubtasks(parentId, currentUserId);
+
+        logger.info("获取子任务列表成功: parentId={}, count={}", parentId, subtasks.size());
+        return TaskInfoResp.from(subtasks);
+    }
+
     // ========== 内部方法：数据填充 ==========
 
     /**

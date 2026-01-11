@@ -30,7 +30,10 @@ public class TaskInfoResp {
     
     @Schema(description = "迭代ID")
     private Long iterationId;
-    
+
+    @Schema(description = "迭代名称")
+    private String iterationName;
+
     @Schema(description = "任务标题")
     private String title;
     
@@ -125,6 +128,14 @@ public class TaskInfoResp {
 
     public void setIterationId(Long iterationId) {
         this.iterationId = iterationId;
+    }
+
+    public String getIterationName() {
+        return iterationName;
+    }
+
+    public void setIterationName(String iterationName) {
+        this.iterationName = iterationName;
     }
 
     public String getTitle() {
@@ -276,6 +287,7 @@ public class TaskInfoResp {
         resp.setProjectId(task.getProjectId());
         resp.setProjectName(task.getProjectName());
         resp.setIterationId(task.getIterationId());
+        resp.setIterationName(task.getIterationName());
         resp.setTitle(task.getTitle());
         resp.setDescription(task.getDescription());
         resp.setType(task.getType());

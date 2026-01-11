@@ -258,6 +258,97 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 新建任务对话框 -->
+    <el-dialog
+      v-model="taskDialogVisible"
+      title="新建任务"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="taskFormRef" :model="taskFormData" :rules="taskFormRules" label-width="100px">
+        <el-form-item label="任务标题" prop="title">
+          <el-input
+            v-model="taskFormData.title"
+            placeholder="请输入任务标题"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="任务描述">
+          <el-input
+            v-model="taskFormData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入任务描述"
+          />
+        </el-form-item>
+        <el-form-item label="优先级">
+          <el-radio-group v-model="taskFormData.priority">
+            <el-radio label="LOW">低</el-radio>
+            <el-radio label="MEDIUM">中</el-radio>
+            <el-radio label="HIGH">高</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="任务状态">
+          <el-radio-group v-model="taskFormData.status">
+            <el-radio label="TODO">待办</el-radio>
+            <el-radio label="IN_PROGRESS">进行中</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="负责人">
+          <el-select
+            v-model="taskFormData.assigneeId"
+            placeholder="请选择负责人"
+            filterable
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="user in availableUsers"
+              :key="user.id"
+              :label="user.nickname"
+              :value="user.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="计划开始时间">
+          <el-date-picker
+            v-model="taskFormData.planStartDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="计划结束时间">
+          <el-date-picker
+            v-model="taskFormData.planEndDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="预估工时">
+          <el-input-number
+            v-model="taskFormData.estimateHours"
+            :min="0"
+            :max="999"
+            :precision="1"
+            placeholder="请输入预估工时"
+            style="width: 100%"
+          />
+          <span style="margin-left: 10px; color: #999">小时</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="taskDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleCreateTaskSubmit" :loading="taskSubmitLoading">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -343,6 +434,24 @@ const memberFormData = reactive({
 const memberFormRules: FormRules = {
   userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
   roleType: [{ required: true, message: '请选择角色', trigger: 'change' }]
+}
+
+// 新建任务对话框
+const taskDialogVisible = ref(false)
+const taskSubmitLoading = ref(false)
+const taskFormRef = ref<FormInstance>()
+const taskFormData = reactive({
+  title: '',
+  description: '',
+  priority: 'MEDIUM',
+  status: 'TODO',
+  assigneeId: undefined as number | undefined,
+  planStartDate: '',
+  planEndDate: '',
+  estimateHours: undefined as number | undefined
+})
+const taskFormRules: FormRules = {
+  title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
 }
 
 // 获取项目详情
@@ -500,14 +609,58 @@ const handleRemoveMember = (member: ProjectMemberInfo) => {
 
 // 新建任务
 const handleCreateTask = () => {
-  // TODO: 打开新建任务对话框
-  ElMessage.info('新建任务功能开发中')
+  // 重置表单
+  Object.assign(taskFormData, {
+    title: '',
+    description: '',
+    priority: 'MEDIUM',
+    status: 'TODO',
+    assigneeId: undefined,
+    planStartDate: '',
+    planEndDate: '',
+    estimateHours: undefined
+  })
+  // 打开对话框
+  taskDialogVisible.value = true
+}
+
+// 提交新建任务
+const handleCreateTaskSubmit = async () => {
+  if (!taskFormRef.value) return
+
+  await taskFormRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    taskSubmitLoading.value = true
+    try {
+      const taskData = {
+        projectId: projectId.value,
+        title: taskFormData.title,
+        description: taskFormData.description,
+        priority: taskFormData.priority,
+        status: taskFormData.status,
+        assigneeId: taskFormData.assigneeId,
+        planStartDate: taskFormData.planStartDate || undefined,
+        planEndDate: taskFormData.planEndDate || undefined,
+        estimateHours: taskFormData.estimateHours
+      }
+
+      await createTask(taskData)
+      ElMessage.success('任务创建成功')
+      taskDialogVisible.value = false
+      fetchTasks() // 刷新任务列表
+    } catch (error) {
+      console.error('创建任务失败:', error)
+      ElMessage.error('创建任务失败')
+    } finally {
+      taskSubmitLoading.value = false
+    }
+  })
 }
 
 // 查看任务
 const handleViewTask = (task: TaskInfo) => {
-  ElMessage.info('查看任务功能开发中')
-  console.log('查看任务:', task)
+  router.push(`/tasks/${task.id}`)
 }
 
 // 编辑任务

@@ -23,6 +23,9 @@ public class IterationInfoResp {
     @Schema(description = "项目ID")
     private Long projectId;
 
+    @Schema(description = "项目名称")
+    private String projectName;
+
     @Schema(description = "迭代名称")
     private String name;
 
@@ -89,6 +92,14 @@ public class IterationInfoResp {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getName() {
@@ -206,6 +217,7 @@ public class IterationInfoResp {
         IterationInfoResp resp = new IterationInfoResp();
         resp.setId(iteration.getId());
         resp.setProjectId(iteration.getProjectId());
+        resp.setProjectName(iteration.getProjectName());
         resp.setName(iteration.getName());
         resp.setDescription(iteration.getDescription());
         resp.setStatus(iteration.getStatus());

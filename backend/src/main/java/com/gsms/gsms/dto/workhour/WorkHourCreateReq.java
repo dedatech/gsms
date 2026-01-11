@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -23,7 +22,6 @@ public class WorkHourCreateReq {
     private Long taskId;
     
     @NotNull(message = "工作日期不能为空")
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "日期格式不正确，应为 yyyy-MM-dd")
     @Schema(description = "工作日期（格式：yyyy-MM-dd）", example = "2025-01-01", required = true)
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate workDate;

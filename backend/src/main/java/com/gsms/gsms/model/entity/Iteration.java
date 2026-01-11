@@ -16,6 +16,9 @@ public class Iteration {
     @Schema(description = "项目ID")
     private Long projectId;
 
+    @Schema(description = "项目名称（关联查询，非数据库字段）")
+    private String projectName;
+
     @Schema(description = "迭代名称")
     private String name;
 
@@ -78,6 +81,14 @@ public class Iteration {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getName() {
