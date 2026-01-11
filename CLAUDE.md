@@ -2,6 +2,43 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Start
+
+**Prerequisites:**
+- JDK 8+, Maven 3.6+, Node.js 18+
+- MySQL 8.0+ (create database: `CREATE DATABASE gsms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`)
+
+**Start Backend (port 8080):**
+```bash
+cd backend
+mvn spring-boot:run
+# Or with environment variables:
+DB_USERNAME=root DB_PASSWORD=your_password mvn spring-boot:run
+```
+
+**Start Frontend (port 3000):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Docker Quick Start:**
+```bash
+# Start all services (MySQL + Backend + Frontend)
+docker-compose up -d
+```
+
+**Test Accounts:**
+- `admin` / `Admin123` - Administrator
+- `zhangsan03` / `Admin123` - Regular user
+
+**API Documentation:** http://localhost:8080/swagger-ui.html
+
+**Collaboration:** See `COLLABORATION.md` for frontend/backend coordination board
+
+---
+
 ## 项目概述
 
 GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用标准三层架构结合DTO模式，具有清晰的分层结构。
@@ -13,7 +50,9 @@ gsms/
 ├── backend/          # Spring Boot 后端（端口 8080）
 ├── frontend/         # Vue 3 前端（端口 3000）
 ├── docs/            # 项目文档
-└── deployment/      # 部署配置
+├── deployment/      # 部署配置
+├── COLLABORATION.md # 前后端协作沟通板
+└── TODO.md          # 待办事项
 ```
 
 **技术栈：**
@@ -51,6 +90,12 @@ mvn spring-boot:run
 
 # 使用指定配置文件运行
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 使用环境变量覆盖数据库配置
+DB_USERNAME=root DB_PASSWORD=your_password mvn spring-boot:run
+
+# 打包
+mvn clean package
 ```
 
 ### 前端构建和运行
@@ -69,6 +114,28 @@ npm run build
 
 # 预览生产构建
 npm run preview
+
+# 代码检查
+npm run lint
+
+# 代码格式化
+npm run format
+```
+
+### Docker 部署
+
+```bash
+# 启动所有服务（MySQL、后端、前端）
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f backend
+
+# 停止服务
+docker-compose down
+
+# 重新构建并启动
+docker-compose up -d --build
 ```
 
 ### 测试
@@ -96,6 +163,9 @@ mvn flyway:migrate
 
 # 查看Flyway状态
 mvn flyway:info
+
+# 修复失败的迁移
+mvn flyway:repair
 ```
 
 ## 架构设计
@@ -107,9 +177,10 @@ controller/         # REST API层 - 处理HTTP请求、参数校验
 ├── dto/           # 数据传输对象（独立包）
 ├── service/       # 业务逻辑层
 │   └── impl/      # 服务实现类
-├── domain/        # 领域层
+├── model/         # 领域层（注意：不是 domain/）
 │   ├── entity/    # JPA实体（数据库模型）
-│   └── enums/     # 业务枚举（包括错误码）
+│   ├── enums/     # 业务枚举（包括错误码）
+│   └── errorcode/ # 错误码枚举
 ├── repository/    # 数据访问层（MyBatis Mapper接口）
 └── infra/         # 基础设施层
     ├── common/    # 通用组件（Result、PageResult）
@@ -117,6 +188,13 @@ controller/         # REST API层 - 处理HTTP请求、参数校验
     ├── exception/ # 自定义异常
     └── utils/     # 工具类
 ```
+
+**⚠️ 重要：目录命名差异**
+
+本项目使用 `model/` 而非 `domain/`：
+- 实体位于：`model/entity/` （不是 `domain/entity/`）
+- 枚举位于：`model/enums/` （不是 `domain/enums/`）
+- 错误码位于：`model/errorcode/` （不是 `domain/errorcode/`）
 
 **数据流：**
 
@@ -214,7 +292,7 @@ workHour.setUpdateUserId(currentUserId);
 ### 错误处理
 
 - 自定义异常继承`BusinessException`
-- 错误码定义在`domain/enums/errorcode/`包中
+- 错误码定义在`model/enums/errorcode/`包中
 - `GlobalExceptionHandler`捕获所有异常并返回标准`Result`格式
 - 常见错误码：`UNAUTHORIZED(1401)`、`FORBIDDEN(1403)`、`NOT_FOUND`系列
 
@@ -320,6 +398,11 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 - GET `/api/projects` - 项目列表（需要项目成员权限）
 - GET `/api/tasks/search` - 按条件搜索任务
 - POST `/api/work-hours` - 创建工时记录
+- GET `/api/statistics/dashboard` - 首页看板统计数据
+
+**认证：**
+- 除 `/api/users/login` 外，所有接口需要 `Authorization: Bearer <token>` 请求头
+- Token 有效期：24小时（可在 `application.yml` 中配置）
 
 ## 配置文件
 
@@ -329,26 +412,30 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 - `logback-spring.xml` - 日志配置（输出到`logs/`目录）
 - `src/main/resources/mapper/`中的Mapper XML - MyBatis SQL映射
 
+**环境变量：**
+- `DB_USERNAME` - 数据库用户名（默认：root）
+- `DB_PASSWORD` - 数据库密码（默认：root）
+
 ## 常见陷阱
 
 1. **目录结构差异**：代码使用 `model/` 而非 `domain/`
-   
+
    - 实体位于：`model/entity/`
    - 枚举位于：`model/enums/`
    - 错误码位于：`model/errorcode/`
 
 2. **Service方法签名已变更：** 许多Service现在接受DTO而非Entity
-   
+
    - 旧版：`createUser(User user)`
    - 新版：`create(UserCreateReq req)`
 
 3. **缺少审计字段：** 忘记设置`createUserId`/`updateUserId`会导致SQL错误
-   
+
    - 核心业务表需要设置：`createUserId` 和 `updateUserId`
    - 关联表（如 `project_member`）只需要 `updateUserId`
 
 4. **权限检查：** Controller通过`AuthService`检查权限，因此测试必须：
-   
+
    - 创建具有适当成员关系的测试项目
    - 使用具有相应权限的用户
    - 权限检查在存在性检查之前失败时，期望403（而非404）
@@ -360,30 +447,37 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 7. **PageHelper使用：** 必须在执行查询**之前**调用`PageHelper.startPage()`，且只对之后执行的**第一个**查询生效
 
 8. **枚举序列化差异**：
-   
+
    - GET 请求枚举参数支持两种形式：数字码（`?status=1`）或枚举名（`?status=NOT_STARTED`）
    - JSON 响应中枚举输出为字符串（枚举名），如 `"status": "NORMAL"`
    - 数据库存储为整数（code），如 `status = 1`
 
 9. **日期类型迁移**：项目已从 `java.util.Date` 迁移到 Java 8 Time API
-   
+
    - 新代码应使用 `LocalDateTime` 或 `LocalDate`
    - 测试中使用 `LocalDateTime.now()` 而非 `new Date()`
    - Jackson 自动格式化为 `yyyy-MM-dd HH:mm:ss`
 
 10. **Debug 模式死锁问题**：已升级 ClassGraph 到 4.8.172 修复
-    
+
     - 详见：`docs/DEBUG_MODE_HANG_ISSUE.md`
     - 如果遇到 Spring Boot Debug 模式启动卡住，检查 ClassGraph 版本
 
+11. **CORS 预检请求**：JWT拦截器必须处理OPTIONS请求
+
+    - 详见：`COLLABORATION.md` 中的 CORS 修复记录
+    - JWT拦截器需要在 `preHandle` 方法开头放行 OPTIONS 请求
+
 ## 参考文档
 
+- **协作沟通板**：`COLLABORATION.md` - 前后端协作状态、问题记录、测试账号
 - **缓存技术决策**：`docs/caching-technical-decisions.md` - 缓存方案对比（ConcurrentHashMap vs Caffeine vs Redis）、Spring 单例原理
 - **数据库优化**：`docs/DATABASE_OPTIMIZATION.md` - 表分类、审计字段、外键约束设计
 - **调试指南**：`docs/DEBUG_PROCESS_WALKTHROUGH.md` - 远程调试、断点、变量查看
 - **前后端联调**：`docs/development/frontend-backend-setup.md` - CORS、代理、认证配置
 - **API 文档**：`docs/api-docs.md` - REST API 接口文档
 - **重构原则**：`docs/refactoring-principles.md` - 代码重构最佳实践
+- **待办事项**：`TODO.md` - API 文档优化、枚举类型标准化
 
 ## 文件命名规范
 
@@ -441,7 +535,8 @@ frontend/
 │   │   ├── project/     # 项目相关页面
 │   │   ├── task/        # 任务相关页面
 │   │   ├── iteration/   # 迭代相关页面
-│   │   └── workhour/    # 工时相关页面
+│   │   ├── workhour/    # 工时相关页面
+│   │   └── dashboard/   # 首页看板
 │   ├── App.vue          # 根组件
 │   └── main.ts          # 应用入口
 ├── public/              # 公共静态资源
@@ -486,31 +581,23 @@ if (authStore.isAuthenticated) {
 const { id, username } = authStore.currentUser
 ```
 
-**Store 定义规范：**
+### API 调用规范
 
+**响应拦截器支持多种 code 格式：**
+- `code: 0` - 成功（登录接口使用）
+- `code: 200` - 成功（其他接口使用）
+- 其他 code 值视为错误
+
+**统一错误处理：**
 ```typescript
-// ✅ 推荐：使用 Composition API 风格
-export const useAuthStore = defineStore('auth', () => {
-  // 状态定义
-  const token = ref<string>('')
-  const userId = ref<number>(0)
-
-  // 计算属性
-  const isAuthenticated = computed(() => !!token.value)
-
-  // 操作方法
-  const setAuth = (tokenValue: string, usernameValue?: string) => {
-    token.value = tokenValue
-    // ...
-  }
-
-  return {
-    token,
-    userId,
-    isAuthenticated,
-    setAuth
-  }
-})
+try {
+  const res = await getProjectList(searchForm)
+  list.value = res.list || []
+  total.value = res.total || 0
+} catch (error) {
+  console.error('获取数据失败:', error)
+  ElMessage.error('获取数据失败')
+}
 ```
 
 ### 页面组件设计规范
@@ -706,24 +793,15 @@ const handleCreate = () => {
 </template>
 
 <script setup lang="ts">
-// 状态配置
-const statuses = [
-  { label: '状态1', value: 'STATUS_1', color: '#d9d9d9' },
-  { label: '状态2', value: 'STATUS_2', color: '#1890ff' },
-  { label: '状态3', value: 'STATUS_3', color: '#52c41a' }
-]
-
 // 使用 computed 优化性能
 const status1Items = computed(() => list.value.filter(item => item.status === 'STATUS_1'))
 const status2Items = computed(() => list.value.filter(item => item.status === 'STATUS_2'))
-const status3Items = computed(() => list.value.filter(item => item.status === 'STATUS_3'))
 
 // 辅助函数
 const getItemsByStatus = (status: string) => {
   const map: Record<string, any[]> = {
     'STATUS_1': status1Items.value,
-    'STATUS_2': status2Items.value,
-    'STATUS_3': status3Items.value
+    'STATUS_2': status2Items.value
   }
   return map[status] || []
 }
@@ -740,18 +818,6 @@ const handleDragStart = (item: any, event: DragEvent) => {
   ;(event.target as HTMLElement).classList.add('dragging')
 }
 
-const handleDragOver = (event: DragEvent) => {
-  event.preventDefault()
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
-  }
-  ;(event.currentTarget as HTMLElement).classList.add('drag-over')
-}
-
-const handleDragLeave = (event: DragEvent) => {
-  ;(event.currentTarget as HTMLElement).classList.remove('drag-over')
-}
-
 const handleDrop = async (event: DragEvent) => {
   event.preventDefault()
   const targetStatus = (event.currentTarget as HTMLElement).getAttribute('data-status')
@@ -759,9 +825,6 @@ const handleDrop = async (event: DragEvent) => {
   // 移除拖拽样式
   const draggingElements = document.querySelectorAll('.dragging')
   draggingElements.forEach(el => el.classList.remove('dragging'))
-
-  const dragOverElements = document.querySelectorAll('.drag-over')
-  dragOverElements.forEach(el => el.classList.remove('drag-over'))
 
   if (draggedItem.value && targetStatus && draggedItem.value.status !== targetStatus) {
     // 更新状态
@@ -778,10 +841,6 @@ const handleDrop = async (event: DragEvent) => {
 </script>
 
 <style scoped>
-.kanban-view {
-  margin-bottom: 24px;
-}
-
 .kanban-column {
   background: #f5f5f5;
   border-radius: 4px;
@@ -795,58 +854,6 @@ const handleDrop = async (event: DragEvent) => {
   box-shadow: 0 0 0 2px #1890ff inset;
 }
 
-.column-header {
-  padding: 16px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.column-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.count {
-  margin-left: auto;
-  font-size: 12px;
-  color: #8c8c8c;
-  background: #f0f0f0;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.column-body {
-  padding: 16px;
-  min-height: 400px;
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-}
-
-.item-card {
-  background: #fff;
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-.item-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
 .item-card.dragging {
   opacity: 0.5;
   cursor: move;
@@ -854,614 +861,46 @@ const handleDrop = async (event: DragEvent) => {
 </style>
 ```
 
-### 视图模式切换规范
+### 模块联动规范
 
-**看板/列表切换按钮：**
-
-```vue
-<el-button-group>
-  <el-button
-    :type="viewMode === 'kanban' ? 'primary' : ''"
-    @click="viewMode = 'kanban'"
-  >
-    <el-icon><Grid /></el-icon>
-    看板
-  </el-button>
-  <el-button
-    :type="viewMode === 'table' ? 'primary' : ''"
-    @click="viewMode = 'table'"
-  >
-    <el-icon><List /></el-icon>
-    列表
-  </el-button>
-</el-button-group>
-
-<!-- 分页只在列表视图显示 -->
-<div v-if="total > 0 && viewMode === 'table'" class="pagination">
-  <el-pagination />
-</div>
-```
-
-**状态响应式显示：**
-
-```vue
-<!-- 看板视图 -->
-<div v-if="viewMode === 'kanban'" class="kanban-view">
-  <!-- 看板内容 -->
-</div>
-
-<!-- 列表视图 -->
-<div v-else class="table-view">
-  <el-table :data="list">
-    <!-- 表格列 -->
-  </el-table>
-</div>
-```
-
-### 表单设计规范
-
-#### 表单布局
-
-**标准表单结构：**
-
-```vue
-<el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-  <!-- 单行输入 -->
-  <el-form-item label="项目名称" prop="name">
-    <el-input v-model="formData.name" placeholder="请输入项目名称" />
-  </el-form-item>
-
-  <!-- 多行文本 -->
-  <el-form-item label="项目描述" prop="description">
-    <el-input
-      v-model="formData.description"
-      type="textarea"
-      :rows="3"
-      placeholder="请输入项目描述"
-    />
-  </el-form-item>
-
-  <!-- 下拉选择 -->
-  <el-form-item label="项目经理" prop="managerId">
-    <el-select v-model="formData.managerId" placeholder="请选择项目经理" style="width: 100%">
-      <el-option
-        v-for="user in userList"
-        :key="user.id"
-        :label="user.nickname"
-        :value="user.id"
-      />
-    </el-select>
-  </el-form-item>
-
-  <!-- 单选框组 -->
-  <el-form-item label="项目状态" prop="status">
-    <el-radio-group v-model="formData.status">
-      <el-radio label="NOT_STARTED">未开始</el-radio>
-      <el-radio label="IN_PROGRESS">进行中</el-radio>
-      <el-radio label="ARCHIVED">已归档</el-radio>
-    </el-radio-group>
-  </el-form-item>
-
-  <!-- 日期选择 -->
-  <el-form-item label="计划开始" prop="planStartDate">
-    <el-date-picker
-      v-model="formData.planStartDate"
-      type="date"
-      placeholder="选择日期"
-      style="width: 100%"
-      value-format="YYYY-MM-DD"
-    />
-  </el-form-item>
-</el-form>
-```
-
-#### 表单验证规则
-
-**标准验证规则定义：**
+**实现页面间跳转联动：**
 
 ```typescript
-const formRules: FormRules = {
-  name: [
-    { required: true, message: '请输入项目名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  code: [
-    { required: true, message: '请输入项目编码', trigger: 'blur' },
-    { pattern: /^[A-Z0-9_]+$/, message: '只能包含大写字母、数字和下划线', trigger: 'blur' }
-  ],
-  managerId: [
-    { required: true, message: '请选择项目经理', trigger: 'change' }
-  ]
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// 跳转到项目详情
+const handleProjectClick = (projectId: number) => {
+  router.push(`/projects/${projectId}`)
 }
 
-const formRef = ref<FormInstance>()
+// 跳转到任务详情
+const handleTaskClick = (taskId: number) => {
+  router.push(`/tasks/${taskId}`)
+}
 
-// 提交验证
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      // 提交逻辑
-    }
+// 跳转到列表页并带状态过滤
+const handleViewAll = (status: string) => {
+  router.push({
+    path: '/tasks',
+    query: { status }
   })
 }
 ```
 
-### 卡片组件设计规范
-
-**标准卡片模板：**
-
-```vue
-<div class="item-card" @click="handleView(item)">
-  <!-- 卡片头部 -->
-  <div class="card-header">
-    <div class="card-icon" :style="{ backgroundColor: getStatusColor(item.status) }">
-      <el-icon :size="20"><FolderOpened /></el-icon>
-    </div>
-    <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, item)">
-      <el-icon class="more-icon" @click.stop><MoreFilled /></el-icon>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item command="view" :icon="View">查看</el-dropdown-item>
-          <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
-          <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-  </div>
-
-  <!-- 卡片主体 -->
-  <div class="card-body">
-    <h3 class="item-title">{{ item.name }}</h3>
-    <p class="item-code">{{ item.code }}</p>
-    <p class="item-description">{{ item.description || '暂无描述' }}</p>
-  </div>
-
-  <!-- 卡片底部 -->
-  <div class="card-footer">
-    <div class="item-meta">
-      <el-tag :type="getStatusType(item.status)" size="small">
-        {{ getStatusText(item.status) }}
-      </el-tag>
-      <span class="meta-item">
-        <el-icon><User /></el-icon>
-        {{ getManagerName(item.managerId) || '未设置' }}
-      </span>
-    </div>
-    <div class="item-time">
-      <span>{{ formatDate(item.createTime) }}</span>
-    </div>
-  </div>
-</div>
-```
-
-**卡片样式规范：**
-
-```css
-.item-card {
-  background: #fff;
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-.item-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
-.more-icon {
-  font-size: 18px;
-  color: #8c8c8c;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.more-icon:hover {
-  color: #333;
-}
-
-.item-title {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.item-code {
-  margin: 0 0 8px 0;
-  font-size: 12px;
-  color: #8c8c8c;
-}
-
-.item-description {
-  margin: 0 0 12px 0;
-  font-size: 12px;
-  color: #595959;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 36px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.item-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #595959;
-}
-
-.item-time {
-  font-size: 12px;
-  color: #8c8c8c;
-}
-```
-
-### 响应式设计规范
-
-#### 栅格系统使用
-
-**响应式列宽：**
-
-```vue
-<el-row :gutter="16">
-  <!-- 小屏全宽，中屏半宽，大屏1/3宽 -->
-  <el-col :xs="24" :sm="12" :md="8" :lg="6">
-    <!-- 内容 -->
-  </el-col>
-</el-row>
-```
-
-**断点说明：**
-
-- `xs`: <768px（小屏）
-- `sm`: ≥768px（中屏）
-- `md`: ≥992px（大屏）
-- `lg`: ≥1200px（超大屏）
-- `xl`: ≥1920px（特大屏）
-
-#### 响应式隐藏
-
-```vue
-<!-- 在小屏幕隐藏 -->
-<div class="hidden-xs-only">
-  <!-- 内容 -->
-</div>
-
-<!-- 在大屏幕显示 -->
-<div class="hidden-md-and-down">
-  <!-- 内容 -->
-</div>
-```
-
-### 样式命名规范
-
-#### BEM 命名方法论
-
-**Block（块）**
-
-- 独立的有意义的实体
-- 小写字母，单词用连字符连接
-- 示例：`.project-list`, `.kanban-view`
-
-**Element（元素）**
-
-- 块的一部分，没有独立含义
-- 用连字符连接
-- 示例：`.project-list__header`, `.kanban-column`
-
-**Modifier（修饰符）**
-
-- 块或元素的变体
-- 用连字符连接
-- 示例：`.project-card--dragging`, `.kanban-column.drag-over`
-
-**示例：**
-
-```css
-/* Block */
-.project-list {}
-
-/* Element */
-.project-list__header {}
-
-/* Modifier */
-.project-card--dragging {
-  opacity: 0.5;
-  cursor: move;
-}
-```
-
-#### 工具类规范
-
-**间距工具类：**
-
-```css
-.mb-16 { margin-bottom: 16px; }
-.mr-16 { margin-right: 16px; }
-.p-16 { padding: 16px; }
-```
-
-**文本工具类：**
-
-```css
-.text-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-```
-
-**显示工具类：**
-
-```css
-.hidden { display: none; }
-.flex { display: flex; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-```
-
-### 颜色规范
-
-#### 状态颜色
-
-**项目状态：**
-
-- 未开始：`#d9d9d9`（灰色）
-- 进行中：`#1890ff`（蓝色）
-- 已暂停：`#faad14`（橙色）
-- 已归档：`#`8c8c8c（深灰）
-
-**任务状态：**
-
-- 待办：`#d9d9d9`（灰色）
-- 进行中：`#1890ff`（蓝色）
-- 已完成：`#52c41a`（绿色）
-
-**优先级：**
-
-- 低：`#`（灰色，info）
-- 中：``（默认，无颜色）
-- 高：`#faad14`（橙色，warning）
-
-#### Element Plus Tag 类型
+**路由参数接收：**
 
 ```typescript
-const getStatusType = (status: string) => {
-  const types: Record<string, any> = {
-    'NOT_STARTED': 'info',
-    'IN_PROGRESS': 'primary',
-    'SUSPENDED': 'warning',
-    'ARCHIVED': ''
-  }
-  return types[status] || 'info'
-}
-```
+import { useRoute } from 'vue-router'
 
-### 图标使用规范
+const route = useRoute()
 
-**图标引入：**
+// 获取查询参数
+const status = route.query.status as string | undefined
 
-```typescript
-import {
-  Plus,
-  Search,
-  Grid,
-  List,
-  FolderOpened,
-  User,
-  MoreFilled,
-  Edit,
-  Delete,
-  View
-} from '@element-plus/icons-vue'
-```
-
-**图标使用：**
-
-```vue
-<!-- 按钮图标 -->
-<el-button :icon="Plus">新建</el-button>
-
-<!-- 前缀图标 -->
-<el-input :prefix-icon="Search" />
-
-<!-- 独立图标 -->
-<el-icon :size="20"><FolderOpened /></el-icon>
-```
-
-### 动画与过渡
-
-**卡片悬停效果：**
-
-```css
-.item-card {
-  transition: all 0.3s;
-}
-
-.item-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-```
-
-**拖拽动画：**
-
-```css
-.item-card {
-  transition: all 0.3s;
-}
-
-.item-card.dragging {
-  opacity: 0.5;
-  cursor: move;
-}
-
-.kanban-column {
-  transition: all 0.3s;
-}
-
-.kanban-column.drag-over {
-  background: #e6f7ff;
-  box-shadow: 0 0 0 2px #1890ff inset;
-}
-```
-
-**淡入淡出：**
-
-```vue
-<transition name="fade">
-  <div v-if="show">内容</div>
-</transition>
-
-<style>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-</style>
-```
-
-### 代码注释规范
-
-**组件注释：**
-
-```vue
-<template>
-  <!-- 页面头部 -->
-  <div class="page-header">
-    <!-- 搜索区域 -->
-    <div class="search-area">
-    </div>
-  </div>
-
-  <!-- 主内容区域 -->
-  <div class="main-content">
-    <!-- 表格/看板 -->
-  </div>
-</template>
-
-<script setup lang="ts">
-// 获取用户列表
-const fetchUsers = async () => {
-  // ...
-}
-
-// 处理搜索
-const handleSearch = () => {
-  // ...
-}
-</script>
-```
-
-**关键逻辑注释：**
-
-```typescript
-// 解析 JWT Token 获取 userId
-const payload = parseToken(token)
-const userId = payload?.userId || 0
-
-// 使用 computed 优化性能，按状态过滤项目
-const notStartedProjects = computed(() =>
-  projectList.value.filter(project => project.status === 'NOT_STARTED')
-)
-```
-
-### 性能优化规范
-
-#### 使用 computed 优化
-
-```typescript
-// ✅ 推荐：使用 computed 缓存计算结果
-const notStartedProjects = computed(() =>
-  projectList.value.filter(project => project.status === 'NOT_STARTED')
-)
-
-// ❌ 避免：在方法中重复计算
-const getNotStartedProjects = () => {
-  return projectList.value.filter(project => project.status === 'NOT_STARTED')
-}
-```
-
-#### 列表数据优化
-
-```typescript
-// 使用 computed 缓存过滤结果
-const statusGroups = {
-  NOT_STARTED: computed(() => list.value.filter(item => item.status === 'NOT_STARTED')),
-  IN_PROGRESS: computed(() => list.value.filter(item => item.status === 'IN_PROGRESS')),
-  ARCHIVED: computed(() => list.value.filter(item => item.status === 'ARCHIVED'))
-}
-
-// 辅助函数
-const getItemsByStatus = (status: string) => {
-  return statusGroups[status]?.value || []
-}
-```
-
-#### 分页加载优化
-
-```typescript
-// 只在列表视图启用分页
-const showPagination = computed(() => {
-  return viewMode.value === 'table' && total.value > 0
-})
-
-// 看板视图加载全部数据
-const fetchProjects = async () => {
-  if (viewMode.value === 'kanban') {
-    // 看板视图：加载所有数据
-    searchForm.pageSize = 1000
-  } else {
-    // 列表视图：使用分页
-    searchForm.pageSize = 10
-  }
-  // ...
+if (status) {
+  searchForm.status = status
 }
 ```
 
@@ -1557,3 +996,4 @@ const fetchProjects = async () => {
 
 - **前端架构文档**：`docs/development/frontend-architecture.md`
 - **前后端联调**：`docs/development/frontend-backend-setup.md`
+- **模块联动分析**：`docs/frontend-module-linkage-analysis.md`
