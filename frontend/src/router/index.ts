@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { setupPermissionGuard } from './permission'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -83,6 +84,24 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/workhour/WorkHourList.vue'),
         meta: { title: '工时列表', requiresAuth: true },
       },
+      {
+        path: 'system/users',
+        name: 'Users',
+        component: () => import('@/views/system/UserList.vue'),
+        meta: { title: '用户管理', requiresAuth: true },
+      },
+      {
+        path: 'system/roles',
+        name: 'Roles',
+        component: () => import('@/views/system/RoleList.vue'),
+        meta: { title: '角色管理', requiresAuth: true },
+      },
+      {
+        path: 'system/permissions',
+        name: 'Permissions',
+        component: () => import('@/views/system/PermissionList.vue'),
+        meta: { title: '权限管理', requiresAuth: true },
+      },
     ],
   },
   {
@@ -98,21 +117,11 @@ const router = createRouter({
   routes,
 })
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
+// 设置权限守卫
+setupPermissionGuard(router)
 
-  if (to.meta.requiresAuth && !token) {
-    // 需要认证但没有 token，跳转到登录页
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else if (to.name === 'Login' && token) {
-    // 已登录用户访问登录页，跳转到首页
-    next({ name: 'Dashboard' })
-  } else {
-    next()
-  }
-
-  // 设置页面标题
+// 设置页面标题
+router.afterEach((to) => {
   document.title = to.meta.title ? `${to.meta.title} - GSMS` : 'GSMS 工时管理系统'
 })
 

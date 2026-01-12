@@ -43,11 +43,11 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> findAll(User user);
 
     /**
-     * 插入用户
+     * 插入用户（自定义方法）
      * @param user 用户实体
      * @return 影响行数
      */
-    int insert(User user);
+    int insert(User user);  // 恢复原名，测试与 BaseMapper 的冲突
 
     /**
      * 更新用户

@@ -7,6 +7,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
+import permissionDirective from './directives/permission'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -21,6 +22,7 @@ app.use(router)
 app.use(ElementPlus, {
   locale: zhCn,
 })
+app.use(permissionDirective) // 注册权限指令
 
 // 在应用挂载前恢复认证信息
 const authStore = useAuthStore()

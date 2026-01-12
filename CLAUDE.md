@@ -35,13 +35,22 @@ docker-compose up -d
 
 **API Documentation:** http://localhost:8080/swagger-ui.html
 
-**Collaboration:** See `COLLABORATION.md` for frontend/backend coordination board
-
 ---
 
 ## 项目概述
 
 GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用标准三层架构结合DTO模式，具有清晰的分层结构。
+
+**核心功能模块：**
+
+1. **工时管理** - 项目、迭代、任务、工时记录的完整管理
+2. **用户权限管理（RBAC）** - 基于角色的访问控制系统 ✨
+   - 用户管理（CRUD + 角色分配 + 启用/禁用）
+   - 角色管理（CRUD + 权限分配）
+   - 权限管理（CRUD + 权限查询）
+   - 三级权限控制（路由级 + 按钮级 + 数据级）
+   - 用户注册流程（默认禁用，需管理员审核）
+3. **统计报表** - 首页看板、项目统计、用户统计、部门统计
 
 **项目结构（Monorepo）：**
 
@@ -51,7 +60,6 @@ gsms/
 ├── frontend/         # Vue 3 前端（端口 3000）
 ├── docs/            # 项目文档
 ├── deployment/      # 部署配置
-├── COLLABORATION.md # 前后端协作沟通板
 └── TODO.md          # 待办事项
 ```
 
@@ -465,19 +473,18 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 
 11. **CORS 预检请求**：JWT拦截器必须处理OPTIONS请求
 
-    - 详见：`COLLABORATION.md` 中的 CORS 修复记录
     - JWT拦截器需要在 `preHandle` 方法开头放行 OPTIONS 请求
 
 ## 参考文档
 
-- **协作沟通板**：`COLLABORATION.md` - 前后端协作状态、问题记录、测试账号
+- **RBAC 权限系统**：`docs/RBAC_IMPLEMENTATION.md` - 用户、角色、权限管理系统完整实现文档（2026-01-12）
 - **缓存技术决策**：`docs/caching-technical-decisions.md` - 缓存方案对比（ConcurrentHashMap vs Caffeine vs Redis）、Spring 单例原理
 - **数据库优化**：`docs/DATABASE_OPTIMIZATION.md` - 表分类、审计字段、外键约束设计
 - **调试指南**：`docs/DEBUG_PROCESS_WALKTHROUGH.md` - 远程调试、断点、变量查看
 - **前后端联调**：`docs/development/frontend-backend-setup.md` - CORS、代理、认证配置
 - **API 文档**：`docs/api-docs.md` - REST API 接口文档
 - **重构原则**：`docs/refactoring-principles.md` - 代码重构最佳实践
-- **待办事项**：`TODO.md` - API 文档优化、枚举类型标准化
+- **待办事项**：`TODO.md` - API 文档优化、枚举类型标准化、后续扩展功能
 
 ## 文件命名规范
 

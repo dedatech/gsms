@@ -47,7 +47,7 @@ public class UserCreateReq {
     }
 
     @Schema(description = "用户状态", example = "NORMAL")
-    private UserStatus status;
+    private UserStatus status;  // 改回 null，测试 setStatus 是否生效
 
     public String getUsername() {
         return username;

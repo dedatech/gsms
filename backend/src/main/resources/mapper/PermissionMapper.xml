@@ -1,6 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gsms.gsms.repository.PermissionMapper">
+
+    <resultMap id="PermissionResultMap" type="com.gsms.gsms.model.entity.Permission">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="description" property="description"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="create_user_id" property="createUserId"/>
+        <result column="update_user_id" property="updateUserId"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="selectAllFields">
+        id, name, code, description, create_time, update_time, create_user_id, update_user_id, is_deleted
+    </sql>
 
     <!-- 根据用户ID查询其拥有的权限编码列表 -->
     <select id="selectPermissionCodesByUserId" parameterType="long" resultType="string">
@@ -9,6 +25,75 @@
         INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
         INNER JOIN sys_user_role ur ON rp.role_id = ur.role_id
         WHERE ur.user_id = #{userId} AND p.is_deleted = 0 AND rp.is_deleted = 0 AND ur.is_deleted = 0
+    </select>
+
+    <!-- 根据ID查询权限 -->
+    <select id="selectById" parameterType="long" resultMap="PermissionResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM sys_permission
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 根据编码查询权限 -->
+    <select id="selectByCode" parameterType="string" resultMap="PermissionResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM sys_permission
+        WHERE code = #{code} AND is_deleted = 0
+    </select>
+
+    <!-- 根据条件查询权限列表 -->
+    <select id="selectByCondition" resultMap="PermissionResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM sys_permission
+        WHERE is_deleted = 0
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="code != null and code != ''">
+            AND code LIKE CONCAT('%', #{code}, '%')
+        </if>
+        ORDER BY id
+    </select>
+
+    <!-- 查询所有权限 -->
+    <select id="selectAll" resultMap="PermissionResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM sys_permission
+        WHERE is_deleted = 0
+        ORDER BY id
+    </select>
+
+    <!-- 插入权限 -->
+    <insert id="insert" parameterType="com.gsms.gsms.model.entity.Permission"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_permission(name, code, description, create_user_id, update_user_id)
+        VALUES(#{name}, #{code}, #{description}, #{createUserId}, #{updateUserId})
+    </insert>
+
+    <!-- 更新权限 -->
+    <update id="update" parameterType="com.gsms.gsms.model.entity.Permission">
+        UPDATE sys_permission
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除权限（软删除） -->
+    <update id="deleteById" parameterType="long">
+        UPDATE sys_permission
+        SET is_deleted = 1, update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询拥有该权限的角色ID列表 -->
+    <select id="selectRoleIdsByPermissionId" parameterType="long" resultType="long">
+        SELECT rp.role_id
+        FROM sys_role_permission rp
+        WHERE rp.permission_id = #{permissionId} AND rp.is_deleted = 0
     </select>
 
 </mapper>

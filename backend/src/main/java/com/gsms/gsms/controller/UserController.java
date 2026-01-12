@@ -135,4 +135,52 @@ public class UserController {
         userService.changePassword(req);
         return Result.success("密码修改成功，请重新登录");
     }
+
+    /**
+     * 查询用户的角色ID列表
+     */
+    @GetMapping("/{id}/roles")
+    @Operation(summary = "查询用户的角色列表")
+    public Result<java.util.List<Long>> getRoles(@PathVariable Long id) {
+        logger.info("查询用户角色列表: userId={}", id);
+        return Result.success(userService.getRoleIds(id));
+    }
+
+    /**
+     * 为用户分配角色
+     */
+    @PostMapping("/{id}/roles")
+    @Operation(summary = "为用户分配角色")
+    public Result<String> assignRoles(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Object> payload) {
+        logger.info("为用户分配角色: userId={}", id);
+        @SuppressWarnings("unchecked")
+        java.util.List<Long> roleIds = (java.util.List<Long>) payload.get("roleIds");
+        userService.assignRoles(id, roleIds);
+        return Result.success("角色分配成功");
+    }
+
+    /**
+     * 移除用户角色
+     */
+    @DeleteMapping("/{userId}/roles/{roleId}")
+    @Operation(summary = "移除用户角色")
+    public Result<String> removeRole(
+            @PathVariable Long userId,
+            @PathVariable Long roleId) {
+        logger.info("移除用户角色: userId={}, roleId={}", userId, roleId);
+        userService.removeRole(userId, roleId);
+        return Result.success("角色移除成功");
+    }
+
+    /**
+     * 查询用户的权限编码列表
+     */
+    @GetMapping("/{id}/permissions")
+    @Operation(summary = "查询用户的权限编码列表")
+    public Result<java.util.List<String>> getPermissions(@PathVariable Long id) {
+        logger.info("查询用户权限编码列表: userId={}", id);
+        return Result.success(userService.getPermissionCodes(id));
+    }
 }

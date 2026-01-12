@@ -1,16 +1,19 @@
-package com.gsms.gsms.model.entity;
+package com.gsms.gsms.dto.role;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.model.entity.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 角色实体
+ * 角色信息响应
  */
-@Schema(description = "系统角色信息")
-public class Role {
+@Schema(description = "角色信息响应")
+public class RoleInfoResp {
 
     @Schema(description = "角色ID")
     private Long id;
@@ -27,25 +30,20 @@ public class Role {
     @Schema(description = "角色级别 1:系统级 2:项目级")
     private Integer roleLevel;
 
-    @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
+    @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
-    @Schema(description = "更新时间", example = "2024-01-01 10:30:00")
+    @Schema(description = "更新时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
-    @Schema(description = "创建人ID")
-    private Long createUserId;
+    @Schema(description = "权限ID列表")
+    private List<Long> permissionIds;
 
-    @Schema(description = "更新人ID")
-    private Long updateUserId;
-
-    @Schema(description = "是否删除 0:否 1:是")
-    private Integer isDeleted;
-
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -102,27 +100,44 @@ public class Role {
         this.updateTime = updateTime;
     }
 
-    public Long getCreateUserId() {
-        return createUserId;
+    public List<Long> getPermissionIds() {
+        return permissionIds;
     }
 
-    public void setCreateUserId(Long createUserId) {
-        this.createUserId = createUserId;
+    public void setPermissionIds(List<Long> permissionIds) {
+        this.permissionIds = permissionIds;
     }
 
-    public Long getUpdateUserId() {
-        return updateUserId;
+    /**
+     * 将 Role 实体转换为 RoleInfoResp
+     */
+    public static RoleInfoResp from(Role role) {
+        if (role == null) {
+            return null;
+        }
+
+        RoleInfoResp resp = new RoleInfoResp();
+        resp.setId(role.getId());
+        resp.setName(role.getName());
+        resp.setCode(role.getCode());
+        resp.setDescription(role.getDescription());
+        resp.setRoleLevel(role.getRoleLevel());
+        resp.setCreateTime(role.getCreateTime());
+        resp.setUpdateTime(role.getUpdateTime());
+
+        return resp;
     }
 
-    public void setUpdateUserId(Long updateUserId) {
-        this.updateUserId = updateUserId;
-    }
+    /**
+     * 将 Role 列表转换为 RoleInfoResp 列表
+     */
+    public static List<RoleInfoResp> from(List<Role> roles) {
+        if (roles == null) {
+            return java.util.Collections.emptyList();
+        }
 
-    public Integer getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Integer isDeleted) {
-        this.isDeleted = isDeleted;
+        return roles.stream()
+                .map(RoleInfoResp::from)
+                .collect(Collectors.toList());
     }
 }

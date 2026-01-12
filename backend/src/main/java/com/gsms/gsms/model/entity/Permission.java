@@ -7,25 +7,22 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 /**
- * 角色实体
+ * 权限实体
  */
-@Schema(description = "系统角色信息")
-public class Role {
+@Schema(description = "系统权限信息")
+public class Permission {
 
-    @Schema(description = "角色ID")
+    @Schema(description = "权限ID")
     private Long id;
 
-    @Schema(description = "角色名称")
+    @Schema(description = "权限名称")
     private String name;
 
-    @Schema(description = "角色编码")
+    @Schema(description = "权限编码")
     private String code;
 
-    @Schema(description = "角色描述")
+    @Schema(description = "权限描述")
     private String description;
-
-    @Schema(description = "角色级别 1:系统级 2:项目级")
-    private Integer roleLevel;
 
     @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -76,14 +73,6 @@ public class Role {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Integer getRoleLevel() {
-        return roleLevel;
-    }
-
-    public void setRoleLevel(Integer roleLevel) {
-        this.roleLevel = roleLevel;
     }
 
     public LocalDateTime getCreateTime() {

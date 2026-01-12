@@ -38,6 +38,15 @@
             <el-menu-item index="/workhours/calendar">工时日历</el-menu-item>
             <el-menu-item index="/workhours/list">工时列表</el-menu-item>
           </el-sub-menu>
+          <el-sub-menu index="system">
+            <template #title>
+              <el-icon><Operation /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/system/users">用户管理</el-menu-item>
+            <el-menu-item index="/system/roles">角色管理</el-menu-item>
+            <el-menu-item index="/system/permissions">权限管理</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
 
@@ -112,7 +121,8 @@ import {
   ArrowDown,
   User,
   Setting,
-  SwitchButton
+  SwitchButton,
+  Operation
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

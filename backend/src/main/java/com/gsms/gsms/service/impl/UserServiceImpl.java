@@ -17,6 +17,8 @@ import com.gsms.gsms.infra.utils.PasswordUtil;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.repository.DepartmentMapper;
+import com.gsms.gsms.repository.RoleMapper;
+import com.gsms.gsms.repository.PermissionMapper;
 import com.gsms.gsms.service.UserService;
 import com.gsms.gsms.service.CacheService;
 import org.slf4j.Logger;
@@ -38,11 +40,16 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final DepartmentMapper departmentMapper;
     private final CacheService cacheService;
+    private final RoleMapper roleMapper;
+    private final PermissionMapper permissionMapper;
 
-    public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper, CacheService cacheService) {
+    public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper, CacheService cacheService,
+                             RoleMapper roleMapper, PermissionMapper permissionMapper) {
         this.userMapper = userMapper;
         this.departmentMapper = departmentMapper;
         this.cacheService = cacheService;
+        this.roleMapper = roleMapper;
+        this.permissionMapper = permissionMapper;
     }
 
     @Override
@@ -89,7 +96,17 @@ public class UserServiceImpl implements UserService {
 
         // DTO转Entity
         User user = UserConverter.toUser(createReq);
-        user.setStatus(UserStatus.NORMAL); // 默认状态为正常
+
+        // 设置默认状态为禁用（需要管理员审核）
+        user.setStatus(UserStatus.DISABLED);
+
+        // 密码加密
+        user.setPassword(PasswordUtil.encrypt(user.getPassword()));
+
+        // 设置审计字段
+        Long currentUserId = UserContext.getCurrentUserId();
+        user.setCreateUserId(currentUserId != null ? currentUserId : 1L);
+        user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
 
         // 检查用户名是否已存在
         User existUser = userMapper.selectByUsername(user.getUsername());
@@ -101,7 +118,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(PasswordUtil.encrypt(user.getPassword()));
 
         // 设置审计字段
-        Long currentUserId = UserContext.getCurrentUserId();
+
         user.setCreateUserId(currentUserId != null ? currentUserId : 1L);
         user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
 
@@ -190,6 +207,12 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
         }
 
+        // 检查用户状态
+        if (user.getStatus() != UserStatus.NORMAL) {
+            logger.warn("用户登录失败 - 用户已禁用: username={}", username);
+            throw new BusinessException(UserErrorCode.USER_DISABLED);
+        }
+
         logger.info("用户登录成功: {}", username);
         return user;
     }
@@ -273,5 +296,56 @@ public class UserServiceImpl implements UserService {
         for (UserInfoResp resp : respList) {
             enrichUserInfoResp(resp);
         }
+    }
+
+    // ========== 角色和权限管理方法 ==========
+
+    @Override
+    public List<Long> getRoleIds(Long userId) {
+        logger.debug("查询用户角色列表: userId={}", userId);
+        // 检查用户是否存在
+        getUserById(userId);
+        return roleMapper.selectRoleIdsByUserId(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        logger.info("为用户分配角色: userId={}, roleIds={}", userId, roleIds);
+        // 检查用户是否存在
+        getUserById(userId);
+
+        // 删除用户现有的所有角色
+        roleMapper.deleteUserRoles(userId);
+
+        // 分配新的角色
+        if (roleIds != null && !roleIds.isEmpty()) {
+            roleMapper.insertUserRoles(userId, roleIds);
+        }
+
+        logger.info("用户角色分配成功: userId={}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeRole(Long userId, Long roleId) {
+        logger.info("移除用户角色: userId={}, roleId={}", userId, roleId);
+        // 检查用户是否存在
+        getUserById(userId);
+
+        int result = roleMapper.deleteUserRole(userId, roleId);
+        if (result <= 0) {
+            logger.warn("移除用户角色失败: userId={}, roleId={}", userId, roleId);
+        }
+
+        logger.info("用户角色移除成功: userId={}, roleId={}", userId, roleId);
+    }
+
+    @Override
+    public List<String> getPermissionCodes(Long userId) {
+        logger.debug("查询用户权限编码列表: userId={}", userId);
+        // 检查用户是否存在
+        getUserById(userId);
+        return permissionMapper.selectPermissionCodesByUserId(userId);
     }
 }

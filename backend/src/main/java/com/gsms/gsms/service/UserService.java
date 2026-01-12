@@ -67,4 +67,32 @@ public interface UserService {
      * @param req 修改密码请求DTO
      */
     void changePassword(PasswordChangeReq req);
+
+    /**
+     * 查询用户的角色ID列表
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
+    java.util.List<Long> getRoleIds(Long userId);
+
+    /**
+     * 为用户分配角色
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     */
+    void assignRoles(Long userId, java.util.List<Long> roleIds);
+
+    /**
+     * 移除用户角色
+     * @param userId 用户ID
+     * @param roleId 角色ID
+     */
+    void removeRole(Long userId, Long roleId);
+
+    /**
+     * 查询用户的权限编码列表
+     * @param userId 用户ID
+     * @return 权限编码列表
+     */
+    java.util.List<String> getPermissionCodes(Long userId);
 }
