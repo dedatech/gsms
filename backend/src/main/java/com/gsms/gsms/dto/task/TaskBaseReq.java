@@ -21,9 +21,12 @@ public abstract class TaskBaseReq {
     @NotNull(message = "项目ID不能为空")
     @Schema(description = "项目ID", example = "1")
     private Long projectId;
-    
+
     @Schema(description = "迭代ID", example = "1")
     private Long iterationId;
+
+    @Schema(description = "父任务ID（用于创建子任务）", example = "1")
+    private Long parentId;
     
     @NotBlank(message = "任务标题不能为空")
     @Size(max = 200, message = "任务标题长度不能超过200个字符")
@@ -71,6 +74,14 @@ public abstract class TaskBaseReq {
 
     public void setIterationId(Long iterationId) {
         this.iterationId = iterationId;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
     public String getTitle() {
@@ -143,58 +154,5 @@ public abstract class TaskBaseReq {
 
     public void setEstimateHours(BigDecimal estimateHours) {
         this.estimateHours = estimateHours;
-    }
-
-    /**
-     * 任务对象转换器
-     */
-    public static class TaskConverter {
-
-        /**
-         * 创建请求转任务实体
-         */
-        public static Task toTask(TaskCreateReq req) {
-            if (req == null) {
-                return null;
-            }
-            Task task = new Task();
-            task.setProjectId(req.getProjectId());
-            task.setIterationId(req.getIterationId());
-            task.setTitle(req.getTitle());
-            task.setDescription(req.getDescription());
-            task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换
-            task.setPriority(req.getPriority());
-            task.setAssigneeId(req.getAssigneeId());
-            task.setStatus(req.getStatus());
-            task.setPlanStartDate(req.getPlanStartDate());
-            task.setPlanEndDate(req.getPlanEndDate());
-            task.setEstimateHours(req.getEstimateHours());
-            return task;
-        }
-
-        /**
-         * 更新请求转任务实体
-         */
-        public static Task toTask(TaskUpdateReq req) {
-            if (req == null) {
-                return null;
-            }
-            Task task = new Task();
-            task.setId(req.getId());
-            task.setProjectId(req.getProjectId());
-            task.setIterationId(req.getIterationId());
-            task.setTitle(req.getTitle());
-            task.setDescription(req.getDescription());
-            task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换
-            task.setPriority(req.getPriority());
-            task.setAssigneeId(req.getAssigneeId());
-            task.setStatus(req.getStatus());
-            task.setPlanStartDate(req.getPlanStartDate());
-            task.setPlanEndDate(req.getPlanEndDate());
-            task.setActualStartDate(req.getActualStartDate());
-            task.setActualEndDate(req.getActualEndDate());
-            task.setEstimateHours(req.getEstimateHours());
-            return task;
-        }
     }
 }

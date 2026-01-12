@@ -9,6 +9,7 @@ export interface TaskInfo {
   projectName?: string
   iterationId?: number
   iterationName?: string
+  parentId?: number
   assigneeId?: number
   assigneeName?: string
   status: number
@@ -42,6 +43,7 @@ export interface TaskCreateReq {
   description?: string
   projectId: number
   iterationId?: number
+  parentId?: number
   assigneeId?: number
   priority?: number
   planStartDate?: string
@@ -57,6 +59,9 @@ export interface TaskUpdateReq {
   id: number
   title?: string
   description?: string
+  projectId?: number
+  iterationId?: number
+  parentId?: number
   assigneeId?: number
   priority?: number
   status?: number

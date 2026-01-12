@@ -17,6 +17,7 @@ public class TaskConverter {
         Task task = new Task();
         task.setProjectId(req.getProjectId());
         task.setIterationId(req.getIterationId());
+        task.setParentId(req.getParentId());
         task.setTitle(req.getTitle());
         task.setDescription(req.getDescription());
         task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换
@@ -40,6 +41,7 @@ public class TaskConverter {
         task.setId(req.getId());
         task.setProjectId(req.getProjectId());
         task.setIterationId(req.getIterationId());
+        task.setParentId(req.getParentId());
         task.setTitle(req.getTitle());
         task.setDescription(req.getDescription());
         task.setType(req.getType());  // 直接设置枚举，MyBatis-Plus自动转换

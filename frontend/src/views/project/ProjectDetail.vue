@@ -184,6 +184,19 @@
           </div>
         </div>
       </el-tab-pane>
+
+      <!-- 甘特图标签 -->
+      <el-tab-pane name="gantt">
+        <template #label>
+          <span>
+            <el-icon><Grid /></el-icon>
+            甘特图
+          </span>
+        </template>
+        <div class="tab-content gantt-tab-content">
+          <ProjectGantt v-if="activeTab === 'gantt'" :project-id="projectId" />
+        </div>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 编辑项目对话框 -->
@@ -207,10 +220,10 @@
         </el-form-item>
         <el-form-item label="项目状态" prop="status">
           <el-radio-group v-model="editFormData.status">
-            <el-radio label="NOT_STARTED">未开始</el-radio>
-            <el-radio label="IN_PROGRESS">进行中</el-radio>
-            <el-radio label="SUSPENDED">已暂停</el-radio>
-            <el-radio label="ARCHIVED">已归档</el-radio>
+            <el-radio value="NOT_STARTED">未开始</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="SUSPENDED">已暂停</el-radio>
+            <el-radio value="ARCHIVED">已归档</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -285,15 +298,15 @@
         </el-form-item>
         <el-form-item label="优先级">
           <el-radio-group v-model="taskFormData.priority">
-            <el-radio label="LOW">低</el-radio>
-            <el-radio label="MEDIUM">中</el-radio>
-            <el-radio label="HIGH">高</el-radio>
+            <el-radio value="LOW">低</el-radio>
+            <el-radio value="MEDIUM">中</el-radio>
+            <el-radio value="HIGH">高</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="任务状态">
           <el-radio-group v-model="taskFormData.status">
-            <el-radio label="TODO">待办</el-radio>
-            <el-radio label="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="TODO">待办</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="负责人">
@@ -364,12 +377,14 @@ import {
   User,
   List,
   Plus,
-  View
+  View,
+  Grid
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
 import { getTaskList, createTask, updateTask, deleteTask } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getProjectStatusInfo } from '@/utils/statusMapping'
+import ProjectGantt from '@/components/ProjectGantt.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -958,5 +973,15 @@ onMounted(() => {
 
 :deep(.el-empty) {
   padding: 60px 0;
+}
+
+/* 甘特图 Tab */
+.gantt-tab-content {
+  height: calc(100vh - 320px);
+  min-height: 500px;
+}
+
+:deep(.gantt-tab-content .project-gantt) {
+  height: 100%;
 }
 </style>

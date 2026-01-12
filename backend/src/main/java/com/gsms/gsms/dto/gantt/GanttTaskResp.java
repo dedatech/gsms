@@ -16,6 +16,9 @@ public class GanttTaskResp {
     @Schema(description = "任务ID")
     private Long id;
 
+    @Schema(description = "甘特图节点ID（用于dhtmlx-gantt渲染，负数转换避免冲突）")
+    private Long ganttId;
+
     @Schema(description = "任务名称")
     private String text;
 
@@ -85,6 +88,14 @@ public class GanttTaskResp {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getGanttId() {
+        return ganttId;
+    }
+
+    public void setGanttId(Long ganttId) {
+        this.ganttId = ganttId;
     }
 
     public String getText() {

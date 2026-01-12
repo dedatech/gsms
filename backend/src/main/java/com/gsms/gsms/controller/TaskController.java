@@ -71,10 +71,11 @@ public class TaskController {
     @PostMapping
     @Operation(summary = "创建任务")
     public Result<TaskInfoResp> create(@RequestBody @Valid TaskCreateReq req) {
-        logger.info("创建任务: {}", req.getTitle());
+        logger.info("创建任务: title={}, projectId={}, iterationId={}, parentId={}",
+                req.getTitle(), req.getProjectId(), req.getIterationId(), req.getParentId());
         Task createdTask = taskService.create(req);
         TaskInfoResp resp = TaskInfoResp.from(createdTask);
-        logger.info("任务创建成功: {}", createdTask.getTitle());
+        logger.info("任务创建成功: id={}, parentId={}", createdTask.getId(), createdTask.getParentId());
         return Result.success(resp);
     }
 
@@ -88,10 +89,11 @@ public class TaskController {
     @PutMapping
     @Operation(summary = "更新任务")
     public Result<TaskInfoResp> update(@RequestBody @Valid TaskUpdateReq req) {
-        logger.info("更新任务: {}", req.getId());
+        logger.info("更新任务: id={}, title={}, projectId={}, iterationId={}, parentId={}",
+                req.getId(), req.getTitle(), req.getProjectId(), req.getIterationId(), req.getParentId());
         Task updatedTask = taskService.update(req);
         TaskInfoResp resp = TaskInfoResp.from(updatedTask);
-        logger.info("任务更新成功: {}", updatedTask.getId());
+        logger.info("任务更新成功: id={}, parentId={}", updatedTask.getId(), updatedTask.getParentId());
         return Result.success(resp);
     }
 

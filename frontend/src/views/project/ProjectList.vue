@@ -83,6 +83,7 @@
                     <template #dropdown>
                       <el-dropdown-menu>
                         <el-dropdown-item command="view" :icon="View">查看</el-dropdown-item>
+                        <el-dropdown-item command="gantt" :icon="View">甘特图</el-dropdown-item>
                         <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
                         <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
                       </el-dropdown-menu>
@@ -176,9 +177,10 @@
             {{ formatDate(row.updateTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="210" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :icon="View" @click="handleView(row)">查看</el-button>
+            <el-button link type="success" :icon="Grid" @click="handleGantt(row)">甘特图</el-button>
             <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
             <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
@@ -237,12 +239,36 @@
         </el-form-item>
         <el-form-item label="项目状态" prop="status">
           <el-radio-group v-model="formData.status">
-            <el-radio label="NOT_STARTED">未开始</el-radio>
-            <el-radio label="IN_PROGRESS">进行中</el-radio>
-            <el-radio label="SUSPENDED">已暂停</el-radio>
-            <el-radio label="ARCHIVED">已归档</el-radio>
+            <el-radio value="NOT_STARTED">未开始</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="SUSPENDED">已暂停</el-radio>
+            <el-radio value="ARCHIVED">已归档</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="计划开始时间" prop="planStartDate">
+              <el-date-picker
+                v-model="formData.planStartDate"
+                type="date"
+                placeholder="选择开始日期"
+                style="width: 100%"
+                value-format="YYYY-MM-DD"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="计划结束时间" prop="planEndDate">
+              <el-date-picker
+                v-model="formData.planEndDate"
+                type="date"
+                placeholder="选择结束日期"
+                style="width: 100%"
+                value-format="YYYY-MM-DD"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -382,7 +408,9 @@ const formData = reactive({
   code: '',
   description: '',
   managerId: undefined as number | undefined,
-  status: 'NOT_STARTED'
+  status: 'NOT_STARTED',
+  planStartDate: '',
+  planEndDate: ''
 })
 
 // 表单规则
@@ -439,6 +467,11 @@ const handleView = (project: ProjectInfo) => {
   router.push(`/projects/${project.id}`)
 }
 
+// 查看甘特图
+const handleGantt = (project: ProjectInfo) => {
+  router.push(`/projects/${project.id}/gantt`)
+}
+
 // 编辑项目
 const handleEdit = (project: ProjectInfo) => {
   dialogTitle.value = '编辑项目'
@@ -449,7 +482,9 @@ const handleEdit = (project: ProjectInfo) => {
     code: project.code,
     description: project.description,
     managerId: project.managerId,
-    status: project.status
+    status: project.status,
+    planStartDate: project.planStartDate || '',
+    planEndDate: project.planEndDate || ''
   })
 }
 
@@ -476,6 +511,8 @@ const handleDelete = (project: ProjectInfo) => {
 const handleCommand = (command: string, project: ProjectInfo) => {
   if (command === 'view') {
     handleView(project)
+  } else if (command === 'gantt') {
+    handleGantt(project)
   } else if (command === 'edit') {
     handleEdit(project)
   } else if (command === 'delete') {
@@ -497,7 +534,9 @@ const handleSubmit = async () => {
             id: formData.id,
             name: formData.name,
             description: formData.description,
-            status: formData.status
+            status: formData.status,
+            planStartDate: formData.planStartDate || undefined,
+            planEndDate: formData.planEndDate || undefined
           })
           ElMessage.success('更新成功')
         } else {
@@ -507,7 +546,9 @@ const handleSubmit = async () => {
             code: formData.code,
             description: formData.description,
             managerId: formData.managerId!,
-            status: formData.status
+            status: formData.status,
+            planStartDate: formData.planStartDate || undefined,
+            planEndDate: formData.planEndDate || undefined
           })
           ElMessage.success('创建成功')
         }
@@ -530,6 +571,8 @@ const resetForm = () => {
   formData.description = ''
   formData.managerId = undefined
   formData.status = 'NOT_STARTED'
+  formData.planStartDate = ''
+  formData.planEndDate = ''
   formRef.value?.clearValidate()
 }
 

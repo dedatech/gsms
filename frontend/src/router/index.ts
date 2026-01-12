@@ -42,6 +42,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '项目详情', requiresAuth: true },
       },
       {
+        path: 'projects/:id/gantt',
+        name: 'ProjectGantt',
+        component: () => import('@/views/project/ProjectGanttView.vue'),
+        meta: { title: '项目甘特图', requiresAuth: true },
+      },
+      {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/task/TaskList.vue'),

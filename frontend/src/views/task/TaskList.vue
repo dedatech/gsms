@@ -89,6 +89,7 @@
                     <el-icon class="more-icon" @click.stop><MoreFilled /></el-icon>
                     <template #dropdown>
                       <el-dropdown-menu>
+                        <el-dropdown-item command="addSubtask" :icon="Plus">添加子任务</el-dropdown-item>
                         <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
                         <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
                       </el-dropdown-menu>
@@ -182,8 +183,16 @@
             {{ formatDateTime(row.updateTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
+            <el-button
+              link
+              type="primary"
+              :icon="Plus"
+              @click="handleAddSubtask(row)"
+            >
+              子任务
+            </el-button>
             <el-button link type="primary" :icon="View" @click="handleView(row)">查看</el-button>
             <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
             <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
@@ -222,7 +231,7 @@
               <el-input v-model="formData.title" placeholder="请输入任务标题" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="12" v-if="!formData.parentId">
             <el-form-item label="所属项目" prop="projectId">
               <el-select v-model="formData.projectId" placeholder="请选择项目" style="width: 100%" @change="handleProjectChange">
                 <el-option
@@ -233,6 +242,33 @@
                 />
               </el-select>
             </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="formData.parentId">
+            <el-form-item label="父任务">
+              <el-input :value="parentTaskName" disabled />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" v-if="!formData.parentId">
+          <el-col :span="12">
+            <el-form-item label="所属迭代">
+              <el-select
+                v-model="formData.iterationId"
+                placeholder="可选择迭代（可选）"
+                clearable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="iter in projectIterations"
+                  :key="iter.id"
+                  :label="iter.name"
+                  :value="iter.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <!-- 占位 -->
           </el-col>
         </el-row>
         <el-form-item label="任务描述" prop="description">
@@ -292,9 +328,9 @@
         </el-row>
         <el-form-item v-if="formData.id" label="任务状态" prop="status">
           <el-radio-group v-model="formData.status">
-            <el-radio label="TODO">待办</el-radio>
-            <el-radio label="IN_PROGRESS">进行中</el-radio>
-            <el-radio label="DONE">已完成</el-radio>
+            <el-radio value="TODO">待办</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="DONE">已完成</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -322,6 +358,7 @@ import {
 } from '@element-plus/icons-vue'
 import { getTaskList, createTask, updateTask, updateTaskStatus, deleteTask } from '@/api/task'
 import { getProjectList, getProjectMembers } from '@/api/project'
+import { getIterationList } from '@/api/iteration'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getTaskStatusInfo, getTaskPriorityInfo, getTaskStatusOptions } from '@/utils/statusMapping'
 
@@ -361,16 +398,36 @@ const formData = reactive({
   priority: 'MEDIUM',
   planStartDate: '',
   planEndDate: '',
-  status: 'TODO'
+  status: 'TODO',
+  iterationId: undefined as number | undefined,  // 所属迭代（可选）
+  parentId: undefined as number | undefined      // 父任务ID（用于子任务）
 })
 
-// 表单规则
-const formRules: FormRules = {
-  title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }],
-  projectId: [{ required: true, message: '请选择所属项目', trigger: 'change' }]
-}
+// 表单规则（动态计算）
+const formRules = computed(() => {
+  const rules: FormRules = {
+    title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
+  }
+
+  // 只有在没有父任务时，才验证项目ID必填
+  if (!formData.parentId) {
+    rules.projectId = [{ required: true, message: '请选择所属项目', trigger: 'change' }]
+  }
+
+  return rules
+})
 
 const formRef = ref<FormInstance>()
+
+// 父任务名称（用于显示）
+const parentTaskName = computed(() => {
+  if (parentTaskInfo.value) {
+    return parentTaskInfo.value.title
+  }
+  if (!formData.parentId) return ''
+  const parentTask = taskList.value.find(t => t.id === formData.parentId)
+  return parentTask?.title || ''
+})
 
 // 项目列表
 const projectList = ref<any[]>([])
@@ -380,6 +437,12 @@ const userList = ref<UserInfo[]>([])
 
 // 项目成员列表（根据选择的项目动态加载）
 const projectMembers = ref<UserInfo[]>([])
+
+// 项目迭代列表（根据选择的项目动态加载）
+const projectIterations = ref<any[]>([])
+
+// 父任务信息（用于子任务创建）
+const parentTaskInfo = ref<TaskInfo | null>(null)
 
 // 拖拽相关
 const draggedTask = ref<TaskInfo | null>(null)
@@ -508,10 +571,27 @@ const fetchProjectMembers = async (projectId: number) => {
   }
 }
 
+// 获取项目迭代列表
+const fetchProjectIterations = async (projectId: number) => {
+  if (!projectId) {
+    projectIterations.value = []
+    return
+  }
+  try {
+    const res = await getIterationList({ projectId, pageNum: 1, pageSize: 100 })
+    projectIterations.value = res.list || []
+  } catch (error) {
+    console.error('获取迭代列表失败:', error)
+    projectIterations.value = []
+  }
+}
+
 // 监听项目选择变化
 const handleProjectChange = (projectId: number) => {
   formData.assigneeId = undefined
+  formData.iterationId = undefined  // 清空迭代选择
   fetchProjectMembers(projectId)
+  fetchProjectIterations(projectId)  // 加载迭代列表
 }
 
 // 新建任务
@@ -530,6 +610,17 @@ const handleView = (task: TaskInfo) => {
 const handleEdit = (task: TaskInfo) => {
   dialogTitle.value = '编辑任务'
   dialogVisible.value = true
+
+  // 如果有父任务，查找并保存父任务信息
+  if (task.parentId) {
+    const parent = taskList.value.find(t => t.id === task.parentId)
+    if (parent) {
+      parentTaskInfo.value = parent
+    }
+  } else {
+    parentTaskInfo.value = null
+  }
+
   Object.assign(formData, {
     id: task.id,
     title: task.title,
@@ -539,8 +630,16 @@ const handleEdit = (task: TaskInfo) => {
     priority: task.priority,
     planStartDate: task.planStartDate,
     planEndDate: task.planEndDate,
-    status: task.status
+    status: task.status,
+    iterationId: task.iterationId,  // 所属迭代
+    parentId: task.parentId         // 父任务
   })
+
+  // 加载项目成员和迭代列表
+  if (task.projectId) {
+    fetchProjectMembers(task.projectId)
+    fetchProjectIterations(task.projectId)
+  }
 }
 
 // 删除任务
@@ -568,7 +667,24 @@ const handleCommand = (command: string, task: TaskInfo) => {
     handleEdit(task)
   } else if (command === 'delete') {
     handleDelete(task)
+  } else if (command === 'addSubtask') {
+    handleAddSubtask(task)
   }
+}
+
+// 添加子任务
+const handleAddSubtask = (parentTask: TaskInfo) => {
+  dialogTitle.value = '添加子任务'
+  dialogVisible.value = true
+  resetForm()
+  // 保存父任务信息
+  parentTaskInfo.value = parentTask
+  // 预设项目、迭代和父任务（自动继承）
+  formData.projectId = parentTask.projectId
+  formData.iterationId = parentTask.iterationId
+  formData.parentId = parentTask.id
+  // 加载项目成员（用于选择负责人）
+  fetchProjectMembers(parentTask.projectId)
 }
 
 // 提交表单
@@ -585,11 +701,14 @@ const handleSubmit = async () => {
             id: formData.id,
             title: formData.title,
             description: formData.description,
+            projectId: formData.projectId!,  // 添加项目ID
             assigneeId: formData.assigneeId,
             priority: formData.priority,
             planStartDate: formData.planStartDate,
             planEndDate: formData.planEndDate,
-            status: formData.status
+            status: formData.status,
+            iterationId: formData.iterationId,
+            parentId: formData.parentId
           })
           ElMessage.success('更新成功')
         } else {
@@ -601,7 +720,9 @@ const handleSubmit = async () => {
             assigneeId: formData.assigneeId,
             priority: formData.priority,
             planStartDate: formData.planStartDate,
-            planEndDate: formData.planEndDate
+            planEndDate: formData.planEndDate,
+            iterationId: formData.iterationId,
+            parentId: formData.parentId
             // status 由后端默认设置为 TODO
           })
           ElMessage.success('创建成功')
@@ -628,6 +749,9 @@ const resetForm = () => {
   formData.planStartDate = ''
   formData.planEndDate = ''
   formData.status = 'TODO'
+  formData.iterationId = undefined  // 新增
+  formData.parentId = undefined     // 新增
+  parentTaskInfo.value = null       // 清空父任务信息
   formRef.value?.clearValidate()
 }
 
