@@ -24,11 +24,7 @@
           </el-menu-item>
           <el-menu-item index="/tasks">
             <el-icon><List /></el-icon>
-            <template #title>任务管理</template>
-          </el-menu-item>
-          <el-menu-item index="/iterations">
-            <el-icon><Refresh /></el-icon>
-            <template #title>迭代管理</template>
+            <template #title>任务中心</template>
           </el-menu-item>
           <el-sub-menu index="workhours">
             <template #title>

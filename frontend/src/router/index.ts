@@ -52,7 +52,7 @@ const routes: RouteRecordRaw[] = [
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/task/TaskList.vue'),
-        meta: { title: '任务管理', requiresAuth: true },
+        meta: { title: '任务中心', requiresAuth: true },
       },
       {
         path: 'tasks/:id',
@@ -61,13 +61,7 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '任务详情', requiresAuth: true },
       },
       {
-        path: 'iterations',
-        name: 'Iterations',
-        component: () => import('@/views/iteration/IterationList.vue'),
-        meta: { title: '迭代管理', requiresAuth: true },
-      },
-      {
-        path: 'iterations/:id',
+        path: 'projects/:projectId/iterations/:iterationId',
         name: 'IterationDetail',
         component: () => import('@/views/iteration/IterationDetail.vue'),
         meta: { title: '迭代详情', requiresAuth: true },

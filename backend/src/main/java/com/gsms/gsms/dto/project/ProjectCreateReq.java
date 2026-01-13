@@ -1,6 +1,7 @@
 package com.gsms.gsms.dto.project;
 
 import com.gsms.gsms.model.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -24,6 +25,10 @@ public class ProjectCreateReq {
     @Size(max = 50, message = "项目编码长度不能超过50个字符")
     @Schema(description = "项目编码", example = "GSMS")
     private String code;
+
+    @NotNull(message = "项目类型不能为空")
+    @Schema(description = "项目类型", example = "SCHEDULE")
+    private ProjectType projectType;
 
     @Schema(description = "项目描述", example = "企业级工时管理平台")
     private String description;
@@ -62,6 +67,14 @@ public class ProjectCreateReq {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public ProjectType getProjectType() {
+        return projectType;
+    }
+
+    public void setProjectType(ProjectType projectType) {
+        this.projectType = projectType;
     }
 
     public String getDescription() {

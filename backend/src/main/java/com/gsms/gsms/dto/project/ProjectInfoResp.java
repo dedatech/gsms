@@ -3,6 +3,7 @@ package com.gsms.gsms.dto.project;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.model.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -25,6 +26,9 @@ public class ProjectInfoResp {
 
     @Schema(description = "项目编码")
     private String code;
+
+    @Schema(description = "项目类型")
+    private ProjectType projectType;
 
     @Schema(description = "项目描述")
     private String description;
@@ -100,6 +104,14 @@ public class ProjectInfoResp {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public ProjectType getProjectType() {
+        return projectType;
+    }
+
+    public void setProjectType(ProjectType projectType) {
+        this.projectType = projectType;
     }
 
     public String getDescription() {
@@ -218,6 +230,7 @@ public class ProjectInfoResp {
         resp.setId(project.getId());
         resp.setName(project.getName());
         resp.setCode(project.getCode());
+        resp.setProjectType(project.getProjectType());
         resp.setDescription(project.getDescription());
         resp.setManagerId(project.getManagerId());
         resp.setStatus(project.getStatus());

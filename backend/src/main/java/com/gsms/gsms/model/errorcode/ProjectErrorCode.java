@@ -17,6 +17,11 @@ public enum ProjectErrorCode implements ErrorCode {
     PROJECT_STATUS_INVALID(3004, "项目状态无效"),
     PROJECT_MANAGER_INVALID(3005, "项目负责人无效"),
     PROJECT_DATE_INVALID(3006, "项目日期无效"),
+    PROJECT_TYPE_INVALID(3007, "项目类型无效"),
+
+    // ========== 任务-迭代关联验证 ==========
+    ITERATION_REQUIRED_FOR_LARGE_SCALE_PROJECT(3008, "中大型项目的任务必须关联到某个迭代"),
+    ITERATION_NOT_ALLOWED_FOR_SCHEDULE_PROJECT(3009, "常规型项目不支持迭代管理"),
     
     // ========== 操作失败（建议HTTP 500） ==========
     PROJECT_CREATE_FAILED(3901, "项目创建失败"),

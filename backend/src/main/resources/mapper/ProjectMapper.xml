@@ -6,6 +6,8 @@
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="code" property="code"/>
+        <result column="project_type" property="projectType"
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="description" property="description"/>
         <result column="manager_id" property="managerId"/>
         <result column="status" property="status"
@@ -22,7 +24,7 @@
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, name, code, description, manager_id, status, plan_start_date, plan_end_date, 
+        id, name, code, project_type, description, manager_id, status, plan_start_date, plan_end_date,
         actual_start_date, actual_end_date, create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
 
@@ -43,8 +45,8 @@
 
     <!-- 查询用户可访问的项目列表（基于项目成员表） -->
     <select id="selectAccessibleProjects" resultMap="ProjectResultMap">
-        SELECT DISTINCT p.id, p.name, p.code, p.description, p.manager_id, p.status, 
-               p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date, 
+        SELECT DISTINCT p.id, p.name, p.code, p.project_type, p.description, p.manager_id, p.status,
+               p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date,
                p.create_user_id, p.update_user_id, p.create_time, p.update_time, p.is_deleted
         FROM gsms_project p
         INNER JOIN gsms_project_member pm ON p.id = pm.project_id AND pm.is_deleted = 0
@@ -70,7 +72,7 @@
 
     <!-- 根据条件查询用户可访问的项目（基于项目成员表） -->
     <select id="selectAccessibleProjectsByCondition"  resultMap="ProjectResultMap">
-        SELECT DISTINCT p.id, p.name, p.code, p.description, p.manager_id, p.status,
+        SELECT DISTINCT p.id, p.name, p.code, p.project_type, p.description, p.manager_id, p.status,
                p.plan_start_date, p.plan_end_date, p.actual_start_date, p.actual_end_date,
                p.create_user_id, p.update_user_id, p.create_time, p.update_time, p.is_deleted
         FROM gsms_project p
@@ -97,8 +99,9 @@
     <!-- 插入项目 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.Project"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO gsms_project(name, code, description, manager_id, status, plan_start_date, plan_end_date, create_user_id, update_user_id)
-        VALUES(#{name}, #{code}, #{description}, #{managerId},
+        INSERT INTO gsms_project(name, code, project_type, description, manager_id, status, plan_start_date, plan_end_date, create_user_id, update_user_id)
+        VALUES(#{name}, #{code}, #{projectType, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
+               #{description}, #{managerId},
                #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler},
                #{planStartDate}, #{planEndDate}, #{createUserId}, #{updateUserId})
     </insert>

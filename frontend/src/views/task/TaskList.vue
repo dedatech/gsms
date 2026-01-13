@@ -251,10 +251,10 @@
         </el-row>
         <el-row :gutter="20" v-if="!formData.parentId">
           <el-col :span="12">
-            <el-form-item label="所属迭代">
+            <el-form-item label="所属迭代" v-if="projectType === 'LARGE_SCALE'">
               <el-select
                 v-model="formData.iterationId"
-                placeholder="可选择迭代（可选）"
+                placeholder="请选择迭代（必填）"
                 clearable
                 style="width: 100%"
               >
@@ -265,6 +265,10 @@
                   :value="iter.id"
                 />
               </el-select>
+              <div v-if="projectType === 'LARGE_SCALE'" class="form-tip">
+                <el-icon><WarningFilled /></el-icon>
+                <span>中大型项目的任务必须关联到某个迭代</span>
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -443,6 +447,17 @@ const projectIterations = ref<any[]>([])
 
 // 父任务信息（用于子任务创建）
 const parentTaskInfo = ref<TaskInfo | null>(null)
+
+// 计算当前选择的项目
+const currentProject = computed(() => {
+  if (!formData.projectId) return null
+  return projectList.value.find(p => p.id === formData.projectId)
+})
+
+// 计算项目类型（1: 常规型, 2: 中大型）
+const projectType = computed(() => {
+  return currentProject.value?.projectType || 'SCHEDULE'
+})
 
 // 拖拽相关
 const draggedTask = ref<TaskInfo | null>(null)
@@ -690,6 +705,12 @@ const handleAddSubtask = (parentTask: TaskInfo) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
+
+  // 自定义校验：中大型项目的任务必须选择迭代
+  if (projectType.value === 'LARGE_SCALE' && !formData.iterationId) {
+    ElMessage.warning('中大型项目的任务必须关联到某个迭代')
+    return
+  }
 
   await formRef.value.validate(async (valid) => {
     if (valid) {
@@ -995,5 +1016,15 @@ onMounted(() => {
 
 :deep(.el-empty) {
   padding: 40px 0;
+}
+
+/* 表单提示 */
+.form-tip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #e6a23c;
 }
 </style>

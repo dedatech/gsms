@@ -219,6 +219,48 @@
         <el-form-item label="项目编码" prop="code">
           <el-input v-model="formData.code" placeholder="请输入项目编码" />
         </el-form-item>
+        <el-form-item label="项目类型" prop="projectType" required>
+          <el-radio-group v-model="formData.projectType" class="project-type-group">
+            <el-radio value="SCHEDULE" class="project-type-radio">
+              <div class="project-type-option">
+                <div class="type-header">
+                  <el-icon :size="24" color="#409eff"><Calendar /></el-icon>
+                  <span class="type-title">常规型项目</span>
+                </div>
+                <div class="type-desc">适合简单项目，直接管理任务，无需迭代</div>
+                <div class="type-features">
+                  <el-tag size="small" type="info">简单直接</el-tag>
+                  <el-tag size="small" type="success">快速上手</el-tag>
+                </div>
+              </div>
+            </el-radio>
+            <el-radio value="LARGE_SCALE" class="project-type-radio">
+              <div class="project-type-option">
+                <div class="type-header">
+                  <el-icon :size="24" color="#67c23a"><FolderOpened /></el-icon>
+                  <span class="type-title">中大型项目</span>
+                </div>
+                <div class="type-desc">适合复杂项目，支持迭代管理（如 Sprint）</div>
+                <div class="type-features">
+                  <el-tag size="small" type="warning">迭代管理</el-tag>
+                  <el-tag size="small" type="danger">敏捷开发</el-tag>
+                </div>
+              </div>
+            </el-radio>
+          </el-radio-group>
+          <el-alert
+            type="info"
+            :closable="false"
+            style="margin-top: 12px"
+            show-icon
+          >
+            <template #title>
+              <span style="font-size: 12px">
+                💡 提示：项目类型创建后无法修改，请根据项目规模谨慎选择
+              </span>
+            </template>
+          </el-alert>
+        </el-form-item>
         <el-form-item label="项目描述" prop="description">
           <el-input
             v-model="formData.description"
@@ -406,6 +448,7 @@ const formData = reactive({
   id: undefined as number | undefined,
   name: '',
   code: '',
+  projectType: 'SCHEDULE',
   description: '',
   managerId: undefined as number | undefined,
   status: 'NOT_STARTED',
@@ -417,6 +460,7 @@ const formData = reactive({
 const formRules: FormRules = {
   name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
   code: [{ required: true, message: '请输入项目编码', trigger: 'blur' }],
+  projectType: [{ required: true, message: '请选择项目类型', trigger: 'change' }],
   managerId: [{ required: true, message: '请选择项目经理', trigger: 'change' }]
 }
 
@@ -544,6 +588,7 @@ const handleSubmit = async () => {
           await createProject({
             name: formData.name,
             code: formData.code,
+            projectType: formData.projectType,
             description: formData.description,
             managerId: formData.managerId!,
             status: formData.status,
@@ -568,6 +613,7 @@ const resetForm = () => {
   formData.id = undefined
   formData.name = ''
   formData.code = ''
+  formData.projectType = 'SCHEDULE'
   formData.description = ''
   formData.managerId = undefined
   formData.status = 'NOT_STARTED'
@@ -831,5 +877,94 @@ onMounted(() => {
 
 :deep(.el-empty) {
   padding: 60px 0;
+}
+
+/* 项目类型选择样式 */
+.project-type-group :deep(.el-radio-group) {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100%;
+}
+
+/* 直接针对 el-radio label 元素应用样式 */
+.project-type-group :deep(.el-radio) {
+  display: flex !important;
+  width: 100%;
+  margin-bottom: 20px !important;
+  margin-right: 0 !important;
+  border: 2px solid #dcdfe6 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  transition: all 0.3s;
+  background: #fff !important;
+  cursor: pointer;
+  align-items: flex-start;
+  height: auto !important;
+  line-height: normal !important;
+}
+
+/* 隐藏默认的 radio 圆点 */
+.project-type-group :deep(.el-radio__input) {
+  display: none !important;
+}
+
+/* 确保内部圆点也被隐藏 */
+.project-type-group :deep(.el-radio__inner) {
+  display: none !important;
+}
+
+.project-type-group :deep(.el-radio__original) {
+  display: none !important;
+}
+
+.project-type-group :deep(.el-radio__label) {
+  width: 100% !important;
+  padding: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* 悬停效果 */
+.project-type-group :deep(.el-radio:hover) {
+  border-color: #409eff !important;
+  background-color: #f0f7ff !important;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+/* 选中状态 */
+.project-type-group :deep(.el-radio.is-checked) {
+  border-color: #409eff !important;
+  background-color: #ecf5ff !important;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.3) !important;
+}
+
+.project-type-option {
+  width: 100%;
+}
+
+.type-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.type-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.type-desc {
+  color: #606266;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.type-features {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 </style>

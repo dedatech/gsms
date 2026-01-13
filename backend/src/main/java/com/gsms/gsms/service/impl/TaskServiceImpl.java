@@ -3,7 +3,9 @@ package com.gsms.gsms.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.model.enums.TaskStatus;
+import com.gsms.gsms.model.enums.ProjectType;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskCreateReq;
@@ -13,9 +15,11 @@ import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.model.enums.errorcode.TaskErrorCode;
+import com.gsms.gsms.model.enums.errorcode.ProjectErrorCode;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.TaskMapper;
+import com.gsms.gsms.repository.ProjectMapper;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.TaskService;
@@ -36,13 +40,16 @@ public class TaskServiceImpl implements TaskService {
     private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     private final TaskMapper taskMapper;
+    private final ProjectMapper projectMapper;
     private final ProjectMemberMapper projectMemberMapper;
     private final AuthService authService;
     private final CacheService cacheService;
 
-    public TaskServiceImpl(TaskMapper taskMapper, ProjectMemberMapper projectMemberMapper,
+    public TaskServiceImpl(TaskMapper taskMapper, ProjectMapper projectMapper,
+                           ProjectMemberMapper projectMemberMapper,
                            AuthService authService, CacheService cacheService) {
         this.taskMapper = taskMapper;
+        this.projectMapper = projectMapper;
         this.projectMemberMapper = projectMemberMapper;
         this.authService = authService;
         this.cacheService = cacheService;
@@ -115,6 +122,24 @@ public class TaskServiceImpl implements TaskService {
         // 先鉴权 - 检查项目访问权限
         Long currentUserId = UserContext.getCurrentUserId();
         authService.checkProjectAccess(currentUserId, task.getProjectId());
+
+        // 获取项目信息，校验项目类型和迭代关联
+        Project project = projectMapper.selectById(task.getProjectId());
+        if (project == null) {
+            throw new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND);
+        }
+
+        // 校验：中大型项目的任务必须关联迭代
+        if (project.getProjectType() == ProjectType.LARGE_SCALE
+            && task.getIterationId() == null) {
+            throw new BusinessException(ProjectErrorCode.ITERATION_REQUIRED_FOR_LARGE_SCALE_PROJECT);
+        }
+
+        // 校验：常规型项目的任务不能关联迭代
+        if (project.getProjectType() == ProjectType.SCHEDULE
+            && task.getIterationId() != null) {
+            throw new BusinessException(ProjectErrorCode.ITERATION_NOT_ALLOWED_FOR_SCHEDULE_PROJECT);
+        }
 
         // 校验任务负责人必须为项目成员（如果指定了负责人）
         if (task.getAssigneeId() != null) {

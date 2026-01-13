@@ -1,7 +1,9 @@
 package com.gsms.gsms.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.enums.ProjectStatus;
+import com.gsms.gsms.model.enums.ProjectType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -30,6 +32,13 @@ public class Project {
      */
     @Schema(description = "项目编码")
     private String code;
+
+    /**
+     * 项目类型
+     */
+    @Schema(description = "项目类型")
+    @TableField("project_type")
+    private ProjectType projectType = ProjectType.SCHEDULE; // 默认常规型
 
     /**
      * 项目描述
@@ -138,6 +147,14 @@ public class Project {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public ProjectType getProjectType() {
+        return projectType;
+    }
+
+    public void setProjectType(ProjectType projectType) {
+        this.projectType = projectType;
     }
 
     public String getDescription() {
