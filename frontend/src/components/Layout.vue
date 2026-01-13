@@ -34,6 +34,15 @@
             <el-menu-item index="/workhours/calendar">工时日历</el-menu-item>
             <el-menu-item index="/workhours/list">工时列表</el-menu-item>
           </el-sub-menu>
+          <el-sub-menu index="statistics">
+            <template #title>
+              <el-icon><DataAnalysis /></el-icon>
+              <span>统计分析</span>
+            </template>
+            <el-menu-item index="/statistics/project">项目工时统计</el-menu-item>
+            <el-menu-item index="/statistics/user">用户工时统计</el-menu-item>
+            <el-menu-item index="/statistics/trend">工时趋势分析</el-menu-item>
+          </el-sub-menu>
           <el-sub-menu index="system">
             <template #title>
               <el-icon><Operation /></el-icon>
@@ -113,6 +122,7 @@ import {
   List,
   Refresh,
   Clock,
+  DataAnalysis,
   Fold,
   Expand,
   ArrowDown,

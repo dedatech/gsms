@@ -49,6 +49,24 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '项目甘特图', requiresAuth: true },
       },
       {
+        path: 'statistics/project',
+        name: 'ProjectStatistics',
+        component: () => import('@/views/statistics/ProjectStatistics.vue'),
+        meta: { title: '项目工时统计', requiresAuth: true },
+      },
+      {
+        path: 'statistics/user',
+        name: 'UserStatistics',
+        component: () => import('@/views/statistics/UserStatistics.vue'),
+        meta: { title: '用户工时统计', requiresAuth: true },
+      },
+      {
+        path: 'statistics/trend',
+        name: 'TrendStatistics',
+        component: () => import('@/views/statistics/TrendStatistics.vue'),
+        meta: { title: '工时趋势分析', requiresAuth: true },
+      },
+      {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/task/TaskList.vue'),
