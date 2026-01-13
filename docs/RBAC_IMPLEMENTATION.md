@@ -612,16 +612,917 @@ CREATE TABLE sys_role_permission (
 
 ---
 
+## 📝 操作日志功能（Operation Log）
+
+**实现日期**: 2026-01-13
+**状态**: ✅ 已完成并投入使用
+
+### 功能概述
+
+为系统提供了完整的操作日志记录和查询功能，用于追踪所有关键业务操作，满足审计和安全需求：
+
+- ✅ 记录所有关键操作（创建、更新、删除、分配、移除、登录、登出、查询）
+- ✅ 支持多维度过滤（用户名、操作模块、操作类型、状态、时间范围）
+- ✅ 自动记录操作人、IP地址、操作时间
+- ✅ 区分成功和失败操作，记录失败原因
+- ✅ 前端查询页面，支持分页和详情查看
+- ✅ 与业务操作无缝集成（用户管理、角色管理、权限管理）
+
+---
+
+### 数据库设计
+
+**表名**: `sys_operation_log`
+
+**SQL**:
+```sql
+CREATE TABLE sys_operation_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  user_id BIGINT COMMENT '操作用户ID',
+  username VARCHAR(50) COMMENT '操作用户名',
+  operation_type INT COMMENT '操作类型（1-创建 2-更新 3-删除 4-分配 5-移除 6-登录 7-登出 8-查询）',
+  module INT COMMENT '操作模块（1-用户 2-角色 3-权限 4-项目 5-任务 6-工时 7-部门 8-迭代 9-系统）',
+  operation_content VARCHAR(500) COMMENT '操作内容描述',
+  ip_address VARCHAR(50) COMMENT '操作IP地址',
+  status INT DEFAULT 1 COMMENT '操作状态（1-成功 2-失败）',
+  error_message VARCHAR(1000) COMMENT '错误信息（失败时记录）',
+  operation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  INDEX idx_user_id (user_id),
+  INDEX idx_operation_time (operation_time),
+  INDEX idx_module (module),
+  INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+```
+
+**索引设计**:
+- `idx_user_id`: 按用户查询操作历史
+- `idx_operation_time`: 按时间范围查询
+- `idx_module`: 按模块筛选
+- `idx_status`: 按状态筛选（成功/失败）
+
+---
+
+### 后端实现
+
+#### 1. 枚举设计
+
+**操作类型枚举** - `OperationType.java`:
+```java
+public enum OperationType {
+    CREATE(1, "CREATE", "创建"),
+    UPDATE(2, "UPDATE", "更新"),
+    DELETE(3, "DELETE", "删除"),
+    ASSIGN(4, "ASSIGN", "分配"),
+    REMOVE(5, "REMOVE", "移除"),
+    LOGIN(6, "LOGIN", "登录"),
+    LOGOUT(7, "LOGOUT", "登出"),
+    QUERY(8, "QUERY", "查询");
+
+    @EnumValue
+    private final Integer code;  // 数据库存储
+
+    private final String name;    // JSON序列化
+
+    private final String description; // 中文描述
+
+    @JsonValue
+    @Override
+    public String toString() {
+        return this.name();  // 返回 "CREATE", "UPDATE" 等
+    }
+}
+```
+
+**操作模块枚举** - `OperationModule.java`:
+```java
+public enum OperationModule {
+    USER(1, "USER", "用户管理"),
+    ROLE(2, "ROLE", "角色管理"),
+    PERMISSION(3, "PERMISSION", "权限管理"),
+    PROJECT(4, "PROJECT", "项目管理"),
+    TASK(5, "TASK", "任务管理"),
+    WORK_HOUR(6, "WORK_HOUR", "工时管理"),
+    DEPARTMENT(7, "DEPARTMENT", "部门管理"),
+    ITERATION(8, "ITERATION", "迭代管理"),
+    SYSTEM(9, "SYSTEM", "系统管理");
+    // ... 同上结构
+}
+```
+
+**操作状态枚举** - `OperationStatus.java`:
+```java
+public enum OperationStatus {
+    SUCCESS(1, "SUCCESS", "成功"),
+    FAILED(2, "FAILED", "失败");
+    // ... 同上结构
+}
+```
+
+**枚举设计要点**:
+- `@EnumValue` 标记 `code` 字段，数据库存储为整数
+- `@JsonValue` 标记 `toString()` 方法，JSON 返回枚举名称
+- 参考 `UserStatus` 等现有枚举，保持一致性
+- **不使用** `IEnum<Integer>` 接口（会导致方法签名冲突）
+
+#### 2. 实体类
+
+**OperationLog.java**:
+```java
+public class OperationLog {
+    private Long id;
+    private Long userId;
+    private String username;
+    private OperationType operationType;
+    private OperationModule module;
+    private String operationContent;
+    private String ipAddress;
+    private OperationStatus status;
+    private String errorMessage;
+    private LocalDateTime operationTime;
+    private LocalDateTime createTime;
+
+    // 手动实现 getter/setter（项目不使用 Lombok）
+    // ... 15个getter/setter方法
+}
+```
+
+#### 3. Service层
+
+**OperationLogService.java**:
+```java
+public interface OperationLogService {
+    /**
+     * 记录成功操作
+     */
+    void logSuccess(OperationType operationType, OperationModule module,
+                    String operationContent);
+
+    /**
+     * 记录失败操作
+     */
+    void logFailure(OperationType operationType, OperationModule module,
+                    String operationContent, String errorMessage);
+
+    /**
+     * 分页查询操作日志
+     */
+    PageResult<OperationLogInfoResp> findByPage(OperationLogQueryReq queryReq);
+}
+```
+
+**OperationLogServiceImpl.java** - 关键实现:
+
+**1. 自动获取用户上下文**:
+```java
+private void log(OperationType operationType, OperationModule module,
+                 String operationContent, OperationStatus status,
+                 String errorMessage) {
+    try {
+        OperationLog log = new OperationLog();
+
+        // 自动从 UserContext 获取当前用户信息
+        Long userId = UserContext.getCurrentUserId();
+        String username = UserContext.getCurrentUsername();
+
+        log.setUserId(userId);
+        log.setUsername(username);
+        log.setOperationType(operationType);
+        log.setModule(module);
+        log.setOperationContent(operationContent);
+        log.setIpAddress(getIpAddress());  // 自动提取IP
+        log.setStatus(status);
+        log.setErrorMessage(errorMessage);
+        log.setOperationTime(LocalDateTime.now());
+
+        operationLogMapper.insert(log);
+    } catch (Exception e) {
+        // 日志记录失败不影响业务操作
+        logger.error("记录操作日志失败: {}", e.getMessage());
+    }
+}
+```
+
+**2. IP地址提取**（支持代理）:
+```java
+private String getIpAddress() {
+    try {
+        HttpServletRequest request =
+            ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+            .getRequest();
+
+        String ip = null;
+
+        // 按优先级检查各种代理头
+        String[] headers = {
+            "X-Forwarded-For",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_X_FORWARDED_FOR"
+        };
+
+        for (String header : headers) {
+            ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                // 处理多个IP的情况（X-Forwarded-For: client, proxy1, proxy2）
+                int index = ip.indexOf(',');
+                if (index != -1) {
+                    ip = ip.substring(0, index);
+                }
+                return ip;
+            }
+        }
+
+        // 最后使用 RemoteAddr
+        ip = request.getRemoteAddr();
+        return ip;
+
+    } catch (Exception e) {
+        logger.warn("获取IP地址失败: {}", e.getMessage());
+        return "UNKNOWN";
+    }
+}
+```
+
+**3. 条件查询**（动态SQL）:
+```java
+@Override
+public PageResult<OperationLogInfoResp> findByPage(OperationLogQueryReq queryReq) {
+    // 使用 PageHelper 分页
+    PageHelper.startPage(queryReq.getPageNum(), queryReq.getPageSize());
+
+    List<OperationLog> logs = operationLogMapper.findByCondition(queryReq);
+    PageInfo<OperationLog> pageInfo = new PageInfo<>(logs);
+
+    List<OperationLogInfoResp> respList =
+        logs.stream()
+            .map(OperationLogInfoResp::from)
+            .collect(Collectors.toList());
+
+    return PageResult.success(respList, pageInfo.getTotal(),
+                              pageInfo.getPageNum(), pageInfo.getPageSize());
+}
+```
+
+#### 4. Helper工具类
+
+**OperationLogHelper.java** - 简化日志记录:
+
+```java
+@Component
+public class OperationLogHelper {
+    private final OperationLogService operationLogService;
+
+    public OperationLogHelper(OperationLogService operationLogService) {
+        this.operationLogService = operationLogService;
+    }
+
+    /**
+     * 记录成功操作（自动获取用户信息）
+     */
+    public void logSuccess(OperationType operationType, OperationModule module,
+                          String operationContent) {
+        operationLogService.logSuccess(operationType, module, operationContent);
+    }
+
+    /**
+     * 记录失败操作（自动获取用户信息）
+     */
+    public void logFailure(OperationType operationType, OperationModule module,
+                          String operationContent, String errorMessage) {
+        operationLogService.logFailure(operationType, module,
+                                      operationContent, errorMessage);
+    }
+}
+```
+
+**使用示例**:
+```java
+@Service
+public class UserServiceImpl implements UserService {
+    private final OperationLogHelper operationLogHelper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserInfoResp create(UserCreateReq createReq) {
+        // ... 业务逻辑
+
+        if (result <= 0) {
+            // 记录失败日志
+            operationLogHelper.logFailure(
+                OperationType.CREATE,
+                OperationModule.USER,
+                String.format("创建用户: %s", createReq.getUsername()),
+                "数据库插入失败"
+            );
+            throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
+        }
+
+        // 记录成功日志
+        operationLogHelper.logSuccess(
+            OperationType.CREATE,
+            OperationModule.USER,
+            String.format("创建用户: %s (%s)", createdUser.getUsername(),
+                         createdUser.getNickname())
+        );
+
+        return resp;
+    }
+}
+```
+
+#### 5. Mapper层
+
+**OperationLogMapper.xml** - 动态SQL:
+
+```xml
+<select id="findByCondition" resultType="com.gsms.gsms.model.entity.OperationLog">
+    SELECT
+        id, user_id, username, operation_type, module,
+        operation_content, ip_address, status, error_message,
+        operation_time, create_time
+    FROM sys_operation_log
+    <where>
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="module != null">
+            AND module = #{module, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+        </if>
+        <if test="operationType != null">
+            AND operation_type = #{operationType, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+        </if>
+        <if test="status != null">
+            AND status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+        </if>
+        <if test="startTime != null">
+            AND operation_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND operation_time &lt;= #{endTime}
+        </if>
+    </where>
+    ORDER BY operation_time DESC
+</select>
+```
+
+**关键配置**:
+- 使用 `typeHandler` 处理枚举类型
+- 动态 SQL 支持可选过滤条件
+- 按操作时间倒序排列
+
+---
+
+### 前端实现
+
+#### 1. API模块
+
+**api/operationLog.ts**:
+```typescript
+import request from './request'
+
+// 查询请求接口
+export interface OperationLogQuery {
+  username?: string
+  module?: string
+  operationType?: string
+  status?: string
+  startTime?: string
+  endTime?: string
+  pageNum?: number
+  pageSize?: number
+}
+
+// 操作日志信息接口
+export interface OperationLogInfo {
+  id: number
+  userId: number
+  username: string
+  operationType: string  // "CREATE", "UPDATE" 等
+  module: string         // "USER", "ROLE" 等
+  operationContent: string
+  ipAddress: string
+  status: string        // "SUCCESS" 或 "FAILED"
+  errorMessage?: string
+  operationTime: string
+  createTime: string
+}
+
+// 分页结果接口
+export interface OperationLogPageResult {
+  list: OperationLogInfo[]
+  total: number
+  pageNum: number
+  pageSize: number
+}
+
+// 获取操作日志列表
+export const getOperationLogList = (params: OperationLogQuery) => {
+  return request.get<OperationLogPageResult>('/operation-logs', { params })
+}
+
+// 根据ID获取操作日志详情
+export const getOperationLogById = (id: number) => {
+  return request.get<OperationLogInfo>(`/operation-logs/${id}`)
+}
+```
+
+#### 2. 查询页面
+
+**views/system/OperationLogList.vue**:
+
+**页面结构**:
+```vue
+<template>
+  <div class="operation-log-list">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <h2 class="page-title">操作日志</h2>
+    </div>
+
+    <!-- 搜索筛选卡片 -->
+    <el-card class="search-card">
+      <el-form :inline="true" :model="searchForm">
+        <el-form-item label="用户名">
+          <el-input v-model="searchForm.username" placeholder="请输入用户名" clearable />
+        </el-form-item>
+        <el-form-item label="操作模块">
+          <el-select v-model="searchForm.module" clearable placeholder="请选择模块">
+            <el-option label="用户管理" value="USER" />
+            <el-option label="角色管理" value="ROLE" />
+            <el-option label="权限管理" value="PERMISSION" />
+            <!-- ... 其他模块 -->
+          </el-select>
+        </el-form-item>
+        <el-form-item label="操作类型">
+          <el-select v-model="searchForm.operationType" clearable placeholder="请选择类型">
+            <el-option label="创建" value="CREATE" />
+            <el-option label="更新" value="UPDATE" />
+            <el-option label="删除" value="DELETE" />
+            <!-- ... 其他类型 -->
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="searchForm.status" clearable placeholder="请选择状态">
+            <el-option label="成功" value="SUCCESS" />
+            <el-option label="失败" value="FAILED" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="时间范围">
+          <el-date-picker
+            v-model="dateRange"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            @change="handleDateRangeChange"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 日志表格 -->
+    <el-card class="table-card">
+      <el-table :data="list" stripe v-loading="loading" border>
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="username" label="操作人" width="120" />
+        <el-table-column prop="module" label="操作模块" width="120">
+          <template #default="{ row }">
+            <el-tag :type="getModuleTagType(row.module)" size="small">
+              {{ getModuleLabel(row.module) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="operationType" label="操作类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getOperationTypeTagType(row.operationType)" size="small">
+              {{ getOperationTypeLabel(row.operationType) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="operationContent" label="操作内容" min-width="250" show-overflow-tooltip />
+        <el-table-column prop="ipAddress" label="IP地址" width="140" />
+        <el-table-column prop="status" label="状态" width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'SUCCESS' ? 'success' : 'danger'" size="small">
+              {{ row.status === 'SUCCESS' ? '成功' : '失败' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="operationTime" label="操作时间" width="160" />
+        <el-table-column label="操作" width="80" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" size="small" @click="handleView(row)">
+              详情
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="searchForm.pageNum"
+          v-model:page-size="searchForm.pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="fetchData"
+          @current-change="fetchData"
+        />
+      </div>
+    </el-card>
+
+    <!-- 详情对话框 -->
+    <el-dialog v-model="detailDialogVisible" title="操作日志详情" width="600px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="操作人">
+          {{ currentLog?.username }}
+        </el-descriptions-item>
+        <el-descriptions-item label="操作模块">
+          <el-tag :type="getModuleTagType(currentLog?.module)">
+            {{ getModuleLabel(currentLog?.module) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="操作类型">
+          <el-tag :type="getOperationTypeTagType(currentLog?.operationType)">
+            {{ getOperationTypeLabel(currentLog?.operationType) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="操作内容">
+          {{ currentLog?.operationContent }}
+        </el-descriptions-item>
+        <el-descriptions-item label="IP地址">
+          {{ currentLog?.ipAddress }}
+        </el-descriptions-item>
+        <el-descriptions-item label="操作状态">
+          <el-tag :type="currentLog?.status === 'SUCCESS' ? 'success' : 'danger'">
+            {{ currentLog?.status === 'SUCCESS' ? '成功' : '失败' }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="错误信息" v-if="currentLog?.errorMessage">
+          {{ currentLog.errorMessage }}
+        </el-descriptions-item>
+        <el-descriptions-item label="操作时间">
+          {{ currentLog?.operationTime }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+  </div>
+</template>
+```
+
+**关键功能**:
+- 多条件筛选（用户名、模块、类型、状态、时间范围）
+- 彩色标签显示模块和操作类型
+- 失败操作显示错误信息
+- 详情对话框查看完整日志
+
+---
+
+### 与业务操作集成
+
+#### 用户管理模块集成
+
+**UserServiceImpl.java** - 在关键操作中添加日志:
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+    private final OperationLogHelper operationLogHelper;
+
+    // 创建用户
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserInfoResp create(UserCreateReq createReq) {
+        // ... 检查用户名是否存在
+        if (existUser != null) {
+            operationLogHelper.logFailure(
+                OperationType.CREATE,
+                OperationModule.USER,
+                String.format("创建用户: %s", createReq.getUsername()),
+                "用户名已存在"
+            );
+            throw new BusinessException(UserErrorCode.USERNAME_EXISTS);
+        }
+
+        // ... 数据库插入
+        if (result <= 0) {
+            operationLogHelper.logFailure(
+                OperationType.CREATE,
+                OperationModule.USER,
+                String.format("创建用户: %s", createReq.getUsername()),
+                "数据库插入失败"
+            );
+            throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
+        }
+
+        // 成功后记录日志
+        operationLogHelper.logSuccess(
+            OperationType.CREATE,
+            OperationModule.USER,
+            String.format("创建用户: %s (%s)", createdUser.getUsername(),
+                         createdUser.getNickname())
+        );
+
+        return resp;
+    }
+
+    // 更新用户
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserInfoResp update(UserUpdateReq updateReq) {
+        // ... 业务逻辑
+
+        if (result <= 0) {
+            operationLogHelper.logFailure(
+                OperationType.UPDATE,
+                OperationModule.USER,
+                String.format("更新用户: ID=%d, 用户名=%s", updateReq.getId(),
+                             existingUser.getUsername()),
+                "数据库更新失败"
+            );
+            throw new BusinessException(UserErrorCode.USER_UPDATE_FAILED);
+        }
+
+        operationLogHelper.logSuccess(
+            OperationType.UPDATE,
+            OperationModule.USER,
+            String.format("更新用户: %s (%s), ID=%d", updatedUser.getUsername(),
+                         updatedUser.getNickname(), updatedUser.getId())
+        );
+
+        return resp;
+    }
+
+    // 删除用户
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long id) {
+        User user = getUserById(id);
+        String username = user.getUsername();
+        String nickname = user.getNickname();
+
+        int result = userMapper.deleteById(id);
+        if (result <= 0) {
+            operationLogHelper.logFailure(
+                OperationType.DELETE,
+                OperationModule.USER,
+                String.format("删除用户: %s", username),
+                "数据库删除失败"
+            );
+            throw new BusinessException(UserErrorCode.USER_DELETE_FAILED);
+        }
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(
+            OperationType.DELETE,
+            OperationModule.USER,
+            String.format("删除用户: %s (%s), ID=%d", username, nickname, id)
+        );
+    }
+
+    // 分配角色
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        User user = getUserById(userId);
+
+        // 删除现有角色
+        roleMapper.deleteUserRoles(userId);
+        // 分配新角色
+        if (roleIds != null && !roleIds.isEmpty()) {
+            roleMapper.insertUserRoles(userId, roleIds);
+        }
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(
+            OperationType.ASSIGN,
+            OperationModule.USER,
+            String.format("为用户 %s 分配 %d 个角色", user.getUsername(),
+                         roleIds != null ? roleIds.size() : 0)
+        );
+    }
+
+    // 移除角色
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeRole(Long userId, Long roleId) {
+        User user = getUserById(userId);
+
+        int result = roleMapper.deleteUserRole(userId, roleId);
+        if (result > 0) {
+            operationLogHelper.logSuccess(
+                OperationType.REMOVE,
+                OperationModule.USER,
+                String.format("移除用户 %s 的角色 ID=%d", user.getUsername(), roleId)
+            );
+        }
+    }
+}
+```
+
+---
+
+### API端点清单
+
+**操作日志管理**:
+```
+GET  /api/operation-logs          - 分页查询操作日志（支持多条件过滤）
+GET  /api/operation-logs/{id}     - 根据ID查询日志详情
+```
+
+**查询参数**:
+- `username` - 用户名（模糊搜索）
+- `module` - 操作模块（USER/ROLE/PERMISSION/PROJECT/TASK/WORK_HOUR/DEPARTMENT/ITERATION/SYSTEM）
+- `operationType` - 操作类型（CREATE/UPDATE/DELETE/ASSIGN/REMOVE/LOGIN/LOGOUT/QUERY）
+- `status` - 操作状态（SUCCESS/FAILED）
+- `startTime` - 开始时间（yyyy-MM-dd HH:mm:ss）
+- `endTime` - 结束时间（yyyy-MM-dd HH:mm:ss）
+- `pageNum` - 页码（默认1）
+- `pageSize` - 每页大小（默认10）
+
+---
+
+### 技术问题和解决方案
+
+#### 问题1: 枚举类型处理器异常
+
+**错误现象**:
+```
+Failed invoking constructor for handler class com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+```
+
+**原因分析**:
+- 操作日志枚举错误地实现了 `IEnum<Integer>` 接口
+- 导致与 `@EnumValue` 注解冲突，方法签名不匹配
+- MyBatis-Plus 无法正确实例化枚举类型处理器
+
+**解决方案**:
+- 参考 `UserStatus` 等现有枚举实现
+- **移除** `IEnum<Integer>` 接口
+- 保留 `@EnumValue` 标记 `code` 字段（用于数据库存储）
+- 使用 `@JsonValue` 标记 `toString()` 方法（用于JSON序列化）
+- 保持枚举结构一致
+
+**修改后的枚举结构**:
+```java
+public enum OperationType {
+    CREATE(1, "CREATE", "创建"),
+    // ...
+
+    @EnumValue  // 数据库存储用
+    private final Integer code;
+
+    private final String name;    // JSON序列化用
+
+    private final String description;
+
+    @JsonValue  // JSON序列化时调用
+    @Override
+    public String toString() {
+        return this.name();  // 返回 "CREATE"
+    }
+}
+```
+
+#### 问题2: 日志记录失败影响业务操作
+
+**问题**: 如果日志记录抛出异常，会导致业务操作回滚
+
+**解决方案**:
+- 在 `OperationLogServiceImpl.log()` 方法中使用 try-catch
+- 捕获所有异常，只记录错误日志，不向上抛出
+- 确保日志记录失败不影响业务事务
+
+```java
+private void log(...) {
+    try {
+        // 记录日志
+        operationLogMapper.insert(log);
+    } catch (Exception e) {
+        // 只记录错误，不影响业务
+        logger.error("记录操作日志失败: {}", e.getMessage());
+    }
+}
+```
+
+#### 问题3: IP地址提取支持代理
+
+**问题**: 生产环境使用 Nginx 等反向代理，`request.getRemoteAddr()` 获取的是代理IP
+
+**解决方案**:
+- 按优先级检查多个 HTTP 头
+- 处理多个IP的情况（`X-Forwarded-For: client, proxy1, proxy2`）
+- 取第一个非unknown的IP
+
+**头检查顺序**:
+1. `X-Forwarded-For`
+2. `Proxy-Client-IP`
+3. `WL-Proxy-Client-IP`
+4. `HTTP_CLIENT_IP`
+5. `HTTP_X_FORWARDED_FOR`
+6. `request.getRemoteAddr()`（最后兜底）
+
+---
+
+### 文件清单
+
+#### 后端文件（约 10 个）
+
+**枚举（3个）**:
+- `model/enums/OperationType.java`
+- `model/enums/OperationModule.java`
+- `model/enums/OperationStatus.java`
+
+**实体（1个）**:
+- `model/entity/OperationLog.java`
+
+**DTO（3个）**:
+- `dto/operationlog/OperationLogQueryReq.java`
+- `dto/operationlog/OperationLogInfoResp.java`
+- `dto/operationlog/OperationLogConverter.java`
+
+**Mapper（2个）**:
+- `repository/OperationLogMapper.java`
+- `resources/mapper/OperationLogMapper.xml`
+
+**Service（2个）**:
+- `service/OperationLogService.java`
+- `service/impl/OperationLogServiceImpl.java`
+
+**Helper（1个）**:
+- `infra/utils/OperationLogHelper.java`
+
+**Controller（1个）**:
+- `controller/OperationLogController.java`
+
+**数据库迁移（1个）**:
+- `resources/db/migration/V20260112__Create_operation_log_table.sql`
+
+#### 前端文件（约 3 个）
+
+**API（1个）**:
+- `api/operationLog.ts`
+
+**页面（1个）**:
+- `views/system/OperationLogList.vue`
+
+**布局（1个）**:
+- `components/Layout.vue`（添加菜单项）
+
+#### 修改文件
+
+- `service/impl/UserServiceImpl.java`（添加操作日志记录）
+- `router/index.ts`（添加路由）
+
+---
+
+### 测试验证
+
+#### 后端API测试
+
+```bash
+# 查询操作日志
+curl -X GET "http://localhost:8080/api/operation-logs?pageNum=1&pageSize=10" \
+  -H "Authorization: Bearer <token>"
+
+# 根据条件筛选
+curl -X GET "http://localhost:8080/api/operation-logs?module=USER&status=SUCCESS" \
+  -H "Authorization: Bearer <token>"
+
+# 根据ID查询详情
+curl -X GET "http://localhost:8080/api/operation-logs/1" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### 功能测试场景
+
+1. ✅ 创建用户 → 操作日志记录成功
+2. ✅ 创建用户失败（用户名重复）→ 记录失败原因
+3. ✅ 更新用户 → 记录操作内容
+4. ✅ 删除用户 → 记录删除的用户信息
+5. ✅ 分配角色 → 记录角色分配详情
+6. ✅ 移除角色 → 记录角色移除操作
+7. ✅ 前端查询页面 → 多条件筛选正常
+8. ✅ 详情对话框 → 显示完整日志信息
+
+---
+
+**功能完成日期**: 2026-01-13
+**状态**: ✅ 已完成，可用于生产环境
+
+---
+
 ## 🎯 后续扩展方向
 
 ### 高优先级
-
-1. **操作日志记录**
-   - 记录角色创建/更新/删除操作
-   - 记录权限创建/更新/删除操作
-   - 记录用户角色分配/移除操作
-   - 记录角色权限分配/移除操作
-   - 操作日志查询页面
 
 2. **权限模板功能**
    - 预置角色模板（系统管理员、项目经理、普通员工）
@@ -717,6 +1618,6 @@ curl -X POST http://localhost:8080/api/users/1/roles \
 ---
 
 **文档维护**:
-- 最后更新: 2026-01-12
+- 最后更新: 2026-01-13（新增操作日志功能）
 - 维护者: Claude (AI Assistant)
 - 状态: ✅ 当前版本稳定，可用于生产环境

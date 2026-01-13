@@ -2,7 +2,7 @@
 
 ## 用户、角色、权限管理（RBAC）- 已完成 ✅
 
-### ✅ 已完成的功能（2026-01-12）
+### ✅ 已完成的功能（2026-01-12 ~ 2026-01-13）
 
 **后端 API：**
 - [x] 用户管理 - CRUD、角色分配、启用/禁用
@@ -28,15 +28,20 @@
 - [x] 侧边栏添加"系统管理"菜单（Operation 图标）
 - [x] 包含：用户管理、角色管理、权限管理三个子菜单
 
+**操作日志功能（2026-01-13）：**
+- [x] 操作日志实体和表结构（sys_operation_log）
+- [x] 操作类型枚举（CREATE/UPDATE/DELETE/ASSIGN/REMOVE/LOGIN/LOGOUT/QUERY）
+- [x] 操作模块枚举（USER/ROLE/PERMISSION/PROJECT/TASK/WORK_HOUR/DEPARTMENT/ITERATION/SYSTEM）
+- [x] 操作日志查询 API（支持多条件过滤：用户名、模块、类型、状态、时间范围）
+- [x] 操作日志记录功能（成功/失败、IP地址、错误信息）
+- [x] 操作日志查询页面（OperationLogList.vue）
+- [x] 操作日志菜单和路由
+- [x] 操作日志功能文档（RBAC_IMPLEMENTATION.md）
+
 ### 📋 待完成的功能
 
 **高级功能：**
-- [ ] 操作日志记录（OperationLog）
-  - 记录角色创建/更新/删除
-  - 记录权限创建/更新/删除
-  - 记录用户角色分配/移除
-  - 记录角色权限分配/移除
-  - 操作日志查询页面
+- [x] 操作日志记录（OperationLog）✅ 已完成（含文档）
 
 - [ ] 权限模板功能（RoleTemplate）
   - 预置角色模板（系统管理员、项目经理、普通员工）

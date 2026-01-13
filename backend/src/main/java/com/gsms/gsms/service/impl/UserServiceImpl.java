@@ -21,6 +21,9 @@ import com.gsms.gsms.repository.RoleMapper;
 import com.gsms.gsms.repository.PermissionMapper;
 import com.gsms.gsms.service.UserService;
 import com.gsms.gsms.service.CacheService;
+import com.gsms.gsms.infra.utils.OperationLogHelper;
+import com.gsms.gsms.model.enums.OperationModule;
+import com.gsms.gsms.model.enums.OperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -42,14 +45,17 @@ public class UserServiceImpl implements UserService {
     private final CacheService cacheService;
     private final RoleMapper roleMapper;
     private final PermissionMapper permissionMapper;
+    private final OperationLogHelper operationLogHelper;
 
     public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper, CacheService cacheService,
-                             RoleMapper roleMapper, PermissionMapper permissionMapper) {
+                             RoleMapper roleMapper, PermissionMapper permissionMapper,
+                             OperationLogHelper operationLogHelper) {
         this.userMapper = userMapper;
         this.departmentMapper = departmentMapper;
         this.cacheService = cacheService;
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
+        this.operationLogHelper = operationLogHelper;
     }
 
     @Override
@@ -111,25 +117,25 @@ public class UserServiceImpl implements UserService {
         // 检查用户名是否已存在
         User existUser = userMapper.selectByUsername(user.getUsername());
         if (existUser != null) {
+            operationLogHelper.logFailure(OperationType.CREATE, OperationModule.USER,
+                    String.format("创建用户: %s", createReq.getUsername()), "用户名已存在");
             throw new BusinessException(UserErrorCode.USERNAME_EXISTS);
         }
 
-        // 密码加密
-        user.setPassword(PasswordUtil.encrypt(user.getPassword()));
-
-        // 设置审计字段
-
-        user.setCreateUserId(currentUserId != null ? currentUserId : 1L);
-        user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
-
         int result = userMapper.insert(user);
         if (result <= 0) {
+            operationLogHelper.logFailure(OperationType.CREATE, OperationModule.USER,
+                    String.format("创建用户: %s", createReq.getUsername()), "数据库插入失败");
             throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
         }
 
         // 重新查询获取完整数据（包含 createTime、updateTime 等数据库默认值）
         User createdUser = userMapper.selectById(user.getId());
         cacheService.putUser(createdUser);
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.CREATE, OperationModule.USER,
+                String.format("创建用户: %s (%s)", createdUser.getUsername(), createdUser.getNickname()));
 
         logger.info("用户创建成功: {}", user.getUsername());
         UserInfoResp resp = UserInfoResp.from(createdUser);
@@ -143,14 +149,13 @@ public class UserServiceImpl implements UserService {
         logger.info("更新用户: {}", updateReq.getId());
 
         // 检查用户是否存在
-        getUserById(updateReq.getId());
+        User existingUser = getUserById(updateReq.getId());
 
         // DTO转Entity
         User user = UserConverter.toUser(updateReq);
 
         // 如果密码为空，不更新密码
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            User existingUser = getUserById(updateReq.getId());
             user.setPassword(existingUser.getPassword());
         } else {
             // 新密码需要加密
@@ -163,12 +168,20 @@ public class UserServiceImpl implements UserService {
 
         int result = userMapper.update(user);
         if (result <= 0) {
+            operationLogHelper.logFailure(OperationType.UPDATE, OperationModule.USER,
+                    String.format("更新用户: ID=%d, 用户名=%s", updateReq.getId(), existingUser.getUsername()),
+                    "数据库更新失败");
             throw new BusinessException(UserErrorCode.USER_UPDATE_FAILED);
         }
 
         // 更新缓存：重新查询获取完整数据
         User updatedUser = userMapper.selectById(user.getId());
         cacheService.putUser(updatedUser);
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.UPDATE, OperationModule.USER,
+                String.format("更新用户: %s (%s), ID=%d", updatedUser.getUsername(),
+                        updatedUser.getNickname(), updatedUser.getId()));
 
         logger.info("用户更新成功: {}", user.getId());
         UserInfoResp resp = UserInfoResp.from(updatedUser);
@@ -181,16 +194,24 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         logger.info("删除用户: {}", id);
 
-        // 检查用户是否存在
-        getUserById(id);
+        // 获取用户信息用于日志记录
+        User user = getUserById(id);
+        String username = user.getUsername();
+        String nickname = user.getNickname();
 
         int result = userMapper.deleteById(id);
         if (result <= 0) {
+            operationLogHelper.logFailure(OperationType.DELETE, OperationModule.USER,
+                    String.format("删除用户: %s", username), "数据库删除失败");
             throw new BusinessException(UserErrorCode.USER_DELETE_FAILED);
         }
 
         // 从缓存中移除
         cacheService.removeUser(id);
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.DELETE, OperationModule.USER,
+                String.format("删除用户: %s (%s), ID=%d", username, nickname, id));
 
         logger.info("用户删除成功: {}", id);
     }
@@ -313,15 +334,21 @@ public class UserServiceImpl implements UserService {
     public void assignRoles(Long userId, List<Long> roleIds) {
         logger.info("为用户分配角色: userId={}, roleIds={}", userId, roleIds);
         // 检查用户是否存在
-        getUserById(userId);
+        User user = getUserById(userId);
 
         // 删除用户现有的所有角色
         roleMapper.deleteUserRoles(userId);
 
         // 分配新的角色
+        int roleCount = 0;
         if (roleIds != null && !roleIds.isEmpty()) {
             roleMapper.insertUserRoles(userId, roleIds);
+            roleCount = roleIds.size();
         }
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.ASSIGN, OperationModule.USER,
+                String.format("为用户 %s 分配 %d 个角色", user.getUsername(), roleCount));
 
         logger.info("用户角色分配成功: userId={}", userId);
     }
@@ -331,11 +358,15 @@ public class UserServiceImpl implements UserService {
     public void removeRole(Long userId, Long roleId) {
         logger.info("移除用户角色: userId={}, roleId={}", userId, roleId);
         // 检查用户是否存在
-        getUserById(userId);
+        User user = getUserById(userId);
 
         int result = roleMapper.deleteUserRole(userId, roleId);
         if (result <= 0) {
             logger.warn("移除用户角色失败: userId={}, roleId={}", userId, roleId);
+        } else {
+            // 记录操作日志
+            operationLogHelper.logSuccess(OperationType.REMOVE, OperationModule.USER,
+                    String.format("移除用户 %s 的角色 ID=%d", user.getUsername(), roleId));
         }
 
         logger.info("用户角色移除成功: userId={}, roleId={}", userId, roleId);

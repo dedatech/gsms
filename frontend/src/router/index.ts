@@ -102,6 +102,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/system/PermissionList.vue'),
         meta: { title: '权限管理', requiresAuth: true },
       },
+      {
+        path: 'system/operation-logs',
+        name: 'OperationLogs',
+        component: () => import('@/views/system/OperationLogList.vue'),
+        meta: { title: '操作日志', requiresAuth: true },
+      },
     ],
   },
   {
