@@ -96,6 +96,82 @@
         </div>
       </el-tab-pane>
 
+      <!-- 迭代管理标签 - 仅中大型项目显示 -->
+      <el-tab-pane v-if="project?.projectType === 'LARGE_SCALE'" name="iterations">
+        <template #label>
+          <span>
+            <el-icon><FolderOpened /></el-icon>
+            迭代管理
+            <el-badge :value="iterations.length" class="tab-badge" />
+          </span>
+        </template>
+        <div class="tab-content">
+          <div class="content-header">
+            <div class="header-title">
+              <h3>迭代列表</h3>
+              <span class="subtitle">共 {{ iterations.length }} 个迭代</span>
+            </div>
+            <el-button type="primary" :icon="Plus" @click="handleCreateIteration">
+              新建迭代
+            </el-button>
+          </div>
+
+          <!-- 迭代统计 -->
+          <div class="task-stats">
+            <div class="stat-item">
+              <div class="stat-label">全部</div>
+              <div class="stat-value">{{ iterations.length }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">未开始</div>
+              <div class="stat-value todo">{{ iterationStats.notStarted }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">进行中</div>
+              <div class="stat-value inProgress">{{ iterationStats.inProgress }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">已完成</div>
+              <div class="stat-value done">{{ iterationStats.completed }}</div>
+            </div>
+          </div>
+
+          <!-- 迭代列表 -->
+          <el-table :data="iterations" stripe style="width: 100%">
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="name" label="迭代名称" min-width="200">
+              <template #default="{ row }">
+                <el-link type="primary" @click="handleViewIteration(row)">{{ row.name }}</el-link>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="{ row }">
+                <el-tag :type="getIterationStatusType(row.status)" size="small">
+                  {{ getIterationStatusText(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="planStartDate" label="开始日期" width="110" />
+            <el-table-column prop="planEndDate" label="结束日期" width="110" />
+            <el-table-column prop="taskCount" label="任务数" width="80">
+              <template #default="{ row }">
+                {{ row.taskCount || 0 }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="createTime" label="创建时间" width="160" />
+            <el-table-column label="操作" width="150" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" :icon="View" @click="handleViewIteration(row)">查看</el-button>
+                <el-button link type="primary" :icon="Edit" @click="handleEditIteration(row)">编辑</el-button>
+                <el-button link type="danger" :icon="Delete" @click="handleDeleteIteration(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <el-empty v-if="iterations.length === 0" description="暂无迭代，点击右上角创建" :image-size="100" />
+        </div>
+      </el-tab-pane>
+
       <!-- 项目任务标签 -->
       <el-tab-pane name="tasks">
         <template #label>
@@ -362,6 +438,64 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 迭代对话框 -->
+    <el-dialog
+      v-model="iterationDialogVisible"
+      :title="iterationDialogTitle"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="iterationFormRef" :model="iterationFormData" :rules="iterationFormRules" label-width="100px">
+        <el-form-item label="迭代名称" prop="name">
+          <el-input
+            v-model="iterationFormData.name"
+            placeholder="请输入迭代名称"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="迭代描述">
+          <el-input
+            v-model="iterationFormData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入迭代描述"
+          />
+        </el-form-item>
+        <el-form-item label="迭代状态" prop="status">
+          <el-radio-group v-model="iterationFormData.status">
+            <el-radio value="NOT_STARTED">未开始</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="COMPLETED">已完成</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="计划开始时间">
+          <el-date-picker
+            v-model="iterationFormData.planStartDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="计划结束时间">
+          <el-date-picker
+            v-model="iterationFormData.planEndDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="iterationDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleIterationSubmit" :loading="iterationSubmitLoading">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -378,12 +512,14 @@ import {
   List,
   Plus,
   View,
-  Grid
+  Grid,
+  FolderOpened
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
 import { getTaskList, createTask, updateTask, deleteTask } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getProjectStatusInfo } from '@/utils/statusMapping'
+import { getIterationList, createIteration, updateIteration, deleteIteration, type IterationInfo } from '@/api/iteration'
 import ProjectGantt from '@/components/ProjectGantt.vue'
 
 const route = useRoute()
@@ -421,6 +557,18 @@ const taskStats = computed(() => {
     if (task.status === 'TODO' || task.status === null) stats.todo++
     else if (task.status === 'IN_PROGRESS') stats.inProgress++
     else if (task.status === 'DONE') stats.done++
+  })
+  return stats
+})
+
+// 迭代列表（仅中大型项目使用）
+const iterations = ref<IterationInfo[]>([])
+const iterationStats = computed(() => {
+  const stats = { notStarted: 0, inProgress: 0, completed: 0 }
+  iterations.value.forEach(iter => {
+    if (iter.status === 'NOT_STARTED') stats.notStarted++
+    else if (iter.status === 'IN_PROGRESS') stats.inProgress++
+    else if (iter.status === 'COMPLETED') stats.completed++
   })
   return stats
 })
@@ -469,11 +617,33 @@ const taskFormRules: FormRules = {
   title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
 }
 
+// 迭代对话框
+const iterationDialogVisible = ref(false)
+const iterationSubmitLoading = ref(false)
+const iterationFormRef = ref<FormInstance>()
+const iterationDialogTitle = computed(() => iterationFormData.id ? '编辑迭代' : '新建迭代')
+const iterationFormData = reactive({
+  id: undefined as number | undefined,
+  name: '',
+  description: '',
+  status: 'NOT_STARTED',
+  planStartDate: '',
+  planEndDate: ''
+})
+const iterationFormRules: FormRules = {
+  name: [{ required: true, message: '请输入迭代名称', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择迭代状态', trigger: 'change' }]
+}
+
 // 获取项目详情
 const fetchProject = async () => {
   try {
     const res = await getProjectDetail(projectId.value)
     project.value = res
+    // 如果是中大型项目，获取迭代列表
+    if (res.projectType === 'LARGE_SCALE') {
+      await fetchIterations()
+    }
   } catch (error) {
     console.error('获取项目详情失败:', error)
     ElMessage.error('获取项目详情失败')
@@ -513,6 +683,19 @@ const fetchTasks = async () => {
     taskTotal.value = res.total || 0
   } catch (error) {
     console.error('获取任务列表失败:', error)
+  }
+}
+
+// 获取迭代列表（仅中大型项目）
+const fetchIterations = async () => {
+  if (project.value?.projectType !== 'LARGE_SCALE') {
+    return
+  }
+  try {
+    const res = await getIterationList({ projectId: projectId.value, pageNum: 1, pageSize: 100 })
+    iterations.value = res.list || []
+  } catch (error) {
+    console.error('获取迭代列表失败:', error)
   }
 }
 
@@ -761,6 +944,135 @@ const getPriorityText = (priority: string) => {
 const formatDateTime = (date: string) => {
   if (!date) return '-'
   return date
+}
+
+// 迭代相关方法
+const handleCreateIteration = () => {
+  // 重置表单
+  Object.assign(iterationFormData, {
+    id: undefined,
+    name: '',
+    description: '',
+    status: 'NOT_STARTED',
+    planStartDate: '',
+    planEndDate: ''
+  })
+  iterationDialogVisible.value = true
+}
+
+const handleEditIteration = (iteration: IterationInfo) => {
+  // 填充表单
+  Object.assign(iterationFormData, {
+    id: iteration.id,
+    name: iteration.name,
+    description: iteration.description || '',
+    status: iteration.status,
+    planStartDate: iteration.planStartDate || '',
+    planEndDate: iteration.planEndDate || ''
+  })
+  iterationDialogVisible.value = true
+}
+
+const handleIterationSubmit = async () => {
+  if (!iterationFormRef.value) return
+
+  await iterationFormRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    iterationSubmitLoading.value = true
+    try {
+      if (iterationFormData.id) {
+        // 编辑迭代
+        await updateIteration({
+          id: iterationFormData.id,
+          name: iterationFormData.name,
+          description: iterationFormData.description,
+          status: iterationFormData.status,
+          planStartDate: iterationFormData.planStartDate || undefined,
+          planEndDate: iterationFormData.planEndDate || undefined
+        })
+        ElMessage.success('更新成功')
+      } else {
+        // 创建迭代
+        await createIteration({
+          projectId: projectId.value,
+          name: iterationFormData.name,
+          description: iterationFormData.description,
+          status: iterationFormData.status,
+          planStartDate: iterationFormData.planStartDate || undefined,
+          planEndDate: iterationFormData.planEndDate || undefined
+        })
+        ElMessage.success('创建成功')
+      }
+      iterationDialogVisible.value = false
+      fetchIterations() // 刷新迭代列表
+    } catch (error) {
+      console.error('操作失败:', error)
+      ElMessage.error(iterationFormData.id ? '更新失败' : '创建失败')
+    } finally {
+      iterationSubmitLoading.value = false
+    }
+  })
+}
+
+const handleDeleteIteration = (iteration: IterationInfo) => {
+  ElMessageBox.confirm(`确定要删除迭代 "${iteration.name}" 吗？删除后将无法恢复！`, '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        await deleteIteration(iteration.id)
+        ElMessage.success('删除成功')
+        fetchIterations() // 刷新迭代列表
+      } catch (error) {
+        console.error('删除迭代失败:', error)
+        ElMessage.error('删除失败')
+      }
+    })
+    .catch(() => {})
+}
+
+const handleViewIteration = (iteration: IterationInfo) => {
+  router.push(`/projects/${projectId.value}/iterations/${iteration.id}`)
+}
+
+// 获取迭代状态类型
+const getIterationStatusType = (status: string) => {
+  const types: Record<string, any> = {
+    'NOT_STARTED': 'info',
+    'IN_PROGRESS': 'primary',
+    'COMPLETED': 'success'
+  }
+  return types[status] || 'info'
+}
+
+// 获取迭代状态文本
+const getIterationStatusText = (status: string) => {
+  const texts: Record<string, string> = {
+    'NOT_STARTED': '未开始',
+    'IN_PROGRESS': '进行中',
+    'COMPLETED': '已完成'
+  }
+  return texts[status] || '未知'
+}
+
+// 项目类型辅助方法
+const getProjectTypeTag = (projectType: string) => {
+  const types: Record<string, any> = {
+    'SCHEDULE': 'success',
+    'LARGE_SCALE': 'warning'
+  }
+  return types[projectType] || 'info'
+}
+
+const getProjectTypeText = (projectType: string) => {
+  const texts: Record<string, string> = {
+    'SCHEDULE': '常规型项目',
+    'LARGE_SCALE': '中大型项目'
+  }
+  return texts[projectType] || '未知'
 }
 
 onMounted(() => {
