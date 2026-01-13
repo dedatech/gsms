@@ -9,6 +9,10 @@
         <result column="username" property="username"/>
         <result column="operation_type" property="operationType"/>
         <result column="module" property="module"/>
+        <result column="business_type" property="businessType"/>
+        <result column="business_id" property="businessId"/>
+        <result column="old_value" property="oldValue"/>
+        <result column="new_value" property="newValue"/>
         <result column="operation_content" property="operationContent"/>
         <result column="ip_address" property="ipAddress"/>
         <result column="status" property="status"/>
@@ -19,16 +23,19 @@
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, user_id, username, operation_type, module, operation_content,
+        id, user_id, username, operation_type, module, business_type, business_id,
+        old_value, new_value, operation_content,
         ip_address, status, error_message, operation_time, create_time
     </sql>
 
     <!-- 插入操作日志 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.OperationLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO `sys_operation_log`
-        (user_id, username, operation_type, module, operation_content, ip_address, status, error_message, operation_time)
+        (user_id, username, operation_type, module, business_type, business_id, old_value, new_value,
+         operation_content, ip_address, status, error_message, operation_time)
         VALUES
-        (#{userId}, #{username}, #{operationType}, #{module}, #{operationContent}, #{ipAddress}, #{status}, #{errorMessage}, #{operationTime})
+        (#{userId}, #{username}, #{operationType}, #{module}, #{businessType}, #{businessId},
+         #{oldValue}, #{newValue}, #{operationContent}, #{ipAddress}, #{status}, #{errorMessage}, #{operationTime})
     </insert>
 
     <!-- 根据条件查询操作日志 -->

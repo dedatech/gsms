@@ -133,9 +133,16 @@ public class UserServiceImpl implements UserService {
         User createdUser = userMapper.selectById(user.getId());
         cacheService.putUser(createdUser);
 
-        // 记录操作日志
-        operationLogHelper.logSuccess(OperationType.CREATE, OperationModule.USER,
-                String.format("创建用户: %s (%s)", createdUser.getUsername(), createdUser.getNickname()));
+        // 记录操作日志（带数据变更）
+        operationLogHelper.logSuccessWithChanges(
+                OperationType.CREATE,
+                OperationModule.USER,
+                "USER",
+                createdUser.getId(),
+                null,              // oldValue - CREATE操作为空
+                createdUser,       // newValue - 创建后的完整实体
+                String.format("创建用户: %s (%s)", createdUser.getUsername(), createdUser.getNickname())
+        );
 
         logger.info("用户创建成功: {}", user.getUsername());
         UserInfoResp resp = UserInfoResp.from(createdUser);
@@ -178,10 +185,17 @@ public class UserServiceImpl implements UserService {
         User updatedUser = userMapper.selectById(user.getId());
         cacheService.putUser(updatedUser);
 
-        // 记录操作日志
-        operationLogHelper.logSuccess(OperationType.UPDATE, OperationModule.USER,
+        // 记录操作日志（带数据变更）
+        operationLogHelper.logSuccessWithChanges(
+                OperationType.UPDATE,
+                OperationModule.USER,
+                "USER",
+                updatedUser.getId(),
+                existingUser,      // oldValue - 更新前的实体
+                updatedUser,       // newValue - 更新后的实体
                 String.format("更新用户: %s (%s), ID=%d", updatedUser.getUsername(),
-                        updatedUser.getNickname(), updatedUser.getId()));
+                        updatedUser.getNickname(), updatedUser.getId())
+        );
 
         logger.info("用户更新成功: {}", user.getId());
         UserInfoResp resp = UserInfoResp.from(updatedUser);
@@ -209,9 +223,16 @@ public class UserServiceImpl implements UserService {
         // 从缓存中移除
         cacheService.removeUser(id);
 
-        // 记录操作日志
-        operationLogHelper.logSuccess(OperationType.DELETE, OperationModule.USER,
-                String.format("删除用户: %s (%s), ID=%d", username, nickname, id));
+        // 记录操作日志（带数据变更）
+        operationLogHelper.logSuccessWithChanges(
+                OperationType.DELETE,
+                OperationModule.USER,
+                "USER",
+                user.getId(),
+                user,              // oldValue - 删除前的实体
+                null,              // newValue - DELETE操作为空
+                String.format("删除用户: %s (%s), ID=%d", username, nickname, id)
+        );
 
         logger.info("用户删除成功: {}", id);
     }

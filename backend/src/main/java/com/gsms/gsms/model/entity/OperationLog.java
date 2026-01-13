@@ -43,6 +43,26 @@ public class OperationLog {
     private OperationModule module;
 
     /**
+     * 业务类型（如 USER, PROJECT, TASK, WORK_HOUR 等）
+     */
+    private String businessType;
+
+    /**
+     * 业务ID（对应实体的主键ID）
+     */
+    private Long businessId;
+
+    /**
+     * 变更前数据（JSON格式）
+     */
+    private String oldValue;
+
+    /**
+     * 变更后数据（JSON格式）
+     */
+    private String newValue;
+
+    /**
      * 操作内容描述
      */
     private String operationContent;
@@ -114,6 +134,38 @@ public class OperationLog {
 
     public void setModule(OperationModule module) {
         this.module = module;
+    }
+
+    public String getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(String businessType) {
+        this.businessType = businessType;
+    }
+
+    public Long getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(Long businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getOldValue() {
+        return oldValue;
+    }
+
+    public void setOldValue(String oldValue) {
+        this.oldValue = oldValue;
+    }
+
+    public String getNewValue() {
+        return newValue;
+    }
+
+    public void setNewValue(String newValue) {
+        this.newValue = newValue;
     }
 
     public String getOperationContent() {

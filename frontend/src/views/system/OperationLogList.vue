@@ -119,7 +119,7 @@
     </el-card>
 
     <!-- 详情对话框 -->
-    <el-dialog v-model="detailDialogVisible" title="操作日志详情" width="600px">
+    <el-dialog v-model="detailDialogVisible" title="操作日志详情" width="800px">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="日志ID">{{ currentLog?.id }}</el-descriptions-item>
         <el-descriptions-item label="操作人">{{ currentLog?.username }}</el-descriptions-item>
@@ -133,6 +133,12 @@
             {{ getOperationTypeText(currentLog?.operationType) }}
           </el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="业务类型" v-if="currentLog?.businessType">
+          {{ currentLog.businessType }}
+        </el-descriptions-item>
+        <el-descriptions-item label="业务ID" v-if="currentLog?.businessId">
+          {{ currentLog.businessId }}
+        </el-descriptions-item>
         <el-descriptions-item label="操作内容">{{ currentLog?.operationContent }}</el-descriptions-item>
         <el-descriptions-item label="IP地址">{{ currentLog?.ipAddress }}</el-descriptions-item>
         <el-descriptions-item label="操作状态">
@@ -145,15 +151,66 @@
         </el-descriptions-item>
         <el-descriptions-item label="操作时间">{{ currentLog?.operationTime }}</el-descriptions-item>
       </el-descriptions>
+
+      <!-- 数据变更对比 -->
+      <div v-if="hasDataChanges" class="change-comparison-section">
+        <el-divider content-position="left">
+          <span style="font-weight: 500;">数据变更追踪</span>
+        </el-divider>
+
+        <!-- Git Diff 风格差异对比 -->
+        <ChangeDiffViewer
+          :old-value="currentLog?.oldValue"
+          :new-value="currentLog?.newValue"
+        />
+
+        <el-divider content-position="left">
+          <span style="font-weight: 500;">原始 JSON 数据</span>
+        </el-divider>
+
+        <el-collapse>
+          <!-- 变更前数据 -->
+          <el-collapse-item v-if="currentLog?.oldValue" :name="'old'">
+            <template #title>
+              <span style="display: flex; align-items: center;">
+                <el-tag size="small" style="margin-right: 8px;" type="warning">变更前</el-tag>
+                <span>old_value JSON</span>
+              </span>
+            </template>
+            <pre class="json-viewer">{{ formatJson(currentLog.oldValue) }}</pre>
+          </el-collapse-item>
+
+          <!-- 变更后数据 -->
+          <el-collapse-item v-if="currentLog?.newValue" :name="'new'">
+            <template #title>
+              <span style="display: flex; align-items: center;">
+                <el-tag size="small" style="margin-right: 8px;" type="success">变更后</el-tag>
+                <span>new_value JSON</span>
+              </span>
+            </template>
+            <pre class="json-viewer">{{ formatJson(currentLog.newValue) }}</pre>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+
+      <!-- 提示信息 -->
+      <el-alert
+        v-if="!hasDataChanges && currentLog"
+        title="此操作日志不包含数据变更追踪信息"
+        type="info"
+        :closable="false"
+        style="margin-top: 20px;"
+      />
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
 import { getOperationLogList, type OperationLogInfo, type OperationLogQuery } from '@/api/operationLog'
+import ChangeDiffViewer from '@/components/ChangeDiffViewer.vue'
 
 const list = ref<OperationLogInfo[]>([])
 const total = ref(0)
@@ -161,6 +218,11 @@ const loading = ref(false)
 const dateRange = ref<[string, string]>([])
 const detailDialogVisible = ref(false)
 const currentLog = ref<OperationLogInfo | null>(null)
+
+// 计算是否有数据变更
+const hasDataChanges = computed(() => {
+  return currentLog.value && (currentLog.value.oldValue || currentLog.value.newValue)
+})
 
 // 搜索表单
 const searchForm = reactive<OperationLogQuery>({
@@ -293,6 +355,18 @@ const getOperationTypeTagType = (type?: string) => {
   }
   return map[type || ''] || ''
 }
+
+// 格式化 JSON
+const formatJson = (jsonStr?: string) => {
+  if (!jsonStr) return ''
+  try {
+    const obj = JSON.parse(jsonStr)
+    return JSON.stringify(obj, null, 2)
+  } catch (e) {
+    console.error('JSON 解析失败:', e)
+    return jsonStr
+  }
+}
 </script>
 
 <style scoped>
@@ -340,5 +414,23 @@ const getOperationTypeTagType = (type?: string) => {
   display: flex;
   justify-content: flex-end;
   padding: 20px;
+}
+
+/* 数据变更对比区域 */
+.change-comparison-section {
+  margin-top: 20px;
+}
+
+.json-viewer {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>

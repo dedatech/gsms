@@ -19,6 +19,10 @@ export interface OperationLogInfo {
   username: string
   operationType: string
   module: string
+  businessType?: string
+  businessId?: number
+  oldValue?: string
+  newValue?: string
   operationContent: string
   ipAddress: string
   status: string

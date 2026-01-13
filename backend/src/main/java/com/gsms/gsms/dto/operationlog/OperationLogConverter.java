@@ -22,6 +22,10 @@ public class OperationLogConverter {
         resp.setUsername(log.getUsername());
         resp.setOperationType(log.getOperationType());
         resp.setModule(log.getModule());
+        resp.setBusinessType(log.getBusinessType());
+        resp.setBusinessId(log.getBusinessId());
+        resp.setOldValue(log.getOldValue());
+        resp.setNewValue(log.getNewValue());
         resp.setOperationContent(log.getOperationContent());
         resp.setIpAddress(log.getIpAddress());
         resp.setStatus(log.getStatus());

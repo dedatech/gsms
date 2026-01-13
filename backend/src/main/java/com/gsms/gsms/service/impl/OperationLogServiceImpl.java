@@ -1,5 +1,8 @@
 package com.gsms.gsms.service.impl;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.dto.operationlog.OperationLogConverter;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,9 +34,15 @@ public class OperationLogServiceImpl implements OperationLogService {
     private static final Logger logger = LoggerFactory.getLogger(OperationLogServiceImpl.class);
 
     private final OperationLogMapper operationLogMapper;
+    private final ObjectMapper objectMapper;
 
     public OperationLogServiceImpl(OperationLogMapper operationLogMapper) {
         this.operationLogMapper = operationLogMapper;
+        // 配置 ObjectMapper 用于 JSON 序列化
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());  // 支持 Java 8 日期时间类型
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
     }
 
     @Override
@@ -41,6 +51,17 @@ public class OperationLogServiceImpl implements OperationLogService {
                            OperationModule module, String operationContent, HttpServletRequest request) {
         log(userId, username, operationType, module, operationContent, null,
             OperationStatus.SUCCESS, getIpAddress(request));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void logSuccessWithChanges(Long userId, String username, OperationType operationType,
+                                     OperationModule module, String businessType, Long businessId,
+                                     Object oldValue, Object newValue, String operationContent,
+                                     HttpServletRequest request) {
+        logWithChanges(userId, username, operationType, module, businessType, businessId,
+                      oldValue, newValue, operationContent, null,
+                      OperationStatus.SUCCESS, getIpAddress(request));
     }
 
     @Override
@@ -109,6 +130,56 @@ public class OperationLogServiceImpl implements OperationLogService {
         } catch (Exception e) {
             // 记录日志失败不影响主业务
             logger.error("记录操作日志失败: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 记录操作日志（带数据变更，内部方法）
+     */
+    private void logWithChanges(Long userId, String username, OperationType operationType,
+                               OperationModule module, String businessType, Long businessId,
+                               Object oldValue, Object newValue, String operationContent,
+                               String errorMessage, OperationStatus status, String ipAddress) {
+        try {
+            OperationLog log = new OperationLog();
+            log.setUserId(userId);
+            log.setUsername(username);
+            log.setOperationType(operationType);
+            log.setModule(module);
+            log.setBusinessType(businessType);
+            log.setBusinessId(businessId);
+            log.setOldValue(toJson(oldValue));
+            log.setNewValue(toJson(newValue));
+            log.setOperationContent(operationContent);
+            log.setIpAddress(ipAddress);
+            log.setStatus(status);
+            log.setErrorMessage(errorMessage);
+            log.setOperationTime(LocalDateTime.now());
+
+            operationLogMapper.insert(log);
+
+            logger.debug("操作日志记录成功（带变更）: username={}, type={}, module={}, businessType={}, businessId={}",
+                    username, operationType, module, businessType, businessId);
+        } catch (Exception e) {
+            // 记录日志失败不影响主业务
+            logger.error("记录操作日志失败: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 将对象序列化为 JSON 字符串
+     * @param obj 要序列化的对象
+     * @return JSON 字符串，如果序列化失败则返回 null
+     */
+    private String toJson(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (Exception e) {
+            logger.warn("JSON 序列化失败: {}", e.getMessage());
+            return null;
         }
     }
 
