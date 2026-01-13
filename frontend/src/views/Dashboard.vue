@@ -175,6 +175,7 @@ import { ElMessage } from 'element-plus'
 import { Folder, List, Clock, Calendar, DataLine, Plus } from '@element-plus/icons-vue'
 import { getTaskStatusInfo, getTaskPriorityInfo, getProjectStatusInfo } from '@/utils/statusMapping'
 import { useAuthStore } from '@/stores/auth'
+import { getDashboardData } from '@/api/statistics'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -236,24 +237,8 @@ const getProjectStatusText = (status: string) => getProjectStatusInfo(status).te
 const fetchDashboardData = async () => {
   loading.value = true
   try {
-    const token = authStore.getToken()
-    const response = await fetch('http://localhost:8080/api/statistics/dashboard', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('获取看板数据失败')
-    }
-
-    const result = await response.json()
-    if (result.code === 200 && result.data) {
-      Object.assign(dashboardData, result.data)
-    } else {
-      ElMessage.error(result.message || '获取看板数据失败')
-    }
+    const data = await getDashboardData()
+    Object.assign(dashboardData, data)
   } catch (error) {
     console.error('获取看板数据失败:', error)
     ElMessage.error('获取看板数据失败')

@@ -5,7 +5,7 @@ import { setupPermissionGuard } from './permission'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/login',
+    redirect: '/dashboard',
   },
   {
     path: '/login',
