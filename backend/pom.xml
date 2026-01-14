@@ -8,11 +8,11 @@
         <version>2.7.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.gsms</groupId>
-    <artifactId>gsms</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>gsms</name>
-    <description>工时管理系统</description>
+    <groupId>com.teammaster</groupId>
+    <artifactId>teammaster</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>TeamMaster</name>
+    <description>统领工时管理平台</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>

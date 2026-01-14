@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 背景六边形 -->
+  <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="none" stroke="#1890ff" stroke-width="2"/>
+
+  <!-- 内部六边形填充 -->
+  <polygon points="32,10 50,21 50,43 32,54 14,43 14,21" fill="#1890ff" opacity="0.15"/>
+
+  <!-- 时钟指针（旋转） -->
+  <g transform="translate(32,32)">
+    <!-- 时针 -->
+    <line x1="0" y1="0" x2="-6" y2="-10" stroke="#1890ff" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- 分针 -->
+    <line x1="0" y1="0" x2="10" y2="-3" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+    <!-- 中心点 -->
+    <circle cx="0" cy="0" r="3" fill="#1890ff"/>
+  </g>
+
+  <!-- 外围装饰点 -->
+  <circle cx="32" cy="4" r="2" fill="#52c41a"/>
+  <circle cx="56" cy="18" r="2" fill="#52c41a"/>
+  <circle cx="56" cy="46" r="2" fill="#52c41a"/>
+  <circle cx="32" cy="60" r="2" fill="#52c41a"/>
+  <circle cx="8" cy="46" r="2" fill="#52c41a"/>
+  <circle cx="8" cy="18" r="2" fill="#52c41a"/>
+</svg>

@@ -2,7 +2,11 @@
   <div class="login-container">
     <el-card class="login-card">
       <template #header>
-        <h2>GSMS 工时管理系统</h2>
+        <div class="login-header">
+          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="login-logo" />
+          <h2>TeamMaster</h2>
+          <p class="login-subtitle">统领工时管理平台</p>
+        </div>
       </template>
 
       <el-form :model="loginForm" :rules="rules" ref="formRef" label-width="80px">
@@ -114,10 +118,30 @@ const handleLogin = async () => {
   width: 400px;
 }
 
-.login-card h2 {
-  margin: 0;
+.login-header {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 10px;
+}
+
+.login-header h2 {
+  margin: 10px 0 5px;
   text-align: center;
   color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.login-subtitle {
+  margin: 0;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
 }
 
 .footer-links {

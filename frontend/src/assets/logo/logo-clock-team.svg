@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 背景圆 -->
+  <circle cx="32" cy="32" r="30" fill="#1890ff" opacity="0.1"/>
+
+  <!-- 时钟外圈 -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#1890ff" stroke-width="2.5"/>
+
+  <!-- 时钟刻度 -->
+  <line x1="32" y1="14" x2="32" y2="16" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="50" y1="32" x2="48" y2="32" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="32" y1="50" x2="32" y2="48" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="32" x2="16" y2="32" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- 时针（指向10点方向） -->
+  <line x1="32" y1="32" x2="26" y2="22" stroke="#1890ff" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- 分针（指向2点方向） -->
+  <line x1="32" y1="32" x2="40" y2="28" stroke="#1890ff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- 中心点 -->
+  <circle cx="32" cy="32" r="3" fill="#1890ff"/>
+
+  <!-- 团队成员 - 左 -->
+  <circle cx="20" cy="48" r="4" fill="#52c41a"/>
+  <path d="M 14 56 Q 20 50 26 56" fill="#52c41a" opacity="0.7"/>
+
+  <!-- 团队成员 - 中 -->
+  <circle cx="32" cy="50" r="4.5" fill="#1890ff"/>
+  <path d="M 25 58 Q 32 51 39 58" fill="#1890ff" opacity="0.7"/>
+
+  <!-- 团队成员 - 右 -->
+  <circle cx="44" cy="48" r="4" fill="#52c41a"/>
+  <path d="M 38 56 Q 44 50 50 56" fill="#52c41a" opacity="0.7"/>
+</svg>

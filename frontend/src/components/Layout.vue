@@ -4,8 +4,8 @@
       <!-- 侧边栏菜单 -->
       <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
         <div class="logo-container">
-          <el-icon class="logo-icon" :size="isCollapse ? 24 : 20"><FolderOpened /></el-icon>
-          <span v-if="!isCollapse" class="logo-text">GSMS</span>
+          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 32 : 28" />
+          <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
         </div>
 
         <el-menu
@@ -60,13 +60,28 @@
         <!-- 顶部导航栏 -->
         <el-header class="header">
           <div class="header-left">
-            <el-icon class="collapse-icon" @click="toggleCollapse">
-              <Fold v-if="!isCollapse" />
-              <Expand v-else />
-            </el-icon>
+            <el-tooltip
+              :content="isCollapse ? '展开菜单' : '收起菜单'"
+              placement="bottom"
+              :show-after="300"
+              :hide-after="100"
+              effect="dark"
+            >
+              <div class="collapse-btn" @click="toggleCollapse">
+                <el-icon :size="20">
+                  <Fold v-if="!isCollapse" />
+                  <Expand v-else />
+                </el-icon>
+              </div>
+            </el-tooltip>
             <el-breadcrumb separator="/">
-              <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-              <el-breadcrumb-item v-if="currentRouteTitle">{{ currentRouteTitle }}</el-breadcrumb-item>
+              <el-breadcrumb-item
+                v-for="(item, index) in breadcrumbs"
+                :key="index"
+                :to="index < breadcrumbs.length - 1 ? item.path : undefined"
+              >
+                {{ item.title }}
+              </el-breadcrumb-item>
             </el-breadcrumb>
           </div>
 
@@ -139,8 +154,8 @@ const route = useRoute()
 const username = ref(localStorage.getItem('username') || '用户')
 const userAvatar = ref('')
 
-// 侧边栏折叠状态
-const isCollapse = ref(false)
+// 侧边栏折叠状态（从 localStorage 读取，默认 false）
+const isCollapse = ref(localStorage.getItem('sidebarCollapsed') === 'true')
 
 // 当前激活的菜单
 const activeMenu = computed(() => route.path)
@@ -148,9 +163,83 @@ const activeMenu = computed(() => route.path)
 // 当前路由标题
 const currentRouteTitle = computed(() => route.meta.title as string || '')
 
+// 面包屑导航
+const breadcrumbs = computed(() => {
+  const path = route.path
+  const items: Array<{ title: string; path: string }> = []
+
+  // 始终添加首页
+  items.push({ title: '首页', path: '/dashboard' })
+
+  // 根据路径生成面包屑
+  if (path === '/dashboard') {
+    // 首页不添加额外项
+    return items
+  }
+
+  // 项目管理
+  if (path.startsWith('/projects')) {
+    if (path === '/projects') {
+      items.push({ title: '项目管理', path: '/projects' })
+    } else if (path.includes('/gantt')) {
+      items.push({ title: '项目管理', path: '/projects' })
+      items.push({ title: '项目甘特图', path: '' })
+    } else {
+      items.push({ title: '项目管理', path: '/projects' })
+      items.push({ title: '项目详情', path: '' })
+    }
+  }
+  // 任务中心
+  else if (path.startsWith('/tasks')) {
+    if (path === '/tasks') {
+      items.push({ title: '任务中心', path: '/tasks' })
+    } else {
+      items.push({ title: '任务中心', path: '/tasks' })
+      items.push({ title: '任务详情', path: '' })
+    }
+  }
+  // 工时管理
+  else if (path.startsWith('/workhours')) {
+    items.push({ title: '工时管理', path: '/workhours/calendar' })
+    if (path.includes('calendar')) {
+      items.push({ title: '工时日历', path: '' })
+    } else if (path.includes('list')) {
+      items.push({ title: '工时列表', path: '' })
+    }
+  }
+  // 统计分析
+  else if (path.startsWith('/statistics')) {
+    items.push({ title: '统计分析', path: '/statistics/project' })
+    if (path.includes('project')) {
+      items.push({ title: '项目工时统计', path: '' })
+    } else if (path.includes('user')) {
+      items.push({ title: '用户工时统计', path: '' })
+    } else if (path.includes('trend')) {
+      items.push({ title: '工时趋势分析', path: '' })
+    }
+  }
+  // 系统管理
+  else if (path.startsWith('/system')) {
+    items.push({ title: '系统管理', path: '/system/users' })
+    if (path.includes('users')) {
+      items.push({ title: '用户管理', path: '' })
+    } else if (path.includes('roles')) {
+      items.push({ title: '角色管理', path: '' })
+    } else if (path.includes('permissions')) {
+      items.push({ title: '权限管理', path: '' })
+    } else if (path.includes('operation-logs')) {
+      items.push({ title: '操作日志', path: '' })
+    }
+  }
+
+  return items
+})
+
 // 切换侧边栏
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
+  // 保存到 localStorage
+  localStorage.setItem('sidebarCollapsed', String(isCollapse.value))
 }
 
 // 用户操作
@@ -248,15 +337,30 @@ const handleUserAction = (command: string) => {
   gap: 20px;
 }
 
-.collapse-icon {
-  font-size: 20px;
+.collapse-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #595959;
-  transition: color 0.3s;
+  color: #1890ff;
+  background-color: #e6f7ff;
+  border-radius: 6px;
+  transition: all 0.3s;
+  border: 1px solid #1890ff;
+  font-weight: 500;
 }
 
-.collapse-icon:hover {
-  color: #1890ff;
+.collapse-btn:hover {
+  background-color: #1890ff;
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.collapse-btn:active {
+  transform: scale(0.95);
 }
 
 .header-right {

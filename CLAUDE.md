@@ -2,44 +2,47 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Quick Start
+## Language Preference
+**IMPORTANT: Always respond in Chinese (中文) for this project.** Use Chinese for all explanations, comments, and communications unless specifically requested otherwise.
 
-**Prerequisites:**
+## 快速开始
+
+**环境要求：**
 - JDK 8+, Maven 3.6+, Node.js 18+
-- MySQL 8.0+ (create database: `CREATE DATABASE gsms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`)
+- MySQL 8.0+ (创建数据库: `CREATE DATABASE gsms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`)
 
-**Start Backend (port 8080):**
+**启动后端（端口 8080）：**
 ```bash
 cd backend
 mvn spring-boot:run
-# Or with environment variables:
+# 或使用环境变量:
 DB_USERNAME=root DB_PASSWORD=your_password mvn spring-boot:run
 ```
 
-**Start Frontend (port 3000):**
+**启动前端（端口 3000）：**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-**Docker Quick Start:**
+**Docker 快速启动：**
 ```bash
-# Start all services (MySQL + Backend + Frontend)
+# 启动所有服务（MySQL + 后端 + 前端）
 docker-compose up -d
 ```
 
-**Test Accounts:**
-- `admin` / `Admin123` - Administrator
-- `zhangsan03` / `Admin123` - Regular user
+**测试账号：**
+- `admin` / `Admin123` - 管理员
+- `zhangsan03` / `Admin123` - 普通用户
 
-**API Documentation:** http://localhost:8080/swagger-ui.html
+**API 文档：** http://localhost:8080/swagger-ui.html
 
 ---
 
 ## 项目概述
 
-GSMS（工时管理系统）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用标准三层架构结合DTO模式，具有清晰的分层结构。
+TeamMaster（统领工时管理平台）是一个面向研发团队的轻量级工时管理系统。这是一个基于 Spring Boot 的应用，采用标准三层架构结合DTO模式，具有清晰的分层结构。
 
 **核心功能模块：**
 

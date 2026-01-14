@@ -140,7 +140,7 @@ setupPermissionGuard(router)
 
 // 设置页面标题
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} - GSMS` : 'GSMS 工时管理系统'
+  document.title = to.meta.title ? `${to.meta.title} - TeamMaster` : 'TeamMaster - 统领工时管理平台'
 })
 
 export default router
