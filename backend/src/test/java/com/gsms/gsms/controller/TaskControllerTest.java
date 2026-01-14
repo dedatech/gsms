@@ -3,6 +3,7 @@ package com.gsms.gsms.controller;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.model.entity.User;
 import com.gsms.gsms.model.enums.IterationStatus;
+import com.gsms.gsms.model.enums.ProjectType;
 import com.gsms.gsms.model.enums.ProjectStatus;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
@@ -75,12 +76,13 @@ public class TaskControllerTest extends BaseControllerTest {
         testToken = JwtUtil.generateTokenStatic(testUser.getId(), testUser.getUsername());
 
         executeWithUserContext(testUser.getId(), () -> {
-            // 创建测试项目
+            // 创建测试项目（中大型项目，支持迭代）
             ProjectCreateReq projectCreateReq = new ProjectCreateReq();
             projectCreateReq.setName("GSMS项目");
             projectCreateReq.setCode("GSMS");
             projectCreateReq.setManagerId(testUser.getId());
             projectCreateReq.setStatus(ProjectStatus.IN_PROGRESS);
+            projectCreateReq.setProjectType(ProjectType.LARGE_SCALE); // 中大型项目
             testProject = projectService.create(projectCreateReq);
 
             // 创建测试迭代
@@ -169,6 +171,7 @@ public class TaskControllerTest extends BaseControllerTest {
     void testUpdateTask_Success() throws Exception {
         TaskUpdateReq updateReq = new TaskUpdateReq();
         updateReq.setId(testTask.getId());
+        updateReq.setProjectId(testProject.getId()); // 必需字段
         updateReq.setTitle("开发用户管理功能（优化版）");
         updateReq.setStatus(TaskStatus.IN_PROGRESS);
 
@@ -179,7 +182,7 @@ public class TaskControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.title").value("开发用户管理功能（优化版）"))
-                .andExpect(jsonPath("$.data.status").value(TaskStatus.IN_PROGRESS.getCode()));
+                .andExpect(jsonPath("$.data.status").value("IN_PROGRESS"));  // 期望字符串而非数字码
     }
 
     @Test
@@ -196,7 +199,7 @@ public class TaskControllerTest extends BaseControllerTest {
         mockMvc.perform(get("/api/tasks/search")
                 .param("projectId", testProject.getId().toString())
                 .param("assigneeId", testUser.getId().toString())
-                .param("status", "1")
+                // 不传 status 参数，它是可选的
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -206,7 +209,9 @@ public class TaskControllerTest extends BaseControllerTest {
 
     @Test
     void testGetTasksByCondition() throws Exception {
-        mockMvc.perform(get("/api/tasks?projectId=" + testProject.getId() + "&assigneeId=" + testUser.getId())
+        mockMvc.perform(get("/api/tasks/search")
+                .param("projectId", testProject.getId().toString())
+                .param("assigneeId", testUser.getId().toString())
                 .header("Authorization", "Bearer " + testToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))

@@ -47,6 +47,23 @@ public class TaskController {
     }
 
     /**
+     * 根据项目ID分页查询任务
+     *
+     * @param projectId 项目ID
+     * @return 任务列表
+     */
+    @GetMapping("/project/{projectId}")
+    @Operation(summary = "根据项目ID分页查询任务")
+    public PageResult<TaskInfoResp> getTasksByProjectId(@PathVariable Long projectId) {
+        logger.info("根据项目ID分页查询任务: {}", projectId);
+        TaskQueryReq req = new TaskQueryReq();
+        req.setProjectId(projectId);
+        req.setPageNum(1);
+        req.setPageSize(1000); // 默认返回1000条
+        return taskService.findAll(req);
+    }
+
+    /**
      * 根据ID查询任务
      *
      * @param id 任务ID

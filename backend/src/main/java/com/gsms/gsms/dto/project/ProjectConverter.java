@@ -20,6 +20,7 @@ public class ProjectConverter {
         project.setDescription(req.getDescription());
         project.setManagerId(req.getManagerId());
         project.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换
+        project.setProjectType(req.getProjectType());
         project.setPlanStartDate(req.getPlanStartDate());
         project.setPlanEndDate(req.getPlanEndDate());
         return project;
