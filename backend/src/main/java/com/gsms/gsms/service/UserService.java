@@ -6,6 +6,7 @@ import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
+import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.infra.common.PageResult;
 
 /**
@@ -67,6 +68,12 @@ public interface UserService {
      * @param req 修改密码请求DTO
      */
     void changePassword(PasswordChangeReq req);
+
+    /**
+     * 重置密码（管理员）
+     * @param req 重置密码请求DTO
+     */
+    void resetPassword(PasswordResetReq req);
 
     /**
      * 查询用户的角色ID列表

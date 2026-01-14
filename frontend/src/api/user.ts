@@ -68,6 +68,21 @@ export const getUserPermissions = (userId: number) => {
 }
 
 /**
+ * 创建用户
+ */
+export const createUser = (data: {
+  username: string
+  password: string
+  nickname: string
+  email?: string
+  phone?: string
+  departmentId?: number
+  status?: string // 'NORMAL' | 'DISABLED'
+}) => {
+  return request.post('/users', data)
+}
+
+/**
  * 更新用户
  */
 export const updateUser = (data: {
@@ -86,4 +101,14 @@ export const updateUser = (data: {
  */
 export const deleteUser = (id: number) => {
   return request.delete(`/users/${id}`)
+}
+
+/**
+ * 重置密码（管理员）
+ */
+export const resetPassword = (data: {
+  userId: number
+  newPassword: string
+}) => {
+  return request.put('/users/password/reset', data)
 }

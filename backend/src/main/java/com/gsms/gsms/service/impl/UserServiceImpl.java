@@ -10,6 +10,7 @@ import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
+import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.dto.user.UserConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
@@ -292,6 +293,42 @@ public class UserServiceImpl implements UserService {
         cacheService.putUser(updatedUser);
 
         logger.info("用户密码修改成功: userId={}", currentUserId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(PasswordResetReq req) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        logger.info("管理员重置密码: userId={}, operatorId={}", req.getUserId(), currentUserId);
+
+        // 获取目标用户
+        User user = getUserById(req.getUserId());
+
+        // 加密新密码
+        String encryptedNewPassword = PasswordUtil.encrypt(req.getNewPassword());
+
+        // 更新密码
+        user.setPassword(encryptedNewPassword);
+        user.setPasswordResetRequired(0); // 清除密码重置标志
+        user.setUpdateUserId(currentUserId != null ? currentUserId : 1L);
+
+        int result = userMapper.update(user);
+        if (result <= 0) {
+            operationLogHelper.logFailure(OperationType.UPDATE, OperationModule.USER,
+                    String.format("重置密码: %s", user.getUsername()), "数据库更新失败");
+            throw new BusinessException(UserErrorCode.USER_UPDATE_FAILED);
+        }
+
+        // 更新缓存
+        User updatedUser = userMapper.selectById(req.getUserId());
+        cacheService.putUser(updatedUser);
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.UPDATE, OperationModule.USER,
+                String.format("管理员重置用户密码: %s (%s), ID=%d", updatedUser.getUsername(),
+                        updatedUser.getNickname(), updatedUser.getId()));
+
+        logger.info("管理员重置密码成功: userId={}", req.getUserId());
     }
 
     /**

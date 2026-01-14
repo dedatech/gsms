@@ -4,6 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h2 class="page-title">用户管理</h2>
+        <el-button type="primary" :icon="Plus" @click="handleCreate">新建用户</el-button>
       </div>
       <div class="header-right">
         <el-input
@@ -48,13 +49,16 @@
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column label="操作" width="350" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleAssignRoles(row)">
               分配角色
             </el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row)">
               编辑
+            </el-button>
+            <el-button link type="warning" size="small" @click="handleResetPassword(row)">
+              重置密码
             </el-button>
             <el-button
               link
@@ -136,8 +140,26 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="editForm.username" :disabled="isEdit" placeholder="请输入用户名" />
         </el-form-item>
+        <el-form-item v-if="!isEdit" label="密码" prop="password">
+          <el-input v-model="editForm.password" type="password" show-password placeholder="请输入密码" />
+        </el-form-item>
         <el-form-item label="姓名" prop="nickname">
           <el-input v-model="editForm.nickname" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="部门" prop="departmentId">
+          <el-select
+            v-model="editForm.departmentId"
+            placeholder="请选择部门"
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="dept in allDepartments"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="editForm.email" placeholder="请输入邮箱" />
@@ -159,15 +181,57 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 重置密码对话框 -->
+    <el-dialog
+      v-model="resetPasswordDialogVisible"
+      title="重置密码"
+      width="500px"
+      @close="handleResetPasswordDialogClose"
+    >
+      <el-form
+        ref="resetPasswordFormRef"
+        :model="resetPasswordForm"
+        :rules="resetPasswordFormRules"
+        label-width="100px"
+      >
+        <el-form-item label="用户">
+          <span>{{ resetPasswordUser?.username }} ({{ resetPasswordUser?.nickname }})</span>
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input
+            v-model="resetPasswordForm.newPassword"
+            type="password"
+            show-password
+            placeholder="请输入新密码（6-20位）"
+          />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input
+            v-model="resetPasswordForm.confirmPassword"
+            type="password"
+            show-password
+            placeholder="请再次输入新密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="resetPasswordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmitResetPassword" :loading="submitLoading">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
-import { getUserList, assignUserRoles, getUserRoles, updateUser, deleteUser, type UserInfo, type UserQuery } from '@/api/user'
+import { Search, Plus } from '@element-plus/icons-vue'
+import { getUserList, assignUserRoles, getUserRoles, createUser, updateUser, deleteUser, resetPassword, type UserInfo, type UserQuery } from '@/api/user'
 import { getRoleList, type RoleInfo } from '@/api/role'
+import { getAllDepartments, type DepartmentInfo } from '@/api/department'
 
 // 状态定义
 const list = ref<UserInfo[]>([])
@@ -189,6 +253,9 @@ const selectedRoleIds = ref<number[]>([])
 const allRoles = ref<RoleInfo[]>([])
 const submitLoading = ref(false)
 
+// 部门列表
+const allDepartments = ref<DepartmentInfo[]>([])
+
 // 编辑对话框
 const editDialogVisible = ref(false)
 const editFormRef = ref<FormInstance>()
@@ -196,10 +263,22 @@ const isEdit = ref(false)
 const editForm = reactive({
   id: 0,
   username: '',
+  password: '',
   nickname: '',
   email: '',
   phone: '',
+  departmentId: undefined as number | undefined,
   status: 'NORMAL' as 'NORMAL' | 'DISABLED'
+})
+
+// 重置密码对话框
+const resetPasswordDialogVisible = ref(false)
+const resetPasswordFormRef = ref<FormInstance>()
+const resetPasswordUser = ref<UserInfo>()
+const resetPasswordForm = reactive({
+  userId: 0,
+  newPassword: '',
+  confirmPassword: ''
 })
 
 // 表单验证规则
@@ -207,6 +286,10 @@ const editFormRules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
   ],
   nickname: [
     { required: true, message: '请输入姓名', trigger: 'blur' }
@@ -219,9 +302,37 @@ const editFormRules: FormRules = {
   ]
 }
 
+// 重置密码表单验证规则
+const resetPasswordFormRules: FormRules = {
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== resetPasswordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+}
+
 // 生命周期
-onMounted(() => {
+onMounted(async () => {
   fetchData()
+  // 加载部门列表
+  try {
+    const res = await getAllDepartments()
+    allDepartments.value = res.list || []
+  } catch (error) {
+    console.error('加载部门列表失败:', error)
+  }
 })
 
 // 获取数据
@@ -296,6 +407,20 @@ const handleAssignRolesSubmit = async () => {
   }
 }
 
+// 新建用户
+const handleCreate = () => {
+  isEdit.value = false
+  editForm.id = 0
+  editForm.username = ''
+  editForm.password = ''
+  editForm.nickname = ''
+  editForm.email = ''
+  editForm.phone = ''
+  editForm.departmentId = undefined
+  editForm.status = 'NORMAL'
+  editDialogVisible.value = true
+}
+
 // 编辑用户
 const handleEdit = (row: UserInfo) => {
   isEdit.value = true
@@ -304,6 +429,7 @@ const handleEdit = (row: UserInfo) => {
   editForm.nickname = row.nickname || ''
   editForm.email = row.email || ''
   editForm.phone = row.phone || ''
+  editForm.departmentId = row.departmentId
   editForm.status = row.status
   editDialogVisible.value = true
 }
@@ -339,7 +465,7 @@ const handleToggleStatus = async (row: UserInfo) => {
   }
 }
 
-// 提交编辑
+// 提交编辑/新建
 const handleSubmitEdit = async () => {
   if (!editFormRef.value) return
 
@@ -347,21 +473,37 @@ const handleSubmitEdit = async () => {
     await editFormRef.value.validate()
     submitLoading.value = true
 
-    await updateUser({
-      id: editForm.id,
-      nickname: editForm.nickname,
-      email: editForm.email || undefined,
-      phone: editForm.phone || undefined,
-      status: editForm.status
-    })
+    if (isEdit.value) {
+      // 编辑用户
+      await updateUser({
+        id: editForm.id,
+        nickname: editForm.nickname,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        departmentId: editForm.departmentId,
+        status: editForm.status
+      })
+      ElMessage.success('用户更新成功')
+    } else {
+      // 新建用户
+      await createUser({
+        username: editForm.username,
+        password: editForm.password,
+        nickname: editForm.nickname,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        departmentId: editForm.departmentId,
+        status: editForm.status
+      })
+      ElMessage.success('用户创建成功')
+    }
 
-    ElMessage.success('用户更新成功')
     editDialogVisible.value = false
     fetchData()
   } catch (error: any) {
     if (error !== false) { // 表单验证失败时error为false
-      console.error('更新用户失败:', error)
-      ElMessage.error(error.message || '更新用户失败')
+      console.error('提交失败:', error)
+      ElMessage.error(error.message || '操作失败')
     }
   } finally {
     submitLoading.value = false
@@ -399,10 +541,55 @@ const handleEditDialogClose = () => {
   editFormRef.value?.resetFields()
   editForm.id = 0
   editForm.username = ''
+  editForm.password = ''
   editForm.nickname = ''
   editForm.email = ''
   editForm.phone = ''
+  editForm.departmentId = undefined
   editForm.status = 'NORMAL'
+}
+
+// 重置密码
+const handleResetPassword = (row: UserInfo) => {
+  resetPasswordUser.value = row
+  resetPasswordForm.userId = row.id
+  resetPasswordForm.newPassword = ''
+  resetPasswordForm.confirmPassword = ''
+  resetPasswordDialogVisible.value = true
+}
+
+// 提交重置密码
+const handleSubmitResetPassword = async () => {
+  if (!resetPasswordFormRef.value) return
+
+  try {
+    await resetPasswordFormRef.value.validate()
+    submitLoading.value = true
+
+    await resetPassword({
+      userId: resetPasswordForm.userId,
+      newPassword: resetPasswordForm.newPassword
+    })
+
+    ElMessage.success('密码重置成功')
+    resetPasswordDialogVisible.value = false
+  } catch (error: any) {
+    if (error !== false) {
+      console.error('重置密码失败:', error)
+      ElMessage.error(error.message || '重置密码失败')
+    }
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+// 关闭重置密码对话框
+const handleResetPasswordDialogClose = () => {
+  resetPasswordFormRef.value?.resetFields()
+  resetPasswordUser.value = undefined
+  resetPasswordForm.userId = 0
+  resetPasswordForm.newPassword = ''
+  resetPasswordForm.confirmPassword = ''
 }
 
 // 工具函数
