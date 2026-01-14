@@ -124,7 +124,7 @@ public class WorkHourController {
         logger.info("批量创建工时记录，数量: {}", reqs.size());
         List<WorkHour> workHours = reqs.stream()
                 .map(WorkHourConverter::toWorkHour)
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
         List<WorkHour> createdWorkHours = workHourService.createWorkHoursBatch(workHours);
         logger.info("成功批量创建工时记录，数量: {}", createdWorkHours.size());
         return Result.success(createdWorkHours);

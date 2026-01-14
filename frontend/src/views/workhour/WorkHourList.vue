@@ -55,7 +55,7 @@
         <el-card class="stats-card">
           <div class="stats-content">
             <div class="stats-icon total">
-              <el-icon><Sum /></el-icon>
+              <el-icon><Histogram /></el-icon>
             </div>
             <div class="stats-info">
               <div class="stats-label">总计工时</div>
@@ -212,7 +212,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { Plus, Edit, Delete, Clock, Calendar, DataLine, Sum } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Clock, Calendar, DataLine, Histogram } from '@element-plus/icons-vue'
 import { getWorkHourList, createWorkHour, updateWorkHour, deleteWorkHour, getUserWorkHourStatistics, type WorkHourInfo } from '@/api/workhour'
 import { getProjectList } from '@/api/project'
 import { getTaskList } from '@/api/task'
@@ -316,24 +316,27 @@ const fetchStatistics = async () => {
     weekStart.setDate(today.getDate() - today.getDay())
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
 
+    // 获取当前用户ID
+    const currentUserId = authStore.getCurrentUserId()
+
     // 获取今日工时
     const todayStr = today.toISOString().split('T')[0]
-    const todayRes = await getUserWorkHourStatistics(1, todayStr, todayStr)
+    const todayRes = await getUserWorkHourStatistics(currentUserId, todayStr, todayStr)
     statistics.todayHours = todayRes?.totalHours || 0
 
     // 获取本周工时
     const weekStartStr = weekStart.toISOString().split('T')[0]
     const todayStr2 = today.toISOString().split('T')[0]
-    const weekRes = await getUserWorkHourStatistics(1, weekStartStr, todayStr2)
+    const weekRes = await getUserWorkHourStatistics(currentUserId, weekStartStr, todayStr2)
     statistics.weekHours = weekRes?.totalHours || 0
 
     // 获取本月工时
     const monthStartStr = monthStart.toISOString().split('T')[0]
-    const monthRes = await getUserWorkHourStatistics(1, monthStartStr, todayStr2)
+    const monthRes = await getUserWorkHourStatistics(currentUserId, monthStartStr, todayStr2)
     statistics.monthHours = monthRes?.totalHours || 0
 
     // 获取总工时
-    const totalRes = await getUserWorkHourStatistics(1)
+    const totalRes = await getUserWorkHourStatistics(currentUserId)
     statistics.totalHours = totalRes?.totalHours || 0
   } catch (error) {
     console.error('获取统计数据失败:', error)

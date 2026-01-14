@@ -72,7 +72,7 @@
         <div class="current-month">{{ currentMonthText }}</div>
       </div>
       <div class="toolbar-right">
-        <el-button type="primary" :icon="Plus" @click="handleCreate">登记工时</el-button>
+        <el-button type="primary" :icon="Plus" @click="handleBatchCreate">工时填报</el-button>
       </div>
     </div>
 
@@ -92,7 +92,7 @@
             'other-month': cell.isOtherMonth,
             'has-data': cell.hasData
           }"
-          @dblclick="handleCellDblClick(cell)"
+          @click="handleCellClick(cell)"
         >
           <div class="cell-header">
             <span class="date-number">{{ cell.dayNumber }}</span>
@@ -119,74 +119,31 @@
       </div>
     </div>
 
-    <!-- 创建/编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogTitle"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="工作日期" prop="workDate">
-          <el-date-picker
-            v-model="formData.workDate"
-            type="date"
-            placeholder="选择日期"
-            style="width: 100%"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-        <el-form-item label="项目" prop="projectId">
-          <el-select v-model="formData.projectId" placeholder="请选择项目" filterable style="width: 100%" @change="handleProjectChange">
-            <el-option
-              v-for="project in projectList"
-              :key="project.id"
-              :label="project.name"
-              :value="project.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="任务">
-          <el-select v-model="formData.taskId" placeholder="请选择任务（可选）" clearable filterable style="width: 100%">
-            <el-option
-              v-for="task in taskList"
-              :key="task.id"
-              :label="task.title"
-              :value="task.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="工时数" prop="hours">
-          <el-input-number v-model="formData.hours" :min="0.5" :max="24" :step="0.5" :precision="1" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="工作内容" prop="content">
-          <el-input
-            v-model="formData.content"
-            type="textarea"
-            :rows="4"
-            placeholder="请详细描述工作内容"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
-      </template>
-    </el-dialog>
+    <!-- 工时批量填报对话框 -->
+    <WorkHourBatchDialog
+      v-model:visible="batchDialogVisible"
+      :date="selectedDate"
+      @success="fetchMonthData"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Clock, Calendar, List, Folder, ArrowLeft, ArrowRight, Plus } from '@element-plus/icons-vue'
 import { getMonthRange, getCurrentYearMonth, getMonthText, formatDate, isToday, isWeekend } from '@/utils/dateUtils'
-import { getWorkHourList, createWorkHour, updateWorkHour, getUserWorkHourStatistics, type WorkHourInfo } from '@/api/workhour'
-import { getProjectList } from '@/api/project'
-import { getTaskList } from '@/api/task'
+import { getWorkHourList, getUserWorkHourStatistics, type WorkHourInfo } from '@/api/workhour'
+import WorkHourBatchDialog from '@/components/WorkHourBatchDialog.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+// 工时批量填报对话框
+const batchDialogVisible = ref(false)
+const selectedDate = ref<string>()
 
 // 当前年月
 const { year: initYear, month: initMonth } = getCurrentYearMonth()
@@ -264,21 +221,27 @@ const calendarCells = computed<CalendarCell[]>(() => {
     })
   }
 
-  // 填充下月开始日期（补齐到42格）
-  const remaining = 42 - cells.length
-  for (let i = 1; i <= remaining; i++) {
-    const date = new Date(year, month, i)
-    const dateStr = formatDate(date)
-    cells.push({
-      date: dateStr,
-      dayNumber: i,
-      isToday: isToday(dateStr),
-      isWeekend: isWeekend(dateStr),
-      isOtherMonth: true,
-      totalHours: 0,
-      hasData: false,
-      workHours: []
-    })
+  // 动态计算是否需要填充下月日期（确保完整显示当前月）
+  const cellsCount = cells.length
+  const remainder = cellsCount % 7
+
+  // 如果当前月数据不满整行，补齐到完整行
+  if (remainder !== 0) {
+    const remaining = 7 - remainder
+    for (let i = 1; i <= remaining; i++) {
+      const date = new Date(year, month, i)
+      const dateStr = formatDate(date)
+      cells.push({
+        date: dateStr,
+        dayNumber: i,
+        isToday: isToday(dateStr),
+        isWeekend: isWeekend(dateStr),
+        isOtherMonth: true,
+        totalHours: 0,
+        hasData: false,
+        workHours: []
+      })
+    }
   }
 
   return cells
@@ -299,33 +262,6 @@ const statistics = reactive({
   monthHours: 0,
   totalHours: 0
 })
-
-// 项目列表
-const projectList = ref<any[]>([])
-
-// 任务列表
-const taskList = ref<any[]>([])
-
-// 对话框
-const dialogVisible = ref(false)
-const dialogTitle = ref('')
-const submitLoading = ref(false)
-const formRef = ref<FormInstance>()
-const formData = reactive({
-  id: undefined as number | undefined,
-  workDate: '',
-  projectId: undefined as number | undefined,
-  taskId: undefined as number | undefined,
-  hours: 8,
-  content: ''
-})
-
-const formRules: FormRules = {
-  workDate: [{ required: true, message: '请选择工作日期', trigger: 'change' }],
-  projectId: [{ required: true, message: '请选择项目', trigger: 'change' }],
-  hours: [{ required: true, message: '请输入工时数', trigger: 'blur' }],
-  content: [{ required: true, message: '请输入工作内容', trigger: 'blur' }]
-}
 
 // 获取月度数据
 const fetchMonthData = async () => {
@@ -392,48 +328,27 @@ const updateStatistics = async (allWorkHours: WorkHourInfo[]) => {
     statistics.monthHours = monthData_filtered.reduce((sum, wh) => sum + wh.hours, 0)
 
     // 获取总工时
-    const totalRes = await getUserWorkHourStatistics(1)
+    const currentUserId = authStore.getCurrentUserId()
+    const totalRes = await getUserWorkHourStatistics(currentUserId)
     statistics.totalHours = totalRes?.totalHours || 0
   } catch (error) {
     console.error('更新统计数据失败:', error)
   }
 }
 
-// 获取项目列表
-const fetchProjects = async () => {
-  try {
-    const res = await getProjectList({
-      pageNum: 1,
-      pageSize: 1000
-    })
-    projectList.value = res?.list || []
-  } catch (error) {
-    console.error('获取项目列表失败:', error)
-  }
+// 批量工时填报
+const handleBatchCreate = () => {
+  selectedDate.value = undefined // 不指定日期，使用今天
+  batchDialogVisible.value = true
 }
 
-// 获取任务列表
-const fetchTasks = async () => {
-  if (!formData.projectId) {
-    taskList.value = []
-    return
-  }
-  try {
-    const res = await getTaskList({
-      projectId: formData.projectId,
-      pageNum: 1,
-      pageSize: 1000
-    })
-    taskList.value = res?.list || []
-  } catch (error) {
-    console.error('获取任务列表失败:', error)
-  }
-}
+// 单元格点击
+const handleCellClick = (cell: CalendarCell) => {
+  if (cell.isOtherMonth) return
 
-// 项目变化时加载任务
-const handleProjectChange = () => {
-  formData.taskId = undefined
-  fetchTasks()
+  // 点击单元格打开工时填报，并传入点击的日期
+  selectedDate.value = cell.date
+  batchDialogVisible.value = true
 }
 
 // 回到今天
@@ -463,92 +378,12 @@ const handleNextMonth = () => {
   }
 }
 
-// 单元格双击
-const handleCellDblClick = (cell: CalendarCell) => {
-  if (cell.isOtherMonth) return
-
-  if (cell.workHours.length === 0) {
-    handleCreate(cell.date)
-  } else if (cell.workHours.length === 1) {
-    handleEdit(cell.workHours[0])
-  } else {
-    // TODO: 显示选择对话框
-    handleEdit(cell.workHours[0])
-  }
-}
-
-// 新增
-const handleCreate = (date?: string) => {
-  dialogTitle.value = '登记工时'
-  formData.id = undefined
-  formData.workDate = date || new Date().toISOString().split('T')[0]
-  formData.projectId = undefined
-  formData.taskId = undefined
-  formData.hours = 8
-  formData.content = ''
-  taskList.value = []
-  dialogVisible.value = true
-}
-
-// 编辑
-const handleEdit = (workHour: WorkHourInfo) => {
-  dialogTitle.value = '编辑工时'
-  formData.id = workHour.id
-  formData.workDate = workHour.workDate
-  formData.projectId = workHour.projectId
-  formData.taskId = workHour.taskId
-  formData.hours = workHour.hours
-  formData.content = workHour.content
-  fetchTasks()
-  dialogVisible.value = true
-}
-
-// 提交
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      submitLoading.value = true
-      try {
-        if (formData.id) {
-          await updateWorkHour({
-            id: formData.id,
-            projectId: formData.projectId!,
-            taskId: formData.taskId,
-            workDate: formData.workDate,
-            hours: formData.hours,
-            content: formData.content
-          })
-          ElMessage.success('更新成功')
-        } else {
-          await createWorkHour({
-            projectId: formData.projectId!,
-            taskId: formData.taskId,
-            workDate: formData.workDate,
-            hours: formData.hours,
-            content: formData.content
-          })
-          ElMessage.success('创建成功')
-        }
-        dialogVisible.value = false
-        fetchMonthData()
-      } catch (error) {
-        console.error('操作失败:', error)
-      } finally {
-        submitLoading.value = false
-      }
-    }
-  })
-}
-
 // 监听年月变化
 watch([currentYear, currentMonth], () => {
   fetchMonthData()
 })
 
 onMounted(() => {
-  fetchProjects()
   fetchMonthData()
 })
 </script>
@@ -697,7 +532,7 @@ onMounted(() => {
 .calendar-cell {
   min-height: 120px;
   padding: 8px;
-  background: #fff;
+  background: #fff; /* 当前月份默认白色 */
   border: 1px solid #e8e8e8;
   border-radius: 4px;
   cursor: pointer;
@@ -708,20 +543,36 @@ onMounted(() => {
   box-shadow: 0 0 0 2px #1890ff inset;
 }
 
-.calendar-cell.today {
+/* 当前月份的周末：浅蓝色 */
+.calendar-cell.weekend:not(.other-month) {
   background: #e6f7ff;
 }
 
-.calendar-cell.weekend {
-  background: #fafafa;
-}
-
+/* 非当前月份：浅灰色 */
 .calendar-cell.other-month {
-  opacity: 0.3;
+  background: #f5f5f5;
+  opacity: 0.6;
 }
 
-.calendar-cell.has-data {
+/* 非当前月份的周末：保持灰色（其他月份优先） */
+.calendar-cell.other-month.weekend {
+  background: #f5f5f5;
+  opacity: 0.6;
+}
+
+/* 今天：特殊边框 */
+.calendar-cell.today {
+  border: 2px solid #1890ff;
+  box-shadow: 0 0 0 1px #1890ff;
+}
+
+/* 有工时数据的日期：浅绿色背景 */
+.calendar-cell.has-data:not(.other-month):not(.weekend) {
   background: #f6ffed;
+}
+
+.calendar-cell.has-data.weekend:not(.other-month) {
+  background: #d9f7be;
 }
 
 .cell-header {
