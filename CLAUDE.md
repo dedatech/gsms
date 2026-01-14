@@ -5,6 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Language Preference
 **IMPORTANT: Always respond in Chinese (中文) for this project.** Use Chinese for all explanations, comments, and communications unless specifically requested otherwise.
 
+## Git Commit 约定
+**重要：当用户请求 Git 提交时，必须使用 git-commit-assistant agent**
+
+当用户提到以下任一关键词时，**不要直接执行 git 命令**，而是使用 Task tool 调用 git-commit-assistant agent：
+- `git commit`
+- `commit` + 代码/文件
+- `提交代码`
+- `committer`（及其拼写变体）
+
+**工作流程：**
+1. 识别用户的提交请求
+2. 调用：`使用 Task tool 调用 git-commit-assistant agent`
+3. Agent 会分析变更并生成提交信息
+4. 等待用户确认后再执行提交
+5. **不要自动执行 git push**，除非用户明确要求
+
 ## 快速开始
 
 **环境要求：**
