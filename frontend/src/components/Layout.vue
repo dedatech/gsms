@@ -4,7 +4,7 @@
       <!-- 侧边栏菜单 -->
       <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
         <div class="logo-container">
-          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 32 : 28" />
+          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" />
           <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
         </div>
 
@@ -318,8 +318,8 @@ onMounted(() => {
 
 /* 侧边栏样式 */
 .sidebar {
-  background: linear-gradient(180deg, #002c66 0%, #001529 100%);
-  transition: width 0.3s;
+  background: linear-gradient(180deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
+  transition: width 0.3s, background 0.3s;
   overflow: hidden;
 }
 
@@ -327,7 +327,8 @@ onMounted(() => {
   height: 64px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  justify-content: center;
+  padding: 0 16px;
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -342,12 +343,14 @@ onMounted(() => {
   font-weight: 600;
   color: #fff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1;
 }
 
 .logo-icon {
   font-size: 24px;
   color: #fff;
-  margin: 0 auto;
+  flex-shrink: 0;
+  margin-right: 6px;
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 12px var(--theme-primary-shadow));
 }
 
