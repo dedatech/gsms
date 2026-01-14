@@ -49,6 +49,7 @@
               <span>系统管理</span>
             </template>
             <el-menu-item index="/system/users">用户管理</el-menu-item>
+            <el-menu-item index="/system/departments">部门管理</el-menu-item>
             <el-menu-item index="/system/roles">角色管理</el-menu-item>
             <el-menu-item index="/system/permissions">权限管理</el-menu-item>
             <el-menu-item index="/system/operation-logs">操作日志</el-menu-item>
@@ -250,6 +251,8 @@ const breadcrumbs = computed(() => {
     items.push({ title: '系统管理', path: '/system/users' })
     if (path.includes('users')) {
       items.push({ title: '用户管理', path: '' })
+    } else if (path.includes('departments')) {
+      items.push({ title: '部门管理', path: '' })
     } else if (path.includes('roles')) {
       items.push({ title: '角色管理', path: '' })
     } else if (path.includes('permissions')) {

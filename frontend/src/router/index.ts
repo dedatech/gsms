@@ -103,6 +103,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '用户管理', requiresAuth: true },
       },
       {
+        path: 'system/departments',
+        name: 'Departments',
+        component: () => import('@/views/system/DepartmentList.vue'),
+        meta: { title: '部门管理', requiresAuth: true },
+      },
+      {
         path: 'system/roles',
         name: 'Roles',
         component: () => import('@/views/system/RoleList.vue'),
