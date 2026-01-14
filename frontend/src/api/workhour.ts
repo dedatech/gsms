@@ -67,6 +67,11 @@ export const createWorkHour = (data: WorkHourCreateReq): Promise<ApiResponse<Wor
   return request.post('/work-hours', data)
 }
 
+// 批量创建工时
+export const createWorkHoursBatch = (data: WorkHourCreateReq[]): Promise<ApiResponse<WorkHourInfo[]>> => {
+  return request.post('/work-hours/batch', data)
+}
+
 export const updateWorkHour = (data: WorkHourUpdateReq): Promise<ApiResponse<WorkHourInfo>> => {
   return request.put('/work-hours', data)
 }

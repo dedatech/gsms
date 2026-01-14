@@ -416,6 +416,11 @@ const formRules = computed(() => {
   // 只有在没有父任务时，才验证项目ID必填
   if (!formData.parentId) {
     rules.projectId = [{ required: true, message: '请选择所属项目', trigger: 'change' }]
+
+    // 中大型项目必须选择迭代
+    if (projectType.value === 'LARGE_SCALE') {
+      rules.iterationId = [{ required: true, message: '中大型项目的任务必须关联到某个迭代', trigger: 'change' }]
+    }
   }
 
   return rules

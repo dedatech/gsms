@@ -51,6 +51,14 @@ public interface WorkHourService {
     WorkHour createWorkHour(WorkHour workHour);
 
     /**
+     * 批量创建工时记录
+     * @param workHours 工时记录实体列表
+     * @return 创建成功的工时记录实体列表
+     * @throws BusinessException 工时信息无效时抛出异常
+     */
+    List<WorkHour> createWorkHoursBatch(List<WorkHour> workHours);
+
+    /**
      * 更新工时记录
      * @param workHour 工时记录实体
      * @return 更新后的工时记录实体

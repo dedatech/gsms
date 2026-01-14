@@ -113,6 +113,24 @@ public class WorkHourController {
     }
 
     /**
+     * 批量创建工时记录
+     *
+     * @param reqs 工时记录创建请求列表
+     * @return 创建的工时记录列表
+     */
+    @PostMapping("/batch")
+    @Operation(summary = "批量创建工时记录")
+    public Result<List<WorkHour>> createWorkHoursBatch(@Valid @RequestBody List<WorkHourCreateReq> reqs) {
+        logger.info("批量创建工时记录，数量: {}", reqs.size());
+        List<WorkHour> workHours = reqs.stream()
+                .map(WorkHourConverter::toWorkHour)
+                .toList();
+        List<WorkHour> createdWorkHours = workHourService.createWorkHoursBatch(workHours);
+        logger.info("成功批量创建工时记录，数量: {}", createdWorkHours.size());
+        return Result.success(createdWorkHours);
+    }
+
+    /**
      * 更新工时记录
      *
      * @param req 工时记录更新请求对象

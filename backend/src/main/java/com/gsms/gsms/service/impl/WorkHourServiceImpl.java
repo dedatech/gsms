@@ -109,6 +109,25 @@ public class WorkHourServiceImpl implements WorkHourService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public List<WorkHour> createWorkHoursBatch(List<WorkHour> workHours) {
+        Long currentUserId = UserContext.getCurrentUserId();
+
+        // 检查所有项目的访问权限
+        for (WorkHour workHour : workHours) {
+            authService.checkProjectAccess(currentUserId, workHour.getProjectId());
+            workHour.setUserId(currentUserId);
+            workHour.setCreateUserId(currentUserId);
+            workHour.setUpdateUserId(currentUserId);
+        }
+
+        // 批量插入
+        workHours.forEach(workHour -> workHourMapper.insert(workHour));
+
+        return workHours;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public WorkHour updateWorkHour(WorkHour workHour) {
         // 检查工时记录是否存在
         WorkHour existWorkHour = workHourMapper.selectById(workHour.getId());
