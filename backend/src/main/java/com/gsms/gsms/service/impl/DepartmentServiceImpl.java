@@ -13,7 +13,10 @@ import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.DepartmentMapper;
+import com.gsms.gsms.service.CacheService;
 import com.gsms.gsms.service.DepartmentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +27,14 @@ import java.util.List;
  */
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
+    private static final Logger logger = LoggerFactory.getLogger(DepartmentServiceImpl.class);
 
     private final DepartmentMapper departmentMapper;
+    private final CacheService cacheService;
 
-    public DepartmentServiceImpl(DepartmentMapper departmentMapper) {
+    public DepartmentServiceImpl(DepartmentMapper departmentMapper, CacheService cacheService) {
         this.departmentMapper = departmentMapper;
+        this.cacheService = cacheService;
     }
 
     @Override
@@ -64,6 +70,11 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_CREATE_FAILED);
         }
+
+        // 更新缓存：将新部门添加到缓存中
+        cacheService.putDepartment(department);
+        logger.info("部门创建成功并已更新缓存: id={}, name={}", department.getId(), department.getName());
+
         return DepartmentInfoResp.from(department);
     }
 
@@ -85,7 +96,11 @@ public class DepartmentServiceImpl implements DepartmentService {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_UPDATE_FAILED);
         }
 
+        // 更新缓存：重新从数据库查询并更新缓存
         Department updatedDepartment = departmentMapper.selectById(department.getId());
+        cacheService.putDepartment(updatedDepartment);
+        logger.info("部门更新成功并已更新缓存: id={}, name={}", updatedDepartment.getId(), updatedDepartment.getName());
+
         return DepartmentInfoResp.from(updatedDepartment);
     }
 
@@ -101,5 +116,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (result <= 0) {
             throw new BusinessException(DepartmentErrorCode.DEPARTMENT_DELETE_FAILED);
         }
+
+        // 更新缓存：从缓存中移除已删除的部门
+        cacheService.removeDepartment(id);
+        logger.info("部门删除成功并已更新缓存: id={}, name={}", id, existDepartment.getName());
     }
 }

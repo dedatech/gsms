@@ -147,19 +147,18 @@
           <el-input v-model="editForm.nickname" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="部门" prop="departmentId">
-          <el-select
+          <el-tree-select
             v-model="editForm.departmentId"
+            :data="departmentTree"
+            :props="treeProps"
+            value-key="id"
+            :render-after-expand="false"
+            check-strictly
+            default-expand-all
             placeholder="请选择部门"
             clearable
             style="width: 100%"
-          >
-            <el-option
-              v-for="dept in allDepartments"
-              :key="dept.id"
-              :label="dept.name"
-              :value="dept.id"
-            />
-          </el-select>
+          />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="editForm.email" placeholder="请输入邮箱" />
@@ -256,6 +255,42 @@ const submitLoading = ref(false)
 // 部门列表
 const allDepartments = ref<DepartmentInfo[]>([])
 
+// 部门树形数据
+const departmentTree = ref<DepartmentInfo[]>([])
+
+// 树形组件配置
+const treeProps = {
+  children: 'children',
+  label: 'name'
+}
+
+// 构建部门树
+const buildDepartmentTree = (departments: DepartmentInfo[]): DepartmentInfo[] => {
+  const map = new Map<number, DepartmentInfo>()
+  const tree: DepartmentInfo[] = []
+
+  // 先创建所有节点的映射
+  departments.forEach(dept => {
+    map.set(dept.id, { ...dept, children: [] })
+  })
+
+  // 构建树形结构
+  departments.forEach(dept => {
+    const node = map.get(dept.id)!
+    if (dept.parentId === 0) {
+      tree.push(node)
+    } else {
+      const parent = map.get(dept.parentId)
+      if (parent) {
+        if (!parent.children) parent.children = []
+        parent.children.push(node)
+      }
+    }
+  })
+
+  return tree
+}
+
 // 编辑对话框
 const editDialogVisible = ref(false)
 const editFormRef = ref<FormInstance>()
@@ -326,10 +361,11 @@ const resetPasswordFormRules: FormRules = {
 // 生命周期
 onMounted(async () => {
   fetchData()
-  // 加载部门列表
+  // 加载部门列表并构建树形结构
   try {
     const res = await getAllDepartments()
     allDepartments.value = res.list || []
+    departmentTree.value = buildDepartmentTree(allDepartments.value)
   } catch (error) {
     console.error('加载部门列表失败:', error)
   }
@@ -641,5 +677,10 @@ const formatDate = (dateStr: string) => {
   display: flex;
   justify-content: flex-end;
   padding: 20px;
+}
+
+/* 树形选择器下拉框样式优化 */
+:deep(.el-tree-select__popper) {
+  z-index: 9999 !important;
 }
 </style>
