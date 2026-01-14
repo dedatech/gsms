@@ -7,6 +7,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
+import { useThemeStore } from './stores/theme'
 import permissionDirective from './directives/permission'
 
 const app = createApp(App)
@@ -27,5 +28,9 @@ app.use(permissionDirective) // 注册权限指令
 // 在应用挂载前恢复认证信息
 const authStore = useAuthStore()
 authStore.restoreAuth()
+
+// 在应用挂载前恢复主题
+const themeStore = useThemeStore()
+themeStore.restoreTheme()
 
 app.mount('#app')

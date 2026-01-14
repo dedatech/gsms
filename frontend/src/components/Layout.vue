@@ -86,6 +86,30 @@
           </div>
 
           <div class="header-right">
+            <!-- 主题切换 -->
+            <el-dropdown trigger="click" @command="handleThemeChange" class="theme-dropdown">
+              <div class="theme-selector">
+                <el-icon><Brush /></el-icon>
+                <span class="theme-name">{{ themeStore.currentTheme.name }}</span>
+                <el-icon><ArrowDown /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="(theme, key) in themeStore.themes"
+                    :key="key"
+                    :command="key"
+                    :class="{ 'is-active': themeStore.currentThemeId === key }"
+                  >
+                    <div class="theme-option">
+                      <div class="theme-color-preview" :style="{ backgroundColor: theme.primaryColor }"></div>
+                      <span>{{ theme.name }}</span>
+                    </div>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+
             <el-dropdown trigger="click" @command="handleUserAction">
               <div class="user-info">
                 <el-avatar :size="32" :src="userAvatar">
@@ -128,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -144,11 +168,14 @@ import {
   User,
   Setting,
   SwitchButton,
-  Operation
+  Operation,
+  Brush
 } from '@element-plus/icons-vue'
+import { useThemeStore } from '@/stores/theme'
 
 const router = useRouter()
 const route = useRoute()
+const themeStore = useThemeStore()
 
 // 用户名（从 localStorage 获取）
 const username = ref(localStorage.getItem('username') || '用户')
@@ -242,6 +269,12 @@ const toggleCollapse = () => {
   localStorage.setItem('sidebarCollapsed', String(isCollapse.value))
 }
 
+// 切换主题
+const handleThemeChange = (themeId: string) => {
+  themeStore.setTheme(themeId)
+  ElMessage.success(`已切换到${themeStore.currentTheme.name}主题`)
+}
+
 // 用户操作
 const handleUserAction = (command: string) => {
   switch (command) {
@@ -267,6 +300,11 @@ const handleUserAction = (command: string) => {
       break
   }
 }
+
+// 组件挂载时恢复主题
+onMounted(() => {
+  themeStore.restoreTheme()
+})
 </script>
 
 <style scoped>
@@ -280,7 +318,7 @@ const handleUserAction = (command: string) => {
 
 /* 侧边栏样式 */
 .sidebar {
-  background-color: #001529;
+  background: linear-gradient(180deg, #002c66 0%, #001529 100%);
   transition: width 0.3s;
   overflow: hidden;
 }
@@ -290,8 +328,8 @@ const handleUserAction = (command: string) => {
   display: flex;
   align-items: center;
   padding: 0 20px;
-  background-color: #002140;
   color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .logo {
@@ -303,17 +341,19 @@ const handleUserAction = (command: string) => {
   font-size: 20px;
   font-weight: 600;
   color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .logo-icon {
   font-size: 24px;
   color: #fff;
   margin: 0 auto;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 12px var(--theme-primary-shadow));
 }
 
 .sidebar-menu {
   border-right: none;
-  background-color: #001529;
+  background: transparent;
 }
 
 .sidebar-menu:not(.el-menu--collapse) {
@@ -344,19 +384,19 @@ const handleUserAction = (command: string) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #1890ff;
-  background-color: #e6f7ff;
+  color: var(--theme-primary);
+  background-color: var(--theme-primary-light);
   border-radius: 6px;
   transition: all 0.3s;
-  border: 1px solid #1890ff;
+  border: 1px solid var(--theme-primary);
   font-weight: 500;
 }
 
 .collapse-btn:hover {
-  background-color: #1890ff;
+  background-color: var(--theme-primary);
   color: #fff;
   transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 2px 8px var(--theme-primary-shadow);
 }
 
 .collapse-btn:active {
@@ -366,6 +406,47 @@ const handleUserAction = (command: string) => {
 .header-right {
   display: flex;
   align-items: center;
+  gap: 16px;
+}
+
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  height: 40px;
+  transition: background-color 0.3s;
+  border-radius: 6px;
+  color: #595959;
+  font-size: 14px;
+}
+
+.theme-selector:hover {
+  background-color: #f5f5f5;
+}
+
+.theme-name {
+  font-size: 14px;
+  color: #595959;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-dropdown-menu__item.is-active) {
+  background-color: var(--theme-primary-light);
+  color: var(--theme-primary);
 }
 
 .user-info {
@@ -412,29 +493,37 @@ const handleUserAction = (command: string) => {
 
 /* Element Plus 菜单项样式覆盖 */
 :deep(.el-menu) {
-  background-color: #001529;
+  background: transparent;
 }
 
 :deep(.el-menu-item) {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.3s;
 }
 
 :deep(.el-menu-item:hover) {
-  background-color: #1890ff !important;
+  background-color: var(--theme-primary-hover) !important;
   color: #fff !important;
 }
 
 :deep(.el-menu-item.is-active) {
-  background-color: #1890ff !important;
+  background-color: var(--theme-primary) !important;
   color: #fff !important;
+  box-shadow: 0 2px 8px var(--theme-primary-shadow);
 }
 
 :deep(.el-sub-menu__title) {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.3s;
 }
 
 :deep(.el-sub-menu__title:hover) {
-  background-color: #1890ff !important;
+  background-color: var(--theme-primary-hover) !important;
   color: #fff !important;
+}
+
+/* 子菜单样式 */
+:deep(.el-menu--inline) {
+  background: rgba(0, 0, 0, 0.2) !important;
 }
 </style>
