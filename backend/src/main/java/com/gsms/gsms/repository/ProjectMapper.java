@@ -75,4 +75,13 @@ public interface ProjectMapper extends BaseMapper<Project> {
      */
 
     Project selectByCode(String code);
+
+    /**
+     * 根据编码前缀查询最大编号
+     * 例如：查询 "CG" 开头的项目编码，返回最大数字部分（如 CG5 返回 5）
+     *
+     * @param prefix 编码前缀（如 "CG", "DX"）
+     * @return 最大编号，如果没有匹配的记录返回 null
+     */
+    Integer selectMaxNumberByPrefix(@Param("prefix") String prefix);
 }

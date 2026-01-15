@@ -21,9 +21,8 @@ public class ProjectCreateReq {
     @Schema(description = "项目名称", example = "工时管理系统")
     private String name;
 
-    @NotBlank(message = "项目编码不能为空")
     @Size(max = 50, message = "项目编码长度不能超过50个字符")
-    @Schema(description = "项目编码", example = "GSMS")
+    @Schema(description = "项目编码（不填则自动生成，格式：CG1、DX1 等）", example = "CG1")
     private String code;
 
     @NotNull(message = "项目类型不能为空")

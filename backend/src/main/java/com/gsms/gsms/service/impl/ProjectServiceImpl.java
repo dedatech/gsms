@@ -5,6 +5,8 @@ import com.github.pagehelper.PageInfo;
 import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.model.enums.errorcode.ProjectErrorCode;
+import com.gsms.gsms.model.enums.ProjectType;
+import com.gsms.gsms.model.enums.ProjectStatus;
 import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectCreateReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 项目服务实现类
@@ -116,11 +120,26 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectInfoResp create(ProjectCreateReq createReq) {
         // DTO转Entity
         Project project = ProjectConverter.toProject(createReq);
-        // 检查项目编码是否已存在, 存在则抛出异常
-        Project existProject = getByCode(project.getCode());
-        if (existProject != null) {
-            throw new BusinessException(ProjectErrorCode.PROJECT_CODE_EXISTS);
+
+        // 如果项目编码为空，自动生成
+        if (project.getCode() == null || project.getCode().trim().isEmpty()) {
+            String generatedCode = generateProjectCode(project.getProjectType());
+            project.setCode(generatedCode);
+            log.info("自动生成项目编码: {}", generatedCode);
+        } else {
+            // 检查项目编码是否已存在, 存在则抛出异常
+            Project existProject = getByCode(project.getCode());
+            if (existProject != null) {
+                throw new BusinessException(ProjectErrorCode.PROJECT_CODE_EXISTS);
+            }
         }
+
+        // 设置默认状态（如果前端没有传递）
+        if (project.getStatus() == null) {
+            project.setStatus(ProjectStatus.NOT_STARTED);
+            log.info("设置默认项目状态: NOT_STARTED");
+        }
+
         // 自动填充创建人（从登录态获取）
         Long currentUserId = UserContext.getCurrentUserId();
         project.setCreateUserId(currentUserId);
@@ -213,5 +232,30 @@ public class ProjectServiceImpl implements ProjectService {
         for (ProjectInfoResp resp : respList) {
             enrichProjectInfoResp(resp);
         }
+    }
+
+    /**
+     * 自动生成项目编码
+     * 规则：项目类型拼音前缀 + 递增数字
+     * - 常规型项目（SCHEDULE）-> CG1, CG2, CG3...
+     * - 中大型项目（LARGE_SCALE）-> DX1, DX2, DX3...
+     *
+     * @param projectType 项目类型
+     * @return 生成的项目编码
+     */
+    private String generateProjectCode(ProjectType projectType) {
+        // 确定前缀
+        String prefix = (projectType == ProjectType.LARGE_SCALE) ? "DX" : "CG";
+
+        // 查询该类型项目的最大编号
+        Integer maxNumber = projectMapper.selectMaxNumberByPrefix(prefix);
+
+        // 如果没有记录，从 1 开始；否则递增
+        int nextNumber = (maxNumber == null) ? 1 : maxNumber + 1;
+
+        String generatedCode = prefix + nextNumber;
+        log.info("生成项目编码: 前缀={}, 最大编号={}, 新编码={}", prefix, maxNumber, generatedCode);
+
+        return generatedCode;
     }
 }

@@ -37,6 +37,7 @@ public class ProjectConverter {
         project.setId(req.getId());
         project.setName(req.getName());
         project.setCode(req.getCode());
+        project.setProjectType(req.getProjectType());
         project.setDescription(req.getDescription());
         project.setManagerId(req.getManagerId());
         project.setStatus(req.getStatus());  // 直接设置枚举，MyBatis-Plus自动转换

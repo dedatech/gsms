@@ -96,6 +96,15 @@
         WHERE code = #{code}
     </select>
 
+    <!-- 根据编码前缀查询最大编号 -->
+    <select id="selectMaxNumberByPrefix" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT MAX(CAST(SUBSTRING(code, CHAR_LENGTH(#{prefix}) + 1) AS SIGNED))
+        FROM gsms_project
+        WHERE code LIKE CONCAT(#{prefix}, '%')
+        AND is_deleted = 0
+        AND code REGEXP CONCAT('^', #{prefix}, '[0-9]+$')
+    </select>
+
     <!-- 插入项目 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.Project"
             useGeneratedKeys="true" keyProperty="id">
