@@ -2,7 +2,11 @@
   <div class="layout">
     <el-container>
       <!-- 侧边栏菜单 -->
-      <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
+      <el-aside
+        :width="isCollapse ? '64px' : '200px'"
+        class="sidebar"
+        :data-theme-type="themeStore.currentTheme.sidebarType"
+      >
         <div class="logo-container">
           <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" />
           <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
@@ -345,11 +349,21 @@ onMounted(async () => {
 
 /* 侧边栏样式 */
 .sidebar {
-  background: linear-gradient(180deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
   transition: width 0.3s, background 0.3s;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* 深色侧边栏（默认） */
+.sidebar {
+  background: linear-gradient(180deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
+}
+
+/* 浅色侧边栏 */
+.sidebar[data-theme-type="light"] {
+  background: var(--sidebar-background);
+  border-right: 1px solid var(--sidebar-border);
 }
 
 .logo-container {
@@ -361,6 +375,23 @@ onMounted(async () => {
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+/* 浅色主题 logo 容器 */
+.sidebar[data-theme-type="light"] .logo-container {
+  color: #333;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebar[data-theme-type="light"] .logo-text {
+  color: #333;
+  text-shadow: none;
+}
+
+.sidebar[data-theme-type="light"] .logo-icon {
+  color: var(--theme-primary);
+  filter: none;
 }
 
 .logo {
@@ -397,6 +428,7 @@ onMounted(async () => {
   width: 6px;
 }
 
+/* 深色主题滚动条 */
 .sidebar-menu::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 3px;
@@ -404,6 +436,21 @@ onMounted(async () => {
 
 .sidebar-menu::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* 浅色主题滚动条 */
+.sidebar[data-theme-type="light"] .sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.sidebar[data-theme-type="light"] .sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.sidebar[data-theme-type="light"] .sidebar-menu::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 3px;
 }
 
 .sidebar-menu:not(.el-menu--collapse) {
@@ -546,6 +593,7 @@ onMounted(async () => {
   background: transparent;
 }
 
+/* 深色主题菜单样式（默认） */
 :deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.75);
   transition: all 0.3s;
@@ -577,8 +625,49 @@ onMounted(async () => {
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
-/* 菜单图标样式 */
+/* 菜单图标样式（深色主题） */
 .menu-icon {
+  color: #fff;
+}
+
+/* 浅色主题菜单样式 */
+.sidebar[data-theme-type="light"] :deep(.el-menu-item) {
+  color: var(--sidebar-text);
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-menu-item:hover) {
+  background-color: var(--theme-primary-light) !important;
+  color: var(--sidebar-text-hover) !important;
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-menu-item.is-active) {
+  background-color: var(--theme-primary) !important;
+  color: #fff !important;
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-sub-menu__title) {
+  color: var(--sidebar-text);
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-sub-menu__title:hover) {
+  background-color: var(--theme-primary-light) !important;
+  color: var(--sidebar-text-hover) !important;
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-menu--inline) {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.sidebar[data-theme-type="light"] .menu-icon {
+  color: var(--sidebar-text);
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-menu-item:hover) .menu-icon,
+.sidebar[data-theme-type="light"] :deep(.el-sub-menu__title:hover) .menu-icon {
+  color: var(--sidebar-text-hover);
+}
+
+.sidebar[data-theme-type="light"] :deep(.el-menu-item.is-active) .menu-icon {
   color: #fff;
 }
 

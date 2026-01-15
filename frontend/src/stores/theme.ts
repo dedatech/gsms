@@ -7,7 +7,7 @@ const THEME_KEY = 'teamMaster_theme'
 export const useThemeStore = defineStore('theme', () => {
   // 当前主题ID（初始从 localStorage 读取）
   const savedTheme = localStorage.getItem(THEME_KEY)
-  const currentThemeId = ref<string>(savedTheme && themes[savedTheme] ? savedTheme : 'antdesign')
+  const currentThemeId = ref<string>(savedTheme && themes[savedTheme] ? savedTheme : '浅灰')
 
   // 获取当前主题配置
   const currentTheme = ref<ThemeConfig>(themes[currentThemeId.value])
@@ -21,6 +21,13 @@ export const useThemeStore = defineStore('theme', () => {
     root.style.setProperty('--theme-primary-shadow', theme.primaryShadow)
     root.style.setProperty('--sidebar-gradient-start', theme.sidebarGradientStart)
     root.style.setProperty('--sidebar-gradient-end', theme.sidebarGradientEnd)
+
+    // 侧边栏类型和颜色
+    root.style.setProperty('--sidebar-type', theme.sidebarType)
+    root.style.setProperty('--sidebar-text', theme.sidebarText)
+    root.style.setProperty('--sidebar-text-hover', theme.sidebarTextHover)
+    root.style.setProperty('--sidebar-background', theme.sidebarBackground)
+    root.style.setProperty('--sidebar-border', theme.sidebarBorder)
 
     // 同时更新 Element Plus 的主色变量
     root.style.setProperty('--el-color-primary', theme.primaryColor)
