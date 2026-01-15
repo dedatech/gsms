@@ -12,11 +12,16 @@ import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.model.entity.Permission;
 import com.gsms.gsms.model.enums.errorcode.PermissionErrorCode;
+import com.gsms.gsms.repository.MenuMapper;
 import com.gsms.gsms.repository.PermissionMapper;
+import com.gsms.gsms.service.MenuService;
 import com.gsms.gsms.service.PermissionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,10 +30,16 @@ import java.util.List;
 @Service
 public class PermissionServiceImpl implements PermissionService {
 
-    private final PermissionMapper permissionMapper;
+    private static final Logger logger = LoggerFactory.getLogger(PermissionServiceImpl.class);
 
-    public PermissionServiceImpl(PermissionMapper permissionMapper) {
+    private final PermissionMapper permissionMapper;
+    private final MenuMapper menuMapper;
+    private final MenuService menuService;
+
+    public PermissionServiceImpl(PermissionMapper permissionMapper, MenuMapper menuMapper, MenuService menuService) {
         this.permissionMapper = permissionMapper;
+        this.menuMapper = menuMapper;
+        this.menuService = menuService;
     }
 
     @Override
@@ -134,5 +145,23 @@ public class PermissionServiceImpl implements PermissionService {
         if (result <= 0) {
             throw new BusinessException(PermissionErrorCode.PERMISSION_DELETE_FAILED);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignMenus(Long permissionId, List<Long> menuIds) {
+        // 复用MenuService的assignPermissions方法
+        // 遍历每个菜单，为其分配该权限
+        if (menuIds != null) {
+            for (Long menuId : menuIds) {
+                menuService.assignPermissions(menuId, Collections.singletonList(permissionId));
+            }
+        }
+        logger.info("权限菜单分配成功: permissionId={}, count={}", permissionId, menuIds != null ? menuIds.size() : 0);
+    }
+
+    @Override
+    public List<Long> getMenuIds(Long permissionId) {
+        return menuMapper.selectMenuIdsByPermissionId(permissionId);
     }
 }

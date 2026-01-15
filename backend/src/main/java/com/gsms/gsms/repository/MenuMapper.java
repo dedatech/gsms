@@ -80,4 +80,9 @@ public interface MenuMapper extends BaseMapper<Menu> {
      * 根据角色ID查询可访问的菜单列表
      */
     List<Menu> selectMenusByRoleId(@Param("roleId") Long roleId);
+
+    /**
+     * 根据权限ID查询菜单ID列表
+     */
+    List<Long> selectMenuIdsByPermissionId(@Param("permissionId") Long permissionId);
 }

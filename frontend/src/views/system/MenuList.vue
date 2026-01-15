@@ -57,14 +57,14 @@
         </div>
         <div class="table-content">
           <el-table :data="list" stripe border v-loading="loading">
-            <el-table-column prop="name" label="菜单名称" width="150" />
-            <el-table-column label="父菜单" width="120">
+            <el-table-column prop="name" label="菜单名称" min-width="120" />
+            <el-table-column label="父菜单" min-width="100">
               <template #default="{ row }">
                 {{ getParentMenuName(row.parentId) }}
               </template>
             </el-table-column>
-            <el-table-column prop="path" label="路由路径" width="200" />
-            <el-table-column prop="icon" label="图标" width="200" />
+            <el-table-column prop="path" label="路由路径" min-width="180" />
+            <el-table-column prop="icon" label="图标" min-width="150" />
             <el-table-column label="类型" width="80">
               <template #default="{ row }">
                 <el-tag v-if="row.type === 1" type="info">目录</el-tag>

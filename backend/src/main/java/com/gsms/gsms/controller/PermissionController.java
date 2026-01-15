@@ -123,4 +123,30 @@ public class PermissionController {
         logger.info("权限删除成功: {}", id);
         return Result.success("权限删除成功");
     }
+
+    /**
+     * 为权限分配菜单
+     */
+    @Operation(summary = "为权限分配菜单")
+    @PostMapping("/{id}/menus")
+    public Result<String> assignMenus(
+            @Parameter(description = "权限ID", required = true) @PathVariable Long id,
+            @RequestBody List<Long> menuIds) {
+        logger.info("为权限分配菜单: permissionId={}, menus={}", id, menuIds);
+        permissionService.assignMenus(id, menuIds);
+        logger.info("权限菜单分配成功: permissionId={}", id);
+        return Result.success("菜单分配成功");
+    }
+
+    /**
+     * 查询权限的菜单ID列表
+     */
+    @Operation(summary = "查询权限菜单列表")
+    @GetMapping("/{id}/menus")
+    public Result<List<Long>> getMenus(
+            @Parameter(description = "权限ID", required = true) @PathVariable Long id) {
+        logger.info("查询权限菜单列表: permissionId={}", id);
+        List<Long> menuIds = permissionService.getMenuIds(id);
+        return Result.success(menuIds);
+    }
 }

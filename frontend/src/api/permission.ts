@@ -75,3 +75,24 @@ export const updatePermission = (data: PermissionUpdateReq) => {
 export const deletePermission = (id: number) => {
   return request.delete(`/permissions/${id}`)
 }
+
+/**
+ * 为权限分配菜单
+ */
+export const assignPermissionMenus = (permissionId: number, menuIds: number[]) => {
+  return request({
+    url: `/permissions/${permissionId}/menus`,
+    method: 'post',
+    data: menuIds
+  })
+}
+
+/**
+ * 获取权限的菜单ID列表
+ */
+export const getPermissionMenus = (permissionId: number): Promise<number[]> => {
+  return request({
+    url: `/permissions/${permissionId}/menus`,
+    method: 'get'
+  })
+}

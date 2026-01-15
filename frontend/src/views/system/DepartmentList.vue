@@ -62,13 +62,13 @@
         </template>
         <el-table :data="list" stripe v-loading="loading" border row-key="id">
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="部门名称" width="200" />
-          <el-table-column label="父部门" width="150">
+          <el-table-column prop="name" label="部门名称" min-width="150" />
+          <el-table-column label="父部门" min-width="120">
             <template #default="{ row }">
               {{ getParentDepartmentName(row.parentId) }}
             </template>
           </el-table-column>
-          <el-table-column prop="remark" label="备注" width="200" show-overflow-tooltip />
+          <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
           <el-table-column label="创建时间" width="180">
             <template #default="{ row }">
               {{ formatDate(row.createTime) }}

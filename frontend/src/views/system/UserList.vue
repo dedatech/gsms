@@ -33,10 +33,10 @@
     <el-card class="table-card" shadow="never">
       <el-table :data="list" stripe v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="用户名" width="150" />
-        <el-table-column prop="nickname" label="姓名" width="120" />
-        <el-table-column prop="email" label="邮箱" width="200" />
-        <el-table-column prop="departmentName" label="部门" width="120" />
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="nickname" label="姓名" min-width="100" />
+        <el-table-column prop="email" label="邮箱" min-width="180" />
+        <el-table-column prop="departmentName" label="部门" min-width="120" />
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 'NORMAL' ? 'success' : 'danger'" size="small">

@@ -52,4 +52,18 @@ public interface PermissionService {
      * @param id 权限ID
      */
     void delete(Long id);
+
+    /**
+     * 为权限分配菜单
+     * @param permissionId 权限ID
+     * @param menuIds 菜单ID列表
+     */
+    void assignMenus(Long permissionId, List<Long> menuIds);
+
+    /**
+     * 获取权限的菜单ID列表
+     * @param permissionId 权限ID
+     * @return 菜单ID列表
+     */
+    List<Long> getMenuIds(Long permissionId);
 }

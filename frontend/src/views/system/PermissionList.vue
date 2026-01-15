@@ -33,26 +33,29 @@
     <el-card class="table-card" shadow="never">
       <el-table :data="list" stripe v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="module" label="模块" width="120">
+        <el-table-column prop="module" label="模块" width="100">
           <template #default="{ row }">
             <el-tag size="small" type="info">{{ getModuleFromCode(row.code) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="权限名称" width="150" />
-        <el-table-column prop="code" label="权限编码" width="200" />
-        <el-table-column prop="description" label="描述" min-width="200" />
+        <el-table-column prop="name" label="权限名称" min-width="120" />
+        <el-table-column prop="code" label="权限编码" min-width="180" />
+        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
         <el-table-column label="创建时间" width="180">
           <template #default="{ row }">
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
             <el-button link type="primary" size="small" @click="handleViewRoles(row)">
               查看角色
+            </el-button>
+            <el-button link type="primary" size="small" @click="handleAssignMenus(row)">
+              设置菜单权限
             </el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row)">
               删除
@@ -130,6 +133,35 @@
         <el-empty v-if="permissionRoles.length === 0" description="暂无角色" />
       </div>
     </el-dialog>
+
+    <!-- 设置菜单权限对话框 -->
+    <el-dialog
+      v-model="menuDialogVisible"
+      title="设置菜单权限"
+      width="600px"
+    >
+      <el-form label-width="80px">
+        <el-form-item label="菜单">
+          <el-select
+            v-model="selectedMenuIds"
+            multiple
+            placeholder="选择菜单"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="menu in allMenus"
+              :key="menu.id"
+              :label="menu.name"
+              :value="menu.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="menuDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleAssignMenusSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,10 +174,13 @@ import {
   createPermission,
   updatePermission,
   deletePermission,
+  assignPermissionMenus,
+  getPermissionMenus,
   type PermissionInfo,
   type PermissionCreateReq,
   type PermissionUpdateReq
 } from '@/api/permission'
+import { getMenuTree, type MenuInfo } from '@/api/menu'
 
 // 状态定义
 const list = ref<PermissionInfo[]>([])
@@ -186,6 +221,12 @@ const formRules: FormRules = {
 // 角色对话框
 const roleDialogVisible = ref(false)
 const permissionRoles = ref<{ id: number; name: string; code: string; description?: string }[]>([])
+
+// 菜单对话框
+const menuDialogVisible = ref(false)
+const currentPermissionId = ref<number>(0)
+const allMenus = ref<MenuInfo[]>([])
+const selectedMenuIds = ref<number[]>([])
 
 // 生命周期
 onMounted(() => {
@@ -307,6 +348,51 @@ const handleViewRoles = async (row: PermissionInfo) => {
   roleDialogVisible.value = true
 }
 
+// 设置菜单权限
+const handleAssignMenus = async (row: PermissionInfo) => {
+  currentPermissionId.value = row.id
+  try {
+    // 获取所有菜单（扁平化处理）
+    const menuTree = await getMenuTree()
+    allMenus.value = flattenMenuTree(menuTree)
+
+    // 获取当前权限的菜单
+    const menuIds = await getPermissionMenus(row.id)
+    selectedMenuIds.value = menuIds
+
+    menuDialogVisible.value = true
+  } catch (error) {
+    console.error('获取菜单失败:', error)
+    ElMessage.error('获取菜单失败')
+  }
+}
+
+const handleAssignMenusSubmit = async () => {
+  try {
+    await assignPermissionMenus(currentPermissionId.value, selectedMenuIds.value)
+    ElMessage.success('菜单权限设置成功')
+    menuDialogVisible.value = false
+  } catch (error) {
+    console.error('菜单权限设置失败:', error)
+    ElMessage.error('菜单权限设置失败')
+  }
+}
+
+// 扁平化菜单树
+const flattenMenuTree = (menus: MenuInfo[]): MenuInfo[] => {
+  const result: MenuInfo[] = []
+  const flatten = (list: MenuInfo[]) => {
+    for (const menu of list) {
+      result.push(menu)
+      if (menu.children && menu.children.length > 0) {
+        flatten(menu.children)
+      }
+    }
+  }
+  flatten(menus)
+  return result
+}
+
 // 工具函数
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
@@ -325,7 +411,39 @@ const getModuleFromCode = (code: string): string => {
 </script>
 
 <style scoped>
-/* ========== 权限管理特定样式 ========== */
+/* ========== 权限管理页面样式 ========== */
+
+.page-root {
+  min-height: calc(100vh - 160px);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+}
+
+.table-card {
+  margin-bottom: 24px;
+}
 
 .role-list {
   margin-top: 16px;
