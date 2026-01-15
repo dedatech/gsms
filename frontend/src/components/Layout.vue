@@ -348,6 +348,8 @@ onMounted(async () => {
   background: linear-gradient(180deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
   transition: width 0.3s, background 0.3s;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-container {
@@ -358,6 +360,7 @@ onMounted(async () => {
   padding: 0 16px;
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -381,9 +384,26 @@ onMounted(async () => {
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 12px var(--theme-primary-shadow));
 }
 
+/* 菜单容器，添加滚动 */
 .sidebar-menu {
   border-right: none;
   background: transparent;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .sidebar-menu:not(.el-menu--collapse) {

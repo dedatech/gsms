@@ -30,18 +30,18 @@
         </el-select>
         <el-button-group>
           <el-button
-            :type="viewMode === 'kanban' ? 'primary' : ''"
-            @click="viewMode = 'kanban'"
-          >
-            <el-icon><Grid /></el-icon>
-            看板
-          </el-button>
-          <el-button
             :type="viewMode === 'table' ? 'primary' : ''"
             @click="viewMode = 'table'"
           >
             <el-icon><List /></el-icon>
             列表
+          </el-button>
+          <el-button
+            :type="viewMode === 'kanban' ? 'primary' : ''"
+            @click="viewMode = 'kanban'"
+          >
+            <el-icon><Grid /></el-icon>
+            看板
           </el-button>
         </el-button-group>
       </div>
@@ -127,7 +127,7 @@
                 class="project-dot"
                 :style="{ backgroundColor: getStatusColor(row.status) }"
               ></div>
-              <span>{{ row.name }}</span>
+              <el-link type="primary" @click="handleView(row)">{{ row.name }}</el-link>
             </div>
           </template>
         </el-table-column>
@@ -177,9 +177,8 @@
             {{ formatDate(row.updateTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="210" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" :icon="View" @click="handleView(row)">查看</el-button>
             <el-button link type="success" :icon="Grid" @click="handleGantt(row)">甘特图</el-button>
             <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
             <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
@@ -347,8 +346,8 @@ import { getProjectStatusOptions, getProjectStatusInfo } from '@/utils/statusMap
 
 const router = useRouter()
 
-// 视图模式
-const viewMode = ref<'kanban' | 'table'>('kanban')
+// 视图模式（默认列表）
+const viewMode = ref<'kanban' | 'table'>('table')
 
 // 项目状态配置
 const projectStatuses = getProjectStatusOptions()

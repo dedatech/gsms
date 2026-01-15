@@ -37,18 +37,18 @@
         </el-select>
         <el-button-group>
           <el-button
-            :type="viewMode === 'kanban' ? 'primary' : ''"
-            @click="viewMode = 'kanban'"
-          >
-            <el-icon><Grid /></el-icon>
-            看板
-          </el-button>
-          <el-button
             :type="viewMode === 'table' ? 'primary' : ''"
             @click="viewMode = 'table'"
           >
             <el-icon><List /></el-icon>
             列表
+          </el-button>
+          <el-button
+            :type="viewMode === 'kanban' ? 'primary' : ''"
+            @click="viewMode = 'kanban'"
+          >
+            <el-icon><Grid /></el-icon>
+            看板
           </el-button>
         </el-button-group>
       </div>
@@ -368,8 +368,8 @@ import { getTaskStatusInfo, getTaskPriorityInfo, getTaskStatusOptions } from '@/
 
 const router = useRouter()
 
-// 视图模式
-const viewMode = ref<'kanban' | 'table'>('kanban')
+// 视图模式（默认列表）
+const viewMode = ref<'kanban' | 'table'>('table')
 
 // 任务状态配置
 const taskStatuses = getTaskStatusOptions()
