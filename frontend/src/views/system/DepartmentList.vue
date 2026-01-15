@@ -76,12 +76,6 @@
           </el-table-column>
           <el-table-column label="操作" width="280" fixed="right">
             <template #default="{ row, $index }">
-              <el-button link type="success" size="small" @click="handleAddChild(row)">
-                添加子部门
-              </el-button>
-              <el-button link type="primary" size="small" @click="handleEdit(row)">
-                编辑
-              </el-button>
               <el-button
                 link
                 type="warning"
@@ -99,6 +93,12 @@
                 :disabled="$index === list.length - 1"
               >
                 下移
+              </el-button>
+              <el-button link type="success" size="small" @click="handleAddChild(row)">
+                添加子部门
+              </el-button>
+              <el-button link type="primary" size="small" @click="handleEdit(row)">
+                编辑
               </el-button>
               <el-button link type="danger" size="small" @click="handleDelete(row)">
                 删除
