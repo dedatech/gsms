@@ -8,53 +8,68 @@
           <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
         </div>
 
+        <!-- 动态菜单 -->
         <el-menu
+          v-if="menuTree.length > 0"
           :default-active="activeMenu"
           :collapse="isCollapse"
           router
           class="sidebar-menu"
         >
-          <el-menu-item index="/dashboard">
-            <el-icon><Odometer /></el-icon>
-            <template #title>首页</template>
-          </el-menu-item>
-          <el-menu-item index="/projects">
-            <el-icon><FolderOpened /></el-icon>
-            <template #title>项目管理</template>
-          </el-menu-item>
-          <el-menu-item index="/tasks">
-            <el-icon><List /></el-icon>
-            <template #title>任务中心</template>
-          </el-menu-item>
-          <el-sub-menu index="workhours">
-            <template #title>
-              <el-icon><Clock /></el-icon>
-              <span>工时管理</span>
-            </template>
-            <el-menu-item index="/workhours/calendar">工时日历</el-menu-item>
-            <el-menu-item index="/workhours/list">工时列表</el-menu-item>
-          </el-sub-menu>
-          <el-sub-menu index="statistics">
-            <template #title>
-              <el-icon><DataAnalysis /></el-icon>
-              <span>统计分析</span>
-            </template>
-            <el-menu-item index="/statistics/project">项目工时统计</el-menu-item>
-            <el-menu-item index="/statistics/user">用户工时统计</el-menu-item>
-            <el-menu-item index="/statistics/trend">工时趋势分析</el-menu-item>
-          </el-sub-menu>
-          <el-sub-menu index="system">
-            <template #title>
-              <el-icon><Operation /></el-icon>
-              <span>系统管理</span>
-            </template>
-            <el-menu-item index="/system/users">用户管理</el-menu-item>
-            <el-menu-item index="/system/departments">部门管理</el-menu-item>
-            <el-menu-item index="/system/roles">角色管理</el-menu-item>
-            <el-menu-item index="/system/permissions">权限管理</el-menu-item>
-            <el-menu-item index="/system/operation-logs">操作日志</el-menu-item>
-          </el-sub-menu>
+          <template v-for="menu in menuTree" :key="menu.id">
+            <!-- 目录类型（有子菜单） -->
+            <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="String(menu.id)">
+              <template #title>
+                <el-icon v-if="menu.icon" :size="18" class="menu-icon">
+                  <component :is="iconMap[menu.icon]" />
+                </el-icon>
+                <span>{{ menu.name }}</span>
+              </template>
+
+              <!-- 递归渲染子菜单 -->
+              <template v-for="subMenu in menu.children" :key="subMenu.id">
+                <el-menu-item v-if="!subMenu.children || subMenu.children.length === 0"
+                              :index="subMenu.path">
+                  <el-icon v-if="subMenu.icon" :size="18" class="menu-icon">
+                    <component :is="iconMap[subMenu.icon]" />
+                  </el-icon>
+                  <template #title>{{ subMenu.name }}</template>
+                </el-menu-item>
+
+                <!-- 三级菜单（如需要） -->
+                <el-sub-menu v-else :index="String(subMenu.id)">
+                  <template #title>
+                    <el-icon v-if="subMenu.icon" :size="18" class="menu-icon">
+                      <component :is="iconMap[subMenu.icon]" />
+                    </el-icon>
+                    <span>{{ subMenu.name }}</span>
+                  </template>
+                  <el-menu-item v-for="child in subMenu.children"
+                                :key="child.id"
+                                :index="child.path">
+                    <el-icon v-if="child.icon" :size="18" class="menu-icon">
+                      <component :is="iconMap[child.icon]" />
+                    </el-icon>
+                    <template #title>{{ child.name }}</template>
+                  </el-menu-item>
+                </el-sub-menu>
+              </template>
+            </el-sub-menu>
+
+            <!-- 菜单项（无子菜单） -->
+            <el-menu-item v-else :index="menu.path">
+              <el-icon v-if="menu.icon" :size="18" class="menu-icon">
+                <component :is="iconMap[menu.icon]" />
+              </el-icon>
+              <template #title>{{ menu.name }}</template>
+            </el-menu-item>
+          </template>
         </el-menu>
+
+        <!-- 加载状态 -->
+        <div v-else class="menu-loading">
+          <el-skeleton :rows="3" animated />
+        </div>
       </el-aside>
 
       <el-container>
@@ -70,8 +85,8 @@
             >
               <div class="collapse-btn" @click="toggleCollapse">
                 <el-icon :size="20">
-                  <Fold v-if="!isCollapse" />
-                  <Expand v-else />
+                  <component :is="iconMap.Fold" v-if="!isCollapse" />
+                  <component :is="iconMap.Expand" v-else />
                 </el-icon>
               </div>
             </el-tooltip>
@@ -90,9 +105,9 @@
             <!-- 主题切换 -->
             <el-dropdown trigger="click" @command="handleThemeChange" class="theme-dropdown">
               <div class="theme-selector">
-                <el-icon><Brush /></el-icon>
+                <el-icon><component :is="iconMap.Brush" /></el-icon>
                 <span class="theme-name">{{ themeStore.currentTheme.name }}</span>
-                <el-icon><ArrowDown /></el-icon>
+                <el-icon><component :is="iconMap.ArrowDown" /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -117,20 +132,20 @@
                   {{ username.charAt(0).toUpperCase() }}
                 </el-avatar>
                 <span class="username">{{ username }}</span>
-                <el-icon><ArrowDown /></el-icon>
+                <el-icon><component :is="iconMap.ArrowDown" /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">
-                    <el-icon><User /></el-icon>
+                    <el-icon><component :is="iconMap.User" /></el-icon>
                     个人信息
                   </el-dropdown-item>
                   <el-dropdown-item command="settings">
-                    <el-icon><Setting /></el-icon>
+                    <el-icon><component :is="iconMap.Setting" /></el-icon>
                     系统设置
                   </el-dropdown-item>
                   <el-dropdown-item divided command="logout">
-                    <el-icon><SwitchButton /></el-icon>
+                    <el-icon><component :is="iconMap.SwitchButton" /></el-icon>
                     退出登录
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -156,27 +171,35 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Odometer,
-  FolderOpened,
-  List,
-  Refresh,
-  Clock,
-  DataAnalysis,
-  Fold,
-  Expand,
-  ArrowDown,
-  User,
-  Setting,
-  SwitchButton,
-  Operation,
-  Brush
-} from '@element-plus/icons-vue'
+import * as ElementPlusIcons from '@element-plus/icons-vue'
 import { useThemeStore } from '@/stores/theme'
+import { getUserMenuTree, type MenuInfo } from '@/api/menu'
 
 const router = useRouter()
 const route = useRoute()
 const themeStore = useThemeStore()
+
+// 动态菜单树
+const menuTree = ref<MenuInfo[]>([])
+
+// 图标映射对象
+const iconMap = ElementPlusIcons
+
+// 调试：检查 Setting 图标
+console.log('Setting 图标:', iconMap.Setting)
+console.log('Operation 图标:', iconMap.Operation)
+
+// 加载用户菜单
+const fetchUserMenus = async () => {
+  try {
+    const menus = await getUserMenuTree()
+    menuTree.value = menus
+    console.log('菜单加载成功:', menus)
+  } catch (error) {
+    console.error('加载菜单失败:', error)
+    ElMessage.error('加载菜单失败')
+  }
+}
 
 // 用户名（从 localStorage 获取）
 const username = ref(localStorage.getItem('username') || '用户')
@@ -304,8 +327,9 @@ const handleUserAction = (command: string) => {
   }
 }
 
-// 组件挂载时恢复主题
-onMounted(() => {
+// 组件挂载时恢复主题并加载菜单
+onMounted(async () => {
+  await fetchUserMenus()
   themeStore.restoreTheme()
 })
 </script>
@@ -531,5 +555,15 @@ onMounted(() => {
 /* 子菜单样式 */
 :deep(.el-menu--inline) {
   background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 菜单图标样式 */
+.menu-icon {
+  color: #fff;
+}
+
+/* 菜单加载状态 */
+.menu-loading {
+  padding: 20px;
 }
 </style>

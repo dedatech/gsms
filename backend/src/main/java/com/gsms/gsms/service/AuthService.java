@@ -92,4 +92,21 @@ public interface AuthService {
             throw new BusinessException(CommonErrorCode.FORBIDDEN);
         }
     }
+
+    /**
+     * 判断用户是否拥有指定角色
+     *
+     * @param userId 用户ID
+     * @param roleCode 角色编码(如 PROJECT_MANAGER, EMPLOYEE)
+     * @return true表示拥有该角色,false表示没有
+     */
+    boolean hasRole(Long userId, String roleCode);
+
+    /**
+     * 获取用户的所有角色编码列表
+     *
+     * @param userId 用户ID
+     * @return 角色编码列表,如果没有角色返回空列表
+     */
+    List<String> getRoleCodes(Long userId);
 }

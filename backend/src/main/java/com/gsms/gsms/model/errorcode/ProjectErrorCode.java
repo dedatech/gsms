@@ -22,7 +22,11 @@ public enum ProjectErrorCode implements ErrorCode {
     // ========== 任务-迭代关联验证 ==========
     ITERATION_REQUIRED_FOR_LARGE_SCALE_PROJECT(3008, "中大型项目的任务必须关联到某个迭代"),
     ITERATION_NOT_ALLOWED_FOR_SCHEDULE_PROJECT(3009, "常规型项目不支持迭代管理"),
-    
+
+    // ========== 角色验证错误 ==========
+    NOT_PROJECT_MANAGER(3010, "只有项目经理角色才能创建项目"),
+    PROJECT_MANAGER_NOT_QUALIFIED(3011, "指定的项目经理不具备项目经理角色"),
+
     // ========== 操作失败（建议HTTP 500） ==========
     PROJECT_CREATE_FAILED(3901, "项目创建失败"),
     PROJECT_UPDATE_FAILED(3902, "项目更新失败"),

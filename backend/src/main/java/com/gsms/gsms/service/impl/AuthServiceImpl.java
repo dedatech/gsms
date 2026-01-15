@@ -2,6 +2,7 @@ package com.gsms.gsms.service.impl;
 
 import com.gsms.gsms.repository.PermissionMapper;
 import com.gsms.gsms.repository.ProjectMemberMapper;
+import com.gsms.gsms.repository.RoleMapper;
 import com.gsms.gsms.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,12 @@ public class AuthServiceImpl implements AuthService {
 
     private final PermissionMapper permissionMapper;
     private final ProjectMemberMapper projectMemberMapper;
+    private final RoleMapper roleMapper;
 
-    public AuthServiceImpl(PermissionMapper permissionMapper, ProjectMemberMapper projectMemberMapper) {
+    public AuthServiceImpl(PermissionMapper permissionMapper, ProjectMemberMapper projectMemberMapper, RoleMapper roleMapper) {
         this.permissionMapper = permissionMapper;
         this.projectMemberMapper = projectMemberMapper;
+        this.roleMapper = roleMapper;
     }
 
     @Override
@@ -67,5 +70,23 @@ public class AuthServiceImpl implements AuthService {
             return Collections.emptySet();
         }
         return new HashSet<>(codes);
+    }
+
+    @Override
+    public boolean hasRole(Long userId, String roleCode) {
+        if (userId == null || roleCode == null) {
+            return false;
+        }
+        List<String> roleCodes = roleMapper.selectRoleCodesByUserId(userId);
+        return roleCodes != null && roleCodes.contains(roleCode);
+    }
+
+    @Override
+    public List<String> getRoleCodes(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        List<String> codes = roleMapper.selectRoleCodesByUserId(userId);
+        return codes != null ? codes : Collections.emptyList();
     }
 }

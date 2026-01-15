@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -129,6 +130,11 @@ public class UserServiceImpl implements UserService {
                     String.format("创建用户: %s", createReq.getUsername()), "数据库插入失败");
             throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
         }
+
+        // 自动分配 EMPLOYEE 角色
+        Long employeeRoleId = 4L; // EMPLOYEE 角色ID
+        roleMapper.insertUserRoles(user.getId(), Arrays.asList(employeeRoleId));
+        logger.info("自动为新用户分配 EMPLOYEE 角色: userId={}, roleId={}", user.getId(), employeeRoleId);
 
         // 重新查询获取完整数据（包含 createTime、updateTime 等数据库默认值）
         User createdUser = userMapper.selectById(user.getId());

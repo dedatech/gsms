@@ -118,8 +118,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProjectInfoResp create(ProjectCreateReq createReq) {
+        Long currentUserId = UserContext.getCurrentUserId();
+
+        // 检查当前用户是否具有 PROJECT_MANAGER 角色
+        if (!authService.hasRole(currentUserId, "PROJECT_MANAGER")) {
+            throw new BusinessException(ProjectErrorCode.NOT_PROJECT_MANAGER);
+        }
+
         // DTO转Entity
         Project project = ProjectConverter.toProject(createReq);
+
+        // 检查项目的 managerId 是否具有 PROJECT_MANAGER 角色
+        Long managerId = project.getManagerId();
+        if (managerId != null && !authService.hasRole(managerId, "PROJECT_MANAGER")) {
+            throw new BusinessException(ProjectErrorCode.PROJECT_MANAGER_NOT_QUALIFIED);
+        }
 
         // 如果项目编码为空，自动生成
         if (project.getCode() == null || project.getCode().trim().isEmpty()) {
@@ -141,7 +154,6 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         // 自动填充创建人（从登录态获取）
-        Long currentUserId = UserContext.getCurrentUserId();
         project.setCreateUserId(currentUserId);
         project.setUpdateUserId(currentUserId);
 
