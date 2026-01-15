@@ -1,7 +1,99 @@
 # RBAC 用户、角色、权限管理系统实现文档
 
 **实现日期**: 2026-01-12
+**最后更新**: 2026-01-15 (v2.0 架构优化)
 **状态**: ✅ 已完成并投入使用
+
+---
+
+## 🆕 v2.0 版本更新 (2026-01-15)
+
+### 核心架构优化
+
+本次更新对 RBAC 系统进行了重大架构优化，主要改进包括：
+
+#### 1. 角色类型改造（role_level → role_type）
+
+**变更内容**：
+- 删除 `role_level` 字段（整数类型：1=系统级，2=项目级）
+- 新增 `role_type` 字段（枚举类型：SYSTEM, CUSTOM）
+
+**角色分类**：
+| role_type | 说明 | 是否可删除 | 示例 |
+|-----------|------|-----------|------|
+| **SYSTEM** | 系统预置角色 | ❌ 不可删除 | SYS_ADMIN, EMPLOYEE |
+| **CUSTOM** | 用户自定义角色 | ✅ 可删除 | 项目经理、部门经理等 |
+
+**业务规则**：
+- 系统角色（SYSTEM）不允许删除，防止误操作
+- 自定义角色（CUSTOM）可以正常删除
+- 前端根据 `roleType` 控制删除按钮显示
+
+#### 2. 权限分类系统（permission_type）
+
+**新增字段**：
+```sql
+permission_type TINYINT NOT NULL DEFAULT 1
+COMMENT '权限类型 1:功能权限 2:菜单权限 3:数据权限'
+```
+
+**权限分类定义**：
+| permission_type | 类型 | 命名规范 | 示例 | 是否关联菜单 |
+|----------------|------|---------|------|------------|
+| **1** | 功能权限 | MODULE_ACTION | PROJECT_CREATE, TASK_EDIT | ❌ 否 |
+| **2** | 菜单权限 | MENU_* | MENU_PROJECT, MENU_TASK | ✅ 是 |
+| **3** | 数据权限 | *_VIEW_ALL | PROJECT_VIEW_ALL | ❌ 否 |
+
+#### 3. 前端优化
+
+**权限管理页面**：
+- ✅ 使用 `el-tabs` 标签组件替换单选按钮组
+- ✅ 添加权限类型标签页（全部/功能/菜单/数据权限）
+- ✅ 权限表格添加权限类型列，彩色标签显示
+- ✅ 只有菜单权限（type=2）显示"设置菜单权限"按钮
+
+**菜单管理页面**：
+- ✅ 权限分配对话框只显示菜单权限
+- ✅ 自动过滤功能权限和数据权限
+
+**角色管理页面**：
+- ✅ 权限分配对话框添加 `el-tabs` 标签页
+- ✅ 按权限类型分组展示（全部/功能/菜单/数据权限）
+- ✅ 权限表格添加权限类型列显示
+- ✅ 系统角色不显示删除按钮
+
+#### 4. 业务逻辑优化
+
+**权限关联关系**：
+| 权限类型 | 角色 | 菜单 | 权限管理按钮 |
+|---------|------------|------------|------------|
+| **功能权限** (蓝色) | ✅ 可分配 | ❌ 不可关联 | ❌ 不显示 |
+| **菜单权限** (绿色) | ✅ 可分配 | ✅ 可关联 | ✅ 显示 |
+| **数据权限** (橙色) | ✅ 可分配 | ❌ 不可关联 | ❌ 不显示 |
+
+**设计原则**：
+- 菜单权限用于控制前端菜单显示，需关联到具体菜单
+- 功能权限控制具体操作，通过代码注解实现
+- 数据权限控制数据访问范围，在业务逻辑层判断
+
+#### 5. 数据库迁移
+
+**新增迁移脚本**：
+- `V202601153__Alter_role_type.sql` - 角色类型改造
+- `V202601154__Add_permission_type.sql` - 权限分类字段
+- `V202601155__Clean_menu_type_comment.sql` - 清理菜单注释
+
+**数据更新**：
+```sql
+-- 角色类型迁移
+UPDATE sys_role SET role_type = 'SYSTEM' WHERE code IN ('SYS_ADMIN', 'EMPLOYEE');
+UPDATE sys_role SET role_type = 'CUSTOM' WHERE code NOT IN ('SYS_ADMIN', 'EMPLOYEE');
+
+-- 权限类型分类
+UPDATE sys_permission SET permission_type = 2 WHERE code LIKE 'MENU_%';
+UPDATE sys_permission SET permission_type = 3 WHERE code LIKE '%_VIEW_ALL';
+UPDATE sys_permission SET permission_type = 1 WHERE code LIKE '%_CREATE' OR code LIKE '%_EDIT' OR code LIKE '%_DELETE';
+```
 
 ---
 
