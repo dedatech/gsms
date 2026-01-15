@@ -10,6 +10,9 @@ import { useAuthStore } from './stores/auth'
 import { useThemeStore } from './stores/theme'
 import permissionDirective from './directives/permission'
 
+// 全局样式规范
+import '@/styles/page-common.css'
+
 const app = createApp(App)
 const pinia = createPinia()
 

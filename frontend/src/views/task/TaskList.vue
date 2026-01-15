@@ -1,5 +1,5 @@
 <template>
-  <div class="task-list">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-left">
@@ -820,130 +820,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.task-list {
-  min-height: calc(100vh - 160px);
-}
+/* ========== 任务特定样式 ========== */
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-/* 看板视图 */
-.kanban-view {
-  margin-bottom: 24px;
-}
-
-.kanban-column {
-  background: #f5f5f5;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 16px;
-  transition: all 0.3s;
-}
-
-.kanban-column.drag-over {
-  background: #e6f7ff;
-  box-shadow: 0 0 0 2px #1890ff inset;
-}
-
-.column-header {
-  padding: 16px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.column-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.task-count {
-  margin-left: auto;
-  font-size: 12px;
-  color: #8c8c8c;
-  background: #f0f0f0;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.column-body {
-  padding: 16px;
-  min-height: 400px;
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-}
-
-.task-card {
-  background: #fff;
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-.task-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.task-card.dragging {
-  opacity: 0.5;
-  cursor: move;
-}
-
+/* 任务卡片特有样式 */
 .task-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-}
-
-.more-icon {
-  font-size: 18px;
-  color: #8c8c8c;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.more-icon:hover {
-  color: #333;
 }
 
 .task-title {
@@ -996,31 +880,9 @@ onMounted(() => {
 }
 
 /* 表格视图 */
-.table-view {
-  background: #fff;
-  border-radius: 4px;
-  padding: 20px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  margin-bottom: 24px;
-}
-
 .table-task-title {
   display: flex;
   align-items: center;
-}
-
-/* 分页 */
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-:deep(.el-empty) {
-  padding: 40px 0;
 }
 
 /* 表单提示 */

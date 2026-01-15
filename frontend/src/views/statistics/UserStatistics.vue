@@ -1,5 +1,5 @@
 <template>
-  <div class="user-statistics">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <h2 class="page-title">用户工时统计</h2>
@@ -259,74 +259,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.user-statistics {
-  min-height: calc(100vh - 160px);
-}
-
-.page-header {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.filter-card {
-  margin-bottom: 16px;
-}
-
-.stats-row {
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: #fff;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-}
-
-.chart-card {
-  margin-bottom: 16px;
-}
+/* ========== 用户统计特定样式 ========== */
 
 .card-header {
   display: flex;
@@ -338,15 +271,5 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 500;
   color: #333;
-}
-
-:deep(.el-table) {
-  font-size: 14px;
-}
-
-:deep(.el-table th) {
-  background-color: #f5f5f5;
-  color: #333;
-  font-weight: 500;
 }
 </style>

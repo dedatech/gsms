@@ -1,5 +1,5 @@
 <template>
-  <div class="project-list">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-left">
@@ -212,25 +212,26 @@
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px">
+        <!-- 项目名称 -->
         <el-form-item label="项目名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入项目名称" />
         </el-form-item>
-        <el-form-item label="项目编码" prop="code">
-          <el-input v-model="formData.code" placeholder="请输入项目编码" />
-        </el-form-item>
+
+        <!-- 项目类型（单独一行，横向卡片） -->
         <el-form-item label="项目类型" prop="projectType" required>
-          <el-radio-group v-model="formData.projectType" class="project-type-group">
+          <!-- 新建时可选择，编辑时禁用 -->
+          <el-radio-group v-model="formData.projectType" class="project-type-group" :disabled="!!formData.id">
             <el-radio value="SCHEDULE" class="project-type-radio">
               <div class="project-type-option">
                 <div class="type-header">
                   <el-icon :size="24" color="#409eff"><Calendar /></el-icon>
-                  <span class="type-title">常规型项目</span>
+                  <span class="type-title">常规型项目（CG）</span>
                 </div>
-                <div class="type-desc">适合简单项目，直接管理任务，无需迭代</div>
+                <div class="type-divider"></div>
                 <div class="type-features">
-                  <el-tag size="small" type="info">简单直接</el-tag>
-                  <el-tag size="small" type="success">快速上手</el-tag>
+                  <div class="feature-item">• 日常项目</div>
+                  <div class="feature-item">• 快速上手</div>
                 </div>
               </div>
             </el-radio>
@@ -238,37 +239,31 @@
               <div class="project-type-option">
                 <div class="type-header">
                   <el-icon :size="24" color="#67c23a"><FolderOpened /></el-icon>
-                  <span class="type-title">中大型项目</span>
+                  <span class="type-title">中大型项目（DX）</span>
                 </div>
-                <div class="type-desc">适合复杂项目，支持迭代管理（如 Sprint）</div>
+                <div class="type-divider"></div>
                 <div class="type-features">
-                  <el-tag size="small" type="warning">迭代管理</el-tag>
-                  <el-tag size="small" type="danger">敏捷开发</el-tag>
+                  <div class="feature-item">• 支持迭代管理</div>
+                  <div class="feature-item">• 敏捷开发</div>
                 </div>
               </div>
             </el-radio>
           </el-radio-group>
-          <el-alert
-            type="info"
-            :closable="false"
-            style="margin-top: 12px"
-            show-icon
-          >
-            <template #title>
-              <span style="font-size: 12px">
-                💡 提示：项目类型创建后无法修改，请根据项目规模谨慎选择
-              </span>
-            </template>
-          </el-alert>
+          <!-- 编辑时显示提示 -->
+          <div v-if="formData.id" style="font-size: 12px; color: #e6a23c; margin-top: 8px;">
+            ⚠️ 项目类型创建后不可修改
+          </div>
         </el-form-item>
-        <el-form-item label="项目描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入项目描述"
-          />
+
+        <!-- 项目编码提示（自动生成） -->
+        <el-form-item label="项目编码">
+          <el-input :value="formData.code || '创建后自动生成（如 CG1、DX1）'" disabled />
+          <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+            常规项目：CG1、CG2... | 中大型项目：DX1、DX2...
+          </div>
         </el-form-item>
+
+        <!-- 项目经理 -->
         <el-form-item label="项目经理" prop="managerId">
           <el-select v-model="formData.managerId" placeholder="请选择项目经理" style="width: 100%">
             <el-option
@@ -279,38 +274,48 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="项目状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio value="NOT_STARTED">未开始</el-radio>
-            <el-radio value="IN_PROGRESS">进行中</el-radio>
-            <el-radio value="SUSPENDED">已暂停</el-radio>
-            <el-radio value="ARCHIVED">已归档</el-radio>
-          </el-radio-group>
+
+        <!-- 计划开始时间（独占一行） -->
+        <el-form-item label="计划开始时间" prop="planStartDate">
+          <el-date-picker
+            v-model="formData.planStartDate"
+            type="date"
+            placeholder="选择开始日期"
+            style="width: 100%"
+            value-format="YYYY-MM-DD"
+          />
         </el-form-item>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="计划开始时间" prop="planStartDate">
-              <el-date-picker
-                v-model="formData.planStartDate"
-                type="date"
-                placeholder="选择开始日期"
-                style="width: 100%"
-                value-format="YYYY-MM-DD"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="计划结束时间" prop="planEndDate">
-              <el-date-picker
-                v-model="formData.planEndDate"
-                type="date"
-                placeholder="选择结束日期"
-                style="width: 100%"
-                value-format="YYYY-MM-DD"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+
+        <!-- 计划结束时间（独占一行） -->
+        <el-form-item label="计划结束时间" prop="planEndDate">
+          <el-date-picker
+            v-model="formData.planEndDate"
+            type="date"
+            placeholder="选择结束日期"
+            style="width: 100%"
+            value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
+
+        <!-- 项目描述（独占一行） -->
+        <el-form-item label="项目描述" prop="description">
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入项目描述"
+          />
+        </el-form-item>
+
+        <!-- 项目状态（隐藏，创建时默认 NOT_STARTED） -->
+        <el-form-item v-if="formData.id" label="项目状态" prop="status">
+          <el-select v-model="formData.status" placeholder="请选择项目状态" style="width: 100%">
+            <el-option label="未开始" value="NOT_STARTED" />
+            <el-option label="进行中" value="IN_PROGRESS" />
+            <el-option label="已暂停" value="SUSPENDED" />
+            <el-option label="已归档" value="ARCHIVED" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -456,13 +461,15 @@ const formData = reactive({
   planEndDate: ''
 })
 
-// 表单规则
-const formRules: FormRules = {
-  name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入项目编码', trigger: 'blur' }],
-  projectType: [{ required: true, message: '请选择项目类型', trigger: 'change' }],
-  managerId: [{ required: true, message: '请选择项目经理', trigger: 'change' }]
-}
+// 表单规则（动态计算，编辑时不需要验证项目类型）
+const formRules = computed(() => {
+  const isEdit = !!formData.id
+  return {
+    name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
+    projectType: isEdit ? [] : [{ required: true, message: '请选择项目类型', trigger: 'change' }],
+    managerId: [{ required: true, message: '请选择项目经理', trigger: 'change' }]
+  }
+})
 
 const formRef = ref<FormInstance>()
 
@@ -524,6 +531,7 @@ const handleEdit = (project: ProjectInfo) => {
     id: project.id,
     name: project.name,
     code: project.code,
+    projectType: project.projectType,
     description: project.description,
     managerId: project.managerId,
     status: project.status,
@@ -577,21 +585,21 @@ const handleSubmit = async () => {
           await updateProject({
             id: formData.id,
             name: formData.name,
+            projectType: formData.projectType,
             description: formData.description,
+            managerId: formData.managerId,
             status: formData.status,
             planStartDate: formData.planStartDate || undefined,
             planEndDate: formData.planEndDate || undefined
           })
           ElMessage.success('更新成功')
         } else {
-          // 新建
+          // 新建（code 由后端自动生成）
           await createProject({
             name: formData.name,
-            code: formData.code,
             projectType: formData.projectType,
             description: formData.description,
             managerId: formData.managerId!,
-            status: formData.status,
             planStartDate: formData.planStartDate || undefined,
             planEndDate: formData.planEndDate || undefined
           })
@@ -653,121 +661,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.project-list {
-  min-height: calc(100vh - 160px);
-}
+/* ========== 项目特定样式 ========== */
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-/* 看板视图 */
-.kanban-view {
-  margin-bottom: 24px;
-}
-
-.kanban-column {
-  background: #f5f5f5;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 16px;
-  transition: all 0.3s;
-}
-
-.kanban-column.drag-over {
-  background: #e6f7ff;
-  box-shadow: 0 0 0 2px #1890ff inset;
-}
-
-.column-header {
-  padding: 16px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.column-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.project-count {
-  margin-left: auto;
-  font-size: 12px;
-  color: #8c8c8c;
-  background: #f0f0f0;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.column-body {
-  padding: 16px;
-  min-height: 400px;
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-}
-
-.project-card {
-  background: #fff;
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-.project-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.project-card.dragging {
-  opacity: 0.5;
-  cursor: move;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
+/* 项目图标 */
 .project-icon {
   width: 36px;
   height: 36px;
@@ -778,17 +674,7 @@ onMounted(() => {
   color: #fff;
 }
 
-.more-icon {
-  font-size: 18px;
-  color: #8c8c8c;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.more-icon:hover {
-  color: #333;
-}
-
+/* 项目信息 */
 .project-name {
   margin: 0 0 8px 0;
   font-size: 14px;
@@ -817,14 +703,6 @@ onMounted(() => {
   min-height: 36px;
 }
 
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
-}
-
 .project-meta {
   display: flex;
   align-items: center;
@@ -844,14 +722,6 @@ onMounted(() => {
 }
 
 /* 表格视图 */
-.table-view {
-  background: #fff;
-  border-radius: 4px;
-  padding: 20px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  margin-bottom: 24px;
-}
-
 .table-project-name {
   display: flex;
   align-items: center;
@@ -865,42 +735,29 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* 分页 */
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-:deep(.el-empty) {
-  padding: 60px 0;
-}
-
-/* 项目类型选择样式 */
+/* ========== 项目类型选择样式（紧凑卡片横向排列）========== */
 .project-type-group :deep(.el-radio-group) {
   display: flex !important;
-  flex-direction: column !important;
   width: 100%;
 }
 
-/* 直接针对 el-radio label 元素应用样式 */
 .project-type-group :deep(.el-radio) {
-  display: flex !important;
-  width: 100%;
-  margin-bottom: 20px !important;
-  margin-right: 0 !important;
+  flex: 1;
+  margin-right: 20px !important;
+  margin-bottom: 0 !important;
   border: 2px solid #dcdfe6 !important;
   border-radius: 8px !important;
-  padding: 20px !important;
+  padding: 16px !important;
   transition: all 0.3s;
   background: #fff !important;
   cursor: pointer;
-  align-items: flex-start;
   height: auto !important;
   line-height: normal !important;
+}
+
+/* 最后一个卡片不需要右边距 */
+.project-type-group :deep(.el-radio:last-child) {
+  margin-right: 0 !important;
 }
 
 /* 隐藏默认的 radio 圆点 */
@@ -908,7 +765,6 @@ onMounted(() => {
   display: none !important;
 }
 
-/* 确保内部圆点也被隐藏 */
 .project-type-group :deep(.el-radio__inner) {
   display: none !important;
 }
@@ -938,6 +794,18 @@ onMounted(() => {
   box-shadow: 0 2px 12px rgba(64, 158, 255, 0.3) !important;
 }
 
+/* 禁用状态（编辑时） */
+.project-type-group :deep(.el-radio.is-disabled) {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.project-type-group :deep(.el-radio.is-disabled.is-checked) {
+  opacity: 0.8 !important;
+  background-color: #f5f7fa !important;
+  border-color: #c0c4cc !important;
+}
+
 .project-type-option {
   width: 100%;
 }
@@ -950,21 +818,26 @@ onMounted(() => {
 }
 
 .type-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #303133;
 }
 
-.type-desc {
-  color: #606266;
-  font-size: 14px;
+.type-divider {
+  height: 1px;
+  background: #e4e7ed;
   margin-bottom: 12px;
-  line-height: 1.6;
 }
 
 .type-features {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feature-item {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
 }
 </style>

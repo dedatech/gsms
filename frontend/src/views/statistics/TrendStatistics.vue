@@ -1,5 +1,5 @@
 <template>
-  <div class="trend-statistics">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <h2 class="page-title">工时趋势分析</h2>
@@ -338,37 +338,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.trend-statistics {
-  min-height: calc(100vh - 160px);
-}
-
-.page-header {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.filter-card {
-  margin-bottom: 16px;
-}
-
-.stats-row {
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  border-radius: 8px;
-  overflow: hidden;
-}
+/* ========== 趋势统计特定样式 ========== */
 
 .summary-item {
   padding: 16px;
@@ -390,10 +360,6 @@ onMounted(() => {
 .summary-value.highlight {
   font-size: 24px;
   color: #409eff;
-}
-
-.chart-card {
-  margin-bottom: 16px;
 }
 
 .card-header {
@@ -468,15 +434,5 @@ onMounted(() => {
   font-size: 12px;
   color: #666;
   text-align: center;
-}
-
-:deep(.el-table) {
-  font-size: 14px;
-}
-
-:deep(.el-table th) {
-  background-color: #f5f5f5;
-  color: #333;
-  font-weight: 500;
 }
 </style>

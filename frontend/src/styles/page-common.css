@@ -1,0 +1,264 @@
+/**
+ * TeamMaster - 页面通用样式规范
+ *
+ * 统一所有功能模块的布局和样式，确保系统视觉一致性
+ *
+ * 设计原则：
+ * 1. 工具栏与导航栏间距：24px（由 Layout.vue 的 .main-content 提供）
+ * 2. 根容器不添加额外 padding
+ * 3. 统一圆角、阴影、间距规范
+ */
+
+/* ========== 根容器 ========== */
+
+/* 页面根容器：所有列表页统一样式 */
+.page-root {
+  min-height: calc(100vh - 160px);
+}
+
+/* ========== 页面头部工具栏 ========== */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.page-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-header .page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+}
+
+.page-header .header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 内容容器 ========== */
+
+/* 表格卡片容器：统一使用 el-card 组件 */
+.table-card {
+  margin-bottom: 24px;
+}
+
+/* 分页容器：统一在表格卡片内部 */
+.pagination-container {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 独立分页容器（用于无表格场景） */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+/* ========== 看板视图 ========== */
+
+.kanban-view {
+  margin-bottom: 24px;
+}
+
+.kanban-column {
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+
+.kanban-column.drag-over {
+  background: #e6f7ff;
+  box-shadow: 0 0 0 2px #1890ff inset;
+}
+
+.column-header {
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-count,
+.project-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #8c8c8c;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.column-body {
+  padding: 16px;
+  min-height: 400px;
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+/* 卡片样式（任务卡片/项目卡片） */
+.task-card,
+.project-card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.task-card:hover,
+.project-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.task-card.dragging,
+.project-card.dragging {
+  opacity: 0.5;
+  cursor: move;
+}
+
+/* ========== 搜索筛选 ========== */
+
+.search-card {
+  margin-bottom: 16px;
+}
+
+.search-form {
+  margin-bottom: 0;
+}
+
+/* ========== 表格视图 ========== */
+
+.table-view {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
+}
+
+/* ========== 卡片相关 ========== */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* ========== 图标和操作 ========== */
+
+.more-icon {
+  font-size: 18px;
+  color: #8c8c8c;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.more-icon:hover {
+  color: #333;
+}
+
+/* ========== Element Plus 样式覆盖 ========== */
+
+/* 表格样式 */
+:deep(.el-table) {
+  font-size: 14px;
+}
+
+:deep(.el-table th) {
+  background-color: #f5f5f5;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 空状态 */
+:deep(.el-empty) {
+  padding: 40px 0;
+}
+
+/* ========== 统计卡片（工时页面专用） ========== */
+
+.stats-row {
+  margin-bottom: 16px;
+}
+
+.stats-card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stats-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stats-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.stats-info {
+  flex: 1;
+}
+
+.stats-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.stats-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}

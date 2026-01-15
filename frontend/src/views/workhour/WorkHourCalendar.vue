@@ -1,5 +1,5 @@
 <template>
-  <div class="work-hour-calendar">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <h2 class="page-title">工时日历</h2>
@@ -389,86 +389,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.work-hour-calendar {
-  padding: 24px;
-}
+/* ========== 工时日历特定样式 ========== */
 
-.page-header {
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.stats-row {
-  margin-bottom: 16px;
-}
-
-.stats-card {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.stats-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stats-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-}
-
-.stats-icon.today {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-}
-
-.stats-icon.week {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: #fff;
-}
-
-.stats-icon.month {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: #fff;
-}
-
-.stats-icon.total {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  color: #fff;
-}
-
-.stats-info {
-  flex: 1;
-}
-
-.stats-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.stats-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-}
-
+/* 日历工具栏 */
 .calendar-toolbar {
   display: flex;
   justify-content: space-between;
@@ -499,6 +422,7 @@ onMounted(() => {
   min-width: 100px;
 }
 
+/* 月份视图 */
 .month-view {
   background: #fff;
   padding: 16px;

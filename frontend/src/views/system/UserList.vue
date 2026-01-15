@@ -1,5 +1,5 @@
 <template>
-  <div class="user-list">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-left">
@@ -636,48 +636,7 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <style scoped>
-.user-list {
-  min-height: calc(100vh - 160px);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.table-card {
-  margin-bottom: 24px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-}
+/* ========== 用户管理特定样式 ========== */
 
 /* 树形选择器下拉框样式优化 */
 :deep(.el-tree-select__popper) {

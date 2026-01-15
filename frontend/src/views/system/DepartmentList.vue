@@ -1,5 +1,5 @@
 <template>
-  <div class="department-list">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-left">
@@ -711,38 +711,7 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <style scoped>
-.department-list {
-  min-height: calc(100vh - 160px);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
+/* ========== 部门管理特定样式 ========== */
 
 /* 左树右表布局 */
 .content-container {
@@ -802,12 +771,6 @@ const formatDate = (dateStr: string) => {
   font-size: 14px;
   font-weight: 500;
   color: #333;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
 }
 
 .form-tip {

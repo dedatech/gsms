@@ -45,9 +45,11 @@ const goBack = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background-color: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .page-title {

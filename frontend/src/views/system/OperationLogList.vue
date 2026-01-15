@@ -1,5 +1,5 @@
 <template>
-  <div class="operation-log-list">
+  <div class="page-root">
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-left">
@@ -370,51 +370,7 @@ const formatJson = (jsonStr?: string) => {
 </script>
 
 <style scoped>
-.operation-log-list {
-  min-height: calc(100vh - 160px);
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.search-card {
-  margin-bottom: 16px;
-}
-
-.table-card {
-  margin-bottom: 16px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-}
+/* ========== 操作日志特定样式 ========== */
 
 /* 数据变更对比区域 */
 .change-comparison-section {
