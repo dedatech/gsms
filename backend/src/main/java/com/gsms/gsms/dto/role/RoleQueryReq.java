@@ -1,6 +1,7 @@
 package com.gsms.gsms.dto.role;
 
 import com.gsms.gsms.dto.BasePageQuery;
+import com.gsms.gsms.model.enums.RoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -15,8 +16,8 @@ public class RoleQueryReq extends BasePageQuery {
     @Schema(description = "角色编码（模糊匹配）", example = "ADMIN")
     private String code;
 
-    @Schema(description = "角色级别 1:系统级 2:项目级", example = "1")
-    private Integer roleLevel;
+    @Schema(description = "角色类型 SYSTEM:系统预置 CUSTOM:用户自定义", example = "CUSTOM")
+    private RoleType roleType;
 
     public String getName() {
         return name;
@@ -34,11 +35,11 @@ public class RoleQueryReq extends BasePageQuery {
         this.code = code;
     }
 
-    public Integer getRoleLevel() {
-        return roleLevel;
+    public RoleType getRoleType() {
+        return roleType;
     }
 
-    public void setRoleLevel(Integer roleLevel) {
-        this.roleLevel = roleLevel;
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
     }
 }

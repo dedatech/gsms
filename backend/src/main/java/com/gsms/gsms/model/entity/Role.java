@@ -1,6 +1,7 @@
 package com.gsms.gsms.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.model.enums.RoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -24,8 +25,8 @@ public class Role {
     @Schema(description = "角色描述")
     private String description;
 
-    @Schema(description = "角色级别 1:系统级 2:项目级")
-    private Integer roleLevel;
+    @Schema(description = "角色类型 SYSTEM:系统预置(不可删除) CUSTOM:用户自定义(可删除)")
+    private RoleType roleType;
 
     @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -78,12 +79,12 @@ public class Role {
         this.description = description;
     }
 
-    public Integer getRoleLevel() {
-        return roleLevel;
+    public RoleType getRoleType() {
+        return roleType;
     }
 
-    public void setRoleLevel(Integer roleLevel) {
-        this.roleLevel = roleLevel;
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
     }
 
     public LocalDateTime getCreateTime() {

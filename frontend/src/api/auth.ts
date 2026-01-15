@@ -37,3 +37,17 @@ export const register = (data: RegisterReq): Promise<ApiResponse<string>> => {
 export const getUserInfo = (): Promise<ApiResponse<unknown>> => {
   return request.get('/users/info')
 }
+
+/**
+ * 获取当前用户权限码列表
+ */
+export const getUserPermissions = (): Promise<string[]> => {
+  return request.get('/auth/permissions')
+}
+
+/**
+ * 获取当前用户角色编码列表
+ */
+export const getUserRoles = (): Promise<string[]> => {
+  return request.get('/auth/roles')
+}

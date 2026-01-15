@@ -109,4 +109,12 @@ public interface AuthService {
      * @return 角色编码列表,如果没有角色返回空列表
      */
     List<String> getRoleCodes(Long userId);
+
+    /**
+     * 获取用户的所有权限码列表
+     *
+     * @param userId 用户ID
+     * @return 权限码列表,如果没有权限返回空列表
+     */
+    List<String> getPermissionCodes(Long userId);
 }

@@ -31,7 +31,7 @@ public interface PermissionMapper extends BaseMapper<Permission> {
     /**
      * 根据条件查询权限列表
      */
-    List<Permission> selectByCondition(@Param("name") String name, @Param("code") String code);
+    List<Permission> selectByCondition(@Param("name") String name, @Param("code") String code, @Param("permissionType") Integer permissionType);
 
     /**
      * 查询所有权限

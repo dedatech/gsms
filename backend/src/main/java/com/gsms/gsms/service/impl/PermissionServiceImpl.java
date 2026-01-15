@@ -57,7 +57,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PageResult<PermissionInfoResp> findAll(PermissionQueryReq req) {
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
-        List<Permission> list = permissionMapper.selectByCondition(req.getName(), req.getCode());
+        List<Permission> list = permissionMapper.selectByCondition(req.getName(), req.getCode(), req.getPermissionType());
         PageInfo<Permission> pageInfo = new PageInfo<>(list);
         List<PermissionInfoResp> respList = PermissionInfoResp.from(list);
         return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());

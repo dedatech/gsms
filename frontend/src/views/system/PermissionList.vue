@@ -31,11 +31,26 @@
 
     <!-- 权限表格 -->
     <el-card class="table-card" shadow="never">
+      <!-- 权限类型筛选 -->
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="permission-tabs">
+        <el-tab-pane label="全部权限" name="0" />
+        <el-tab-pane label="功能权限" name="1" />
+        <el-tab-pane label="菜单权限" name="2" />
+        <el-tab-pane label="数据权限" name="3" />
+      </el-tabs>
+
       <el-table :data="list" stripe v-loading="loading" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="module" label="模块" width="100">
           <template #default="{ row }">
             <el-tag size="small" type="info">{{ getModuleFromCode(row.code) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="permissionType" label="权限类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getPermissionTypeTag(row.permissionType)" size="small">
+              {{ getPermissionTypeName(row.permissionType) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="name" label="权限名称" min-width="120" />
@@ -54,7 +69,12 @@
             <el-button link type="primary" size="small" @click="handleViewRoles(row)">
               查看角色
             </el-button>
-            <el-button link type="primary" size="small" @click="handleAssignMenus(row)">
+            <el-button
+              v-if="row.permissionType === 2"
+              link
+              type="primary"
+              size="small"
+              @click="handleAssignMenus(row)">
               设置菜单权限
             </el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row)">
@@ -186,11 +206,13 @@ import { getMenuTree, type MenuInfo } from '@/api/menu'
 const list = ref<PermissionInfo[]>([])
 const total = ref(0)
 const loading = ref(false)
+const activeTab = ref('0') // '0':全部 '1':功能 '2':菜单 '3':数据
 
 // 搜索表单
 const searchForm = reactive({
   name: '',
   code: '',
+  permissionType: undefined as number | undefined,
   pageNum: 1,
   pageSize: 10
 })
@@ -258,7 +280,9 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.name = ''
   searchForm.code = ''
+  searchForm.permissionType = undefined
   searchForm.pageNum = 1
+  activeTab.value = 0
   fetchData()
 }
 
@@ -408,10 +432,46 @@ const getModuleFromCode = (code: string): string => {
   if (code.startsWith('PERMISSION_')) return '权限管理'
   return '其他'
 }
+
+// 权限类型名称
+const getPermissionTypeName = (type: number): string => {
+  const map: Record<number, string> = {
+    1: '功能权限',
+    2: '菜单权限',
+    3: '数据权限'
+  }
+  return map[type] || '未知'
+}
+
+// 权限类型标签样式
+const getPermissionTypeTag = (type: number): string => {
+  const map: Record<number, string> = {
+    1: 'primary',   // 功能权限 - 蓝色
+    2: 'success',   // 菜单权限 - 绿色
+    3: 'warning'    // 数据权限 - 橙色
+  }
+  return map[type] || 'info'
+}
+
+// 标签切换处理
+const handleTabChange = (value: string) => {
+  const typeNum = parseInt(value)
+  if (typeNum === 0) {
+    searchForm.permissionType = undefined
+  } else {
+    searchForm.permissionType = typeNum
+  }
+  searchForm.pageNum = 1
+  fetchData()
+}
 </script>
 
 <style scoped>
 /* ========== 权限管理页面样式 ========== */
+
+.permission-tabs {
+  margin-bottom: 16px;
+}
 
 .page-root {
   min-height: calc(100vh - 160px);

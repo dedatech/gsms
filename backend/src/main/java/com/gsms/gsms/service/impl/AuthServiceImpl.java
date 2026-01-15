@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
         if (userId == null || permissionCode == null) {
             return false;
         }
-        Set<String> codes = getPermissionCodes(userId);
+        Set<String> codes = getPermissionCodeSet(userId);
         return codes.contains(permissionCode);
     }
 
@@ -64,14 +64,6 @@ public class AuthServiceImpl implements AuthService {
         return projectMemberMapper.selectProjectIdsByUserId(userId);
     }
 
-    private Set<String> getPermissionCodes(Long userId) {
-        List<String> codes = permissionMapper.selectPermissionCodesByUserId(userId);
-        if (codes == null || codes.isEmpty()) {
-            return Collections.emptySet();
-        }
-        return new HashSet<>(codes);
-    }
-
     @Override
     public boolean hasRole(Long userId, String roleCode) {
         if (userId == null || roleCode == null) {
@@ -88,5 +80,28 @@ public class AuthServiceImpl implements AuthService {
         }
         List<String> codes = roleMapper.selectRoleCodesByUserId(userId);
         return codes != null ? codes : Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getPermissionCodes(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        List<String> codes = permissionMapper.selectPermissionCodesByUserId(userId);
+        return codes != null ? codes : Collections.emptyList();
+    }
+
+    /**
+     * 获取用户权限码集合（内部使用，返回Set以提高查询性能）
+     *
+     * @param userId 用户ID
+     * @return 权限码Set
+     */
+    private Set<String> getPermissionCodeSet(Long userId) {
+        List<String> codes = permissionMapper.selectPermissionCodesByUserId(userId);
+        if (codes == null || codes.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return new HashSet<>(codes);
     }
 }

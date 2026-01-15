@@ -7,6 +7,7 @@
         <result column="name" property="name"/>
         <result column="code" property="code"/>
         <result column="description" property="description"/>
+        <result column="permission_type" property="permissionType"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
         <result column="create_user_id" property="createUserId"/>
@@ -15,7 +16,7 @@
     </resultMap>
 
     <sql id="selectAllFields">
-        id, name, code, description, create_time, update_time, create_user_id, update_user_id, is_deleted
+        id, name, code, description, permission_type, create_time, update_time, create_user_id, update_user_id, is_deleted
     </sql>
 
     <!-- 根据用户ID查询其拥有的权限编码列表 -->
@@ -51,6 +52,9 @@
         </if>
         <if test="code != null and code != ''">
             AND code LIKE CONCAT('%', #{code}, '%')
+        </if>
+        <if test="permissionType != null">
+            AND permission_type = #{permissionType}
         </if>
         ORDER BY id
     </select>

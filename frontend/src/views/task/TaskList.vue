@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h2 class="page-title">任务管理</h2>
-        <el-button type="primary" :icon="Plus" @click="handleCreate">新建任务</el-button>
+        <el-button v-permission="'TASK_CREATE'" type="primary" :icon="Plus" @click="handleCreate">新建任务</el-button>
       </div>
       <div class="header-right">
         <el-select
@@ -194,8 +194,8 @@
               子任务
             </el-button>
             <el-button link type="primary" :icon="View" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
+            <el-button v-permission="'TASK_EDIT'" link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+            <el-button v-permission="'TASK_DELETE'" link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

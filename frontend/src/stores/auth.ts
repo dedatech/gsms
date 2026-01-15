@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getUserPermissions, getUserRoles } from '@/api/user'
+import { getUserPermissions, getUserRoles } from '@/api/auth'
 
 /**
  * JWT Token Payload 接口
@@ -158,7 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const permissionCodes = await getUserPermissions(currentUserId)
+      const permissionCodes = await getUserPermissions()
       permissions.value = new Set(permissionCodes)
       console.log('用户权限加载成功:', permissions.value)
     } catch (error) {
@@ -178,9 +178,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      const roleIds = await getUserRoles(currentUserId)
-      // TODO: 后续可以根据roleIds获取角色详情
-      console.log('用户角色加载成功:', roleIds)
+      const roleCodes = await getUserRoles()
+      userRoles.value = roleCodes.map(code => ({
+        id: 0,
+        name: code,
+        code: code
+      }))
+      console.log('用户角色加载成功:', roleCodes)
     } catch (error) {
       console.error('获取用户角色失败:', error)
       userRoles.value = []

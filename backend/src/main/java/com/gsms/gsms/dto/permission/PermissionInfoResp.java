@@ -27,6 +27,9 @@ public class PermissionInfoResp {
     @Schema(description = "权限描述")
     private String description;
 
+    @Schema(description = "权限类型 1:功能权限 2:菜单权限 3:数据权限")
+    private Integer permissionType;
+
     @Schema(description = "创建时间", type = "string", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -73,6 +76,14 @@ public class PermissionInfoResp {
         this.description = description;
     }
 
+    public Integer getPermissionType() {
+        return permissionType;
+    }
+
+    public void setPermissionType(Integer permissionType) {
+        this.permissionType = permissionType;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -110,6 +121,7 @@ public class PermissionInfoResp {
         resp.setName(permission.getName());
         resp.setCode(permission.getCode());
         resp.setDescription(permission.getDescription());
+        resp.setPermissionType(permission.getPermissionType());
         resp.setCreateTime(permission.getCreateTime());
         resp.setUpdateTime(permission.getUpdateTime());
 

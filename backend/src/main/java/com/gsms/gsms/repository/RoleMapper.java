@@ -2,6 +2,7 @@ package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gsms.gsms.model.entity.Role;
+import com.gsms.gsms.model.enums.RoleType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -29,9 +30,14 @@ public interface RoleMapper extends BaseMapper<Role> {
     Role selectByCode(@Param("code") String code);
 
     /**
+     * 根据编码查询角色ID
+     */
+    Long selectIdByCode(@Param("code") String code);
+
+    /**
      * 根据条件查询角色列表
      */
-    List<Role> selectByCondition(@Param("name") String name, @Param("code") String code, @Param("roleLevel") Integer roleLevel);
+    List<Role> selectByCondition(@Param("name") String name, @Param("code") String code, @Param("roleLevel") RoleType roleLevel);
 
     /**
      * 查询所有角色

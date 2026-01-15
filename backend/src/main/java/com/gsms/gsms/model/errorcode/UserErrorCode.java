@@ -17,6 +17,7 @@ public enum UserErrorCode implements ErrorCode {
     EMAIL_FORMAT_ERROR(2004, "邮箱格式错误"),
     PHONE_FORMAT_ERROR(2005, "手机号格式错误"),
     USER_DISABLED(2006, "用户已禁用"),             // 也可 HTTP 403
+    DEFAULT_ROLE_NOT_FOUND(2007, "默认角色不存在"), // EMPLOYEE角色未配置
     
     // ========== 操作失败（建议HTTP 500） ==========
     USER_CREATE_FAILED(2901, "用户创建失败"),

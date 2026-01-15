@@ -7,7 +7,7 @@
         <result column="name" property="name"/>
         <result column="code" property="code"/>
         <result column="description" property="description"/>
-        <result column="role_level" property="roleLevel"/>
+        <result column="role_type" property="roleType"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
         <result column="create_user_id" property="createUserId"/>
@@ -16,7 +16,7 @@
     </resultMap>
 
     <sql id="selectAllFields">
-        id, name, code, description, role_level, create_time, update_time, create_user_id, update_user_id, is_deleted
+        id, name, code, description, role_type, create_time, update_time, create_user_id, update_user_id, is_deleted
     </sql>
 
     <!-- 根据用户ID查询其拥有的角色编码列表 -->
@@ -41,6 +41,14 @@
         WHERE code = #{code} AND is_deleted = 0
     </select>
 
+    <!-- 根据编码查询角色ID -->
+    <select id="selectIdByCode" parameterType="string" resultType="long">
+        SELECT id
+        FROM sys_role
+        WHERE code = #{code} AND is_deleted = 0
+        LIMIT 1
+    </select>
+
     <!-- 根据条件查询角色列表 -->
     <select id="selectByCondition" resultMap="RoleResultMap">
         SELECT <include refid="selectAllFields"/>
@@ -53,7 +61,7 @@
             AND code LIKE CONCAT('%', #{code}, '%')
         </if>
         <if test="roleLevel != null">
-            AND role_level = #{roleLevel}
+            AND role_type = #{roleLevel}
         </if>
         ORDER BY id
     </select>
@@ -63,14 +71,14 @@
         SELECT <include refid="selectAllFields"/>
         FROM sys_role
         WHERE is_deleted = 0
-        ORDER BY role_level, id
+        ORDER BY id
     </select>
 
     <!-- 插入角色 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.Role"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO sys_role(name, code, description, role_level, create_user_id, update_user_id)
-        VALUES(#{name}, #{code}, #{description}, #{roleLevel}, #{createUserId}, #{updateUserId})
+        INSERT INTO sys_role(name, code, description, role_type, create_user_id, update_user_id)
+        VALUES(#{name}, #{code}, #{description}, #{roleType}, #{createUserId}, #{updateUserId})
     </insert>
 
     <!-- 更新角色 -->
@@ -80,7 +88,7 @@
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="code != null and code != ''">code = #{code},</if>
             <if test="description != null">description = #{description},</if>
-            <if test="roleLevel != null">role_level = #{roleLevel},</if>
+            <if test="roleType != null">role_type = #{roleType},</if>
             <if test="updateUserId != null">update_user_id = #{updateUserId},</if>
         </set>
         WHERE id = #{id}

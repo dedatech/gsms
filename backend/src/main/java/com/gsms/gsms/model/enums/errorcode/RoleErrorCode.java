@@ -16,7 +16,7 @@ public enum RoleErrorCode implements ErrorCode {
     ROLE_NAME_EXISTS(3003, "角色名称已存在"),
     ROLE_CODE_INVALID(3004, "角色编码格式错误"),
     ROLE_IN_USE(3005, "角色正在使用中，无法删除"),
-    ROLE_LEVEL_INVALID(3006, "角色级别无效"),
+    ROLE_CANNOT_DELETE(3006, "系统角色不可删除"),
 
     // ========== 操作失败（建议HTTP 500） ==========
     ROLE_CREATE_FAILED(3901, "角色创建失败"),

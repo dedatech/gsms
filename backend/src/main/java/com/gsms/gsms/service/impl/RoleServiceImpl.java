@@ -12,6 +12,7 @@ import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.model.entity.Role;
+import com.gsms.gsms.model.enums.RoleType;
 import com.gsms.gsms.model.enums.errorcode.RoleErrorCode;
 import com.gsms.gsms.repository.RoleMapper;
 import com.gsms.gsms.repository.UserMapper;
@@ -50,7 +51,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public PageResult<RoleInfoResp> findAll(RoleQueryReq req) {
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
-        List<Role> list = roleMapper.selectByCondition(req.getName(), req.getCode(), req.getRoleLevel());
+        List<Role> list = roleMapper.selectByCondition(req.getName(), req.getCode(), req.getRoleType());
         PageInfo<Role> pageInfo = new PageInfo<>(list);
         List<RoleInfoResp> respList = RoleInfoResp.from(list);
         return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
@@ -120,6 +121,11 @@ public class RoleServiceImpl implements RoleService {
         Role role = roleMapper.selectById(id);
         if (role == null) {
             throw new BusinessException(RoleErrorCode.ROLE_NOT_FOUND);
+        }
+
+        // 系统角色不可删除
+        if (role.getRoleType() == RoleType.SYSTEM) {
+            throw new BusinessException(RoleErrorCode.ROLE_CANNOT_DELETE);
         }
 
         // 检查角色是否正在使用

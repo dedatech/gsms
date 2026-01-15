@@ -131,8 +131,13 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
         }
 
-        // 自动分配 EMPLOYEE 角色
-        Long employeeRoleId = 4L; // EMPLOYEE 角色ID
+        // 自动分配 EMPLOYEE 角色（使用动态查询，避免硬编码ID）
+        Long employeeRoleId = roleMapper.selectIdByCode("EMPLOYEE");
+        if (employeeRoleId == null) {
+            operationLogHelper.logFailure(OperationType.CREATE, OperationModule.USER,
+                    String.format("创建用户: %s", createReq.getUsername()), "EMPLOYEE角色不存在");
+            throw new BusinessException(UserErrorCode.DEFAULT_ROLE_NOT_FOUND);
+        }
         roleMapper.insertUserRoles(user.getId(), Arrays.asList(employeeRoleId));
         logger.info("自动为新用户分配 EMPLOYEE 角色: userId={}, roleId={}", user.getId(), employeeRoleId);
 

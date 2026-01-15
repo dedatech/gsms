@@ -24,6 +24,9 @@ public class Permission {
     @Schema(description = "权限描述")
     private String description;
 
+    @Schema(description = "权限类型 1:功能权限 2:菜单权限 3:数据权限")
+    private Integer permissionType;
+
     @Schema(description = "创建时间", example = "2024-01-01 10:30:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -73,6 +76,14 @@ public class Permission {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getPermissionType() {
+        return permissionType;
+    }
+
+    public void setPermissionType(Integer permissionType) {
+        this.permissionType = permissionType;
     }
 
     public LocalDateTime getCreateTime() {

@@ -1,5 +1,6 @@
 package com.gsms.gsms.dto.role;
 
+import com.gsms.gsms.model.enums.RoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.constraints.NotNull;
@@ -26,8 +27,8 @@ public class RoleUpdateReq {
     @Schema(description = "角色描述")
     private String description;
 
-    @Schema(description = "角色级别 1:系统级 2:项目级")
-    private Integer roleLevel;
+    @Schema(description = "角色类型 SYSTEM:系统预置(不可删除) CUSTOM:用户自定义(可删除)")
+    private RoleType roleType;
 
     public Long getId() {
         return id;
@@ -61,11 +62,11 @@ public class RoleUpdateReq {
         this.description = description;
     }
 
-    public Integer getRoleLevel() {
-        return roleLevel;
+    public RoleType getRoleType() {
+        return roleType;
     }
 
-    public void setRoleLevel(Integer roleLevel) {
-        this.roleLevel = roleLevel;
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
     }
 }

@@ -19,7 +19,7 @@ public class RoleConverter {
         role.setName(req.getName());
         role.setCode(req.getCode());
         role.setDescription(req.getDescription());
-        role.setRoleLevel(req.getRoleLevel());
+        role.setRoleType(req.getRoleType());
 
         return role;
     }
@@ -37,7 +37,7 @@ public class RoleConverter {
         role.setName(req.getName());
         role.setCode(req.getCode());
         role.setDescription(req.getDescription());
-        role.setRoleLevel(req.getRoleLevel());
+        role.setRoleType(req.getRoleType());
 
         return role;
     }

@@ -4,6 +4,7 @@ import request from './request'
 export interface PermissionQuery {
   name?: string
   code?: string
+  permissionType?: number
   pageNum?: number
   pageSize?: number
 }
@@ -14,6 +15,7 @@ export interface PermissionInfo {
   name: string
   code: string
   description?: string
+  permissionType: number
   createTime: string
   updateTime: string
   roleIds?: number[]

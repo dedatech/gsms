@@ -17,14 +17,14 @@
           @keyup.enter="handleSearch"
         />
         <el-select
-          v-model="searchForm.roleLevel"
-          placeholder="角色级别"
+          v-model="searchForm.roleType"
+          placeholder="角色类型"
           clearable
           style="width: 140px; margin-right: 16px"
           @change="handleSearch"
         >
-          <el-option label="系统级" :value="1" />
-          <el-option label="项目级" :value="2" />
+          <el-option label="系统角色" value="SYSTEM" />
+          <el-option label="自定义角色" value="CUSTOM" />
         </el-select>
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="handleReset">重置</el-button>
@@ -38,10 +38,10 @@
         <el-table-column prop="name" label="角色名称" width="150" />
         <el-table-column prop="code" label="角色编码" width="180" />
         <el-table-column prop="description" label="描述" min-width="200" />
-        <el-table-column prop="roleLevel" label="级别" width="100">
+        <el-table-column prop="roleType" label="类型" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.roleLevel === 1 ? 'danger' : 'primary'" size="small">
-              {{ row.roleLevel === 1 ? '系统级' : '项目级' }}
+            <el-tag :type="row.roleType === 'SYSTEM' ? 'danger' : 'success'" size="small">
+              {{ row.roleType === 'SYSTEM' ? '系统角色' : '自定义角色' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -61,7 +61,12 @@
             <el-button link type="primary" size="small" @click="handleViewUsers(row)">
               查看用户
             </el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">
+            <el-button
+              v-if="row.roleType === 'CUSTOM'"
+              link
+              type="danger"
+              size="small"
+              @click="handleDelete(row)">
               删除
             </el-button>
           </template>
@@ -102,11 +107,12 @@
           />
           <div class="form-tip">只能包含大写字母和下划线</div>
         </el-form-item>
-        <el-form-item label="角色级别" prop="roleLevel">
-          <el-radio-group v-model="formData.roleLevel">
-            <el-radio :label="1">系统级</el-radio>
-            <el-radio :label="2">项目级</el-radio>
+        <el-form-item label="角色类型" prop="roleType">
+          <el-radio-group v-model="formData.roleType">
+            <el-radio value="CUSTOM">自定义角色</el-radio>
+            <el-radio value="SYSTEM">系统角色</el-radio>
           </el-radio-group>
+          <div class="form-tip">系统角色为系统预置，不可删除；自定义角色可删除</div>
         </el-form-item>
         <el-form-item label="角色描述" prop="description">
           <el-input
@@ -136,10 +142,19 @@
     >
       <div class="permission-header">
         <span>角色: <strong>{{ currentRole?.name }}</strong></span>
-        <div class="permission-actions">
-          <el-button size="small" @click="handleSelectAll">全选</el-button>
-          <el-button size="small" @click="handleClearAll">清空</el-button>
-        </div>
+      </div>
+
+      <!-- 权限类型标签页 -->
+      <el-tabs v-model="permissionActiveTab" @tab-change="handlePermissionTabChange" class="permission-type-tabs">
+        <el-tab-pane label="全部权限" name="0" />
+        <el-tab-pane label="功能权限" name="1" />
+        <el-tab-pane label="菜单权限" name="2" />
+        <el-tab-pane label="数据权限" name="3" />
+      </el-tabs>
+
+      <div class="permission-actions" style="margin: 16px 0;">
+        <el-button size="small" @click="handleSelectAll">全选</el-button>
+        <el-button size="small" @click="handleClearAll">清空</el-button>
       </div>
 
       <el-table
@@ -153,6 +168,13 @@
       >
         <el-table-column type="selection" width="55" :reserve-selection="true" />
         <el-table-column prop="module" label="模块" width="120" />
+        <el-table-column prop="permissionType" label="权限类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getPermissionTypeTag(row.permissionType)" size="small">
+              {{ getPermissionTypeName(row.permissionType) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="权限名称" width="150" />
         <el-table-column prop="code" label="权限编码" width="200" />
         <el-table-column prop="description" label="描述" min-width="200" />
@@ -211,7 +233,7 @@ const loading = ref(false)
 const searchForm = reactive({
   name: '',
   code: '',
-  roleLevel: undefined as number | undefined,
+  roleType: undefined as string | undefined,
   pageNum: 1,
   pageSize: 10
 })
@@ -228,7 +250,7 @@ const formData = reactive<RoleCreateReq & { id?: number }>({
   name: '',
   code: '',
   description: '',
-  roleLevel: 1
+  roleType: 'CUSTOM'
 })
 
 // 表单验证规则
@@ -238,7 +260,7 @@ const formRules: FormRules = {
     { required: true, message: '请输入角色编码', trigger: 'blur' },
     { pattern: /^[A-Z_]+$/, message: '只能包含大写字母和下划线', trigger: 'blur' }
   ],
-  roleLevel: [{ required: true, message: '请选择角色级别', trigger: 'change' }]
+  roleType: [{ required: true, message: '请选择角色类型', trigger: 'change' }]
 }
 
 // 权限对话框
@@ -247,11 +269,20 @@ const permissionTableRef = ref()
 const currentRole = ref<RoleInfo>()
 const selectedPermissions = ref<PermissionInfo[]>([])
 const allPermissions = ref<PermissionInfo[]>([])
+const permissionActiveTab = ref('0') // '0':全部 '1':功能 '2':菜单 '3':数据
 const permissionTableData = computed(() => {
-  return allPermissions.value.map(p => ({
+  let permissions = allPermissions.value.map(p => ({
     ...p,
     module: getModuleFromCode(p.code)
   }))
+
+  // 根据选中的标签页过滤权限
+  const currentTab = parseInt(permissionActiveTab.value)
+  if (currentTab !== 0) {
+    permissions = permissions.filter(p => p.permissionType === currentTab)
+  }
+
+  return permissions
 })
 
 // 用户对话框
@@ -288,7 +319,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.name = ''
   searchForm.code = ''
-  searchForm.roleLevel = undefined
+  searchForm.roleType = undefined
   searchForm.pageNum = 1
   fetchData()
 }
@@ -310,7 +341,7 @@ const handleEdit = (row: RoleInfo) => {
     name: row.name,
     code: row.code,
     description: row.description,
-    roleLevel: row.roleLevel
+    roleType: row.roleType
   })
   dialogVisible.value = true
 }
@@ -364,7 +395,7 @@ const resetForm = () => {
   formData.name = ''
   formData.code = ''
   formData.description = ''
-  formData.roleLevel = 1
+  formData.roleType = 'CUSTOM'
   formRef.value?.clearValidate()
 }
 
@@ -419,6 +450,44 @@ const handleClearAll = () => {
   permissionTableRef.value?.clearSelection()
 }
 
+// 权限类型标签页切换
+const handlePermissionTabChange = (value: string) => {
+  const typeNum = parseInt(value)
+  // 切换标签页时清空当前选择，避免混淆
+  permissionTableRef.value?.clearSelection()
+  // 重新设置选中状态
+  setTimeout(() => {
+    if (permissionTableRef.value) {
+      selectedPermissions.value.forEach(row => {
+        // 只选中当前标签页中显示的权限
+        if (typeNum === 0 || row.permissionType === typeNum) {
+          permissionTableRef.value!.toggleRowSelection(row, true)
+        }
+      })
+    }
+  }, 100)
+}
+
+// 获取权限类型名称
+const getPermissionTypeName = (type: number): string => {
+  const map: Record<number, string> = {
+    1: '功能权限',
+    2: '菜单权限',
+    3: '数据权限'
+  }
+  return map[type] || '未知'
+}
+
+// 获取权限类型标签颜色
+const getPermissionTypeTag = (type: number): string => {
+  const map: Record<number, string> = {
+    1: 'primary',   // 功能权限 - 蓝色
+    2: 'success',   // 菜单权限 - 绿色
+    3: 'warning'    // 数据权限 - 橙色
+  }
+  return map[type] || 'info'
+}
+
 // 提交权限分配
 const handleAssignPermissionsSubmit = async () => {
   if (!currentRole.value) return
@@ -442,6 +511,7 @@ const handleAssignPermissionsSubmit = async () => {
 const handlePermissionDialogClose = () => {
   currentRole.value = undefined
   selectedPermissions.value = []
+  permissionActiveTab.value = '0' // 重置标签页为"全部权限"
 }
 
 // 查看用户
@@ -489,6 +559,10 @@ const getModuleFromCode = (code: string): string => {
   align-items: center;
   margin-bottom: 16px;
   padding: 0 4px;
+}
+
+.permission-type-tabs {
+  margin-bottom: 16px;
 }
 
 .permission-actions {

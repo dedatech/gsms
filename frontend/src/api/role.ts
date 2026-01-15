@@ -4,7 +4,7 @@ import request from './request'
 export interface RoleQuery {
   name?: string
   code?: string
-  roleLevel?: number
+  roleType?: string
   pageNum?: number
   pageSize?: number
 }
@@ -15,7 +15,7 @@ export interface RoleInfo {
   name: string
   code: string
   description?: string
-  roleLevel: number
+  roleType: string
   createTime: string
   updateTime: string
   permissionIds?: number[]
@@ -26,7 +26,7 @@ export interface RoleCreateReq {
   name: string
   code: string
   description?: string
-  roleLevel: number
+  roleType: string
 }
 
 // 更新角色请求
@@ -35,7 +35,7 @@ export interface RoleUpdateReq {
   name?: string
   code?: string
   description?: string
-  roleLevel?: number
+  roleType?: string
 }
 
 // 角色权限分配请求

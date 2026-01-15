@@ -716,7 +716,8 @@ const handleAssignPermissions = async (row: MenuInfo) => {
   try {
     // 获取所有权限
     const permissions = await getAllPermissions()
-    allPermissions.value = permissions
+    // 只显示菜单权限（permissionType === 2）
+    allPermissions.value = permissions.filter(p => p.permissionType === 2)
 
     // 获取当前菜单的权限
     const permissionIds = await getMenuPermissions(row.id)

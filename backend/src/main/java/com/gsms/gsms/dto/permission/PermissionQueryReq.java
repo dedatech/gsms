@@ -15,6 +15,9 @@ public class PermissionQueryReq extends BasePageQuery {
     @Schema(description = "权限编码（模糊匹配）", example = "PROJECT_VIEW")
     private String code;
 
+    @Schema(description = "权限类型 1:功能权限 2:菜单权限 3:数据权限", example = "1")
+    private Integer permissionType;
+
     public String getName() {
         return name;
     }
@@ -29,5 +32,13 @@ public class PermissionQueryReq extends BasePageQuery {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Integer getPermissionType() {
+        return permissionType;
+    }
+
+    public void setPermissionType(Integer permissionType) {
+        this.permissionType = permissionType;
     }
 }

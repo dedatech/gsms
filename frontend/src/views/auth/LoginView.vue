@@ -91,6 +91,9 @@ const handleLogin = async () => {
       // 使用 auth store 保存认证信息
       authStore.setAuth(token, loginForm.username)
 
+      // 加载用户权限和角色信息
+      await authStore.refreshAuth()
+
       ElMessage.success('登录成功')
       // 跳转到Dashboard首页
       router.push('/dashboard')

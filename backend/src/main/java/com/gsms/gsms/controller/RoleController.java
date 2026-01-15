@@ -54,14 +54,14 @@ public class RoleController {
     /**
      * 根据条件分页查询角色
      *
-     * @param req 查询条件（角色名称、角色编码、角色级别、分页参数）
+     * @param req 查询条件（角色名称、角色编码、角色类型、分页参数）
      * @return 分页结果
      */
     @Operation(summary = "根据条件分页查询角色")
     @GetMapping
     public PageResult<RoleInfoResp> findAll(@Valid RoleQueryReq req) {
-        logger.info("根据条件分页查询角色: name={}, code={}, roleLevel={}, pageNum={}, pageSize={}",
-                req.getName(), req.getCode(), req.getRoleLevel(), req.getPageNum(), req.getPageSize());
+        logger.info("根据条件分页查询角色: name={}, code={}, roleType={}, pageNum={}, pageSize={}",
+                req.getName(), req.getCode(), req.getRoleType(), req.getPageNum(), req.getPageSize());
         return roleService.findAll(req);
     }
 
