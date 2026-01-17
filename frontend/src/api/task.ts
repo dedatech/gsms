@@ -12,14 +12,16 @@ export interface TaskInfo {
   parentId?: number
   assigneeId?: number
   assigneeName?: string
-  status: number
-  priority: number
+  status: string
+  priority: string
   planStartDate?: string
   planEndDate?: string
   actualStartDate?: string
   actualEndDate?: string
+  estimateHours?: number
   createTime?: string
   updateTime?: string
+  subtasks?: TaskInfo[]
 }
 
 // 任务查询参数
@@ -35,6 +37,17 @@ export interface TaskQuery {
 // 获取任务列表
 export const getTaskList = (params: TaskQuery) => {
   return request.get('/tasks/search', { params })
+}
+
+// 根据项目ID获取任务列表（返回扁平列表）
+export const getTasksByProjectId = (projectId: number, pageNum?: number, pageSize?: number) => {
+  return request.get('/tasks/search', {
+    params: {
+      projectId,
+      pageNum: pageNum || 1,
+      pageSize: pageSize || 10
+    }
+  })
 }
 
 // 创建任务

@@ -116,11 +116,10 @@
       </el-row>
     </div>
 
-    <!-- 表格视图 -->
+    <!-- 表格视图（简化版：8列核心信息） -->
     <div v-else class="table-view">
       <el-table :data="projectList" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="项目名称" min-width="150">
+        <el-table-column prop="name" label="项目名称" min-width="200">
           <template #default="{ row }">
             <div class="table-project-name">
               <div
@@ -131,8 +130,6 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="项目编码" width="120" />
-        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
@@ -145,43 +142,41 @@
             {{ getManagerName(row.managerId) || '未设置' }}
           </template>
         </el-table-column>
-        <el-table-column prop="planStartDate" label="计划开始" width="110">
+        <el-table-column prop="planStartDate" label="计划开始时间" width="110">
           <template #default="{ row }">
             {{ row.planStartDate || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="planEndDate" label="计划结束" width="110">
+        <el-table-column prop="planEndDate" label="计划结束时间" width="110">
           <template #default="{ row }">
-            {{ row.planEndDate || '-' }}
+            <span :class="{ 'text-danger': isOverdue(row.planEndDate) }">
+              {{ row.planEndDate || '-' }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column prop="actualStartDate" label="实际开始" width="110">
+        <el-table-column prop="createUserName" label="创建人" width="100">
           <template #default="{ row }">
-            {{ row.actualStartDate || '-' }}
+            {{ row.createUserName || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="actualEndDate" label="实际结束" width="110">
-          <template #default="{ row }">
-            {{ row.actualEndDate || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="createUserName" label="创建人" width="100" />
-        <el-table-column prop="updateUserName" label="更新人" width="100" />
         <el-table-column prop="createTime" label="创建时间" width="160">
           <template #default="{ row }">
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="160">
-          <template #default="{ row }">
-            {{ formatDate(row.updateTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button link type="success" :icon="Grid" @click="handleGantt(row)">甘特图</el-button>
-            <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
+            <el-dropdown trigger="click">
+              <el-button link :icon="MoreFilled" />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :icon="View" @click.native="handleView(row)">查看详情</el-dropdown-item>
+                  <el-dropdown-item :icon="Edit" @click.native="handleEdit(row)">编辑项目</el-dropdown-item>
+                  <el-dropdown-item :icon="Delete" divided @click.native="handleDelete(row)">删除项目</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -338,7 +333,8 @@ import {
   MoreFilled,
   Edit,
   Delete,
-  View
+  View,
+  Calendar
 } from '@element-plus/icons-vue'
 import { getProjectList, createProject, updateProject, deleteProject } from '@/api/project'
 import { getAllUsers, type UserInfo } from '@/api/user'
@@ -653,6 +649,15 @@ const formatDate = (date: string) => {
   })
 }
 
+// 判断是否逾期（3天内橙色，已逾期红色）
+const isOverdue = (endDate: string) => {
+  if (!endDate) return false
+  const end = new Date(endDate)
+  const now = new Date()
+  const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  return diffDays < 3 // 小于3天视为即将逾期或已逾期
+}
+
 onMounted(() => {
   fetchUsers()
   fetchProjects()
@@ -732,6 +737,12 @@ onMounted(() => {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* 逾期警告 */
+.text-danger {
+  color: #f56c6c;
+  font-weight: 500;
 }
 
 /* ========== 项目类型选择样式（紧凑卡片横向排列）========== */

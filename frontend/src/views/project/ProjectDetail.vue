@@ -10,270 +10,80 @@
         </el-tag>
       </div>
       <div class="header-right">
+        <el-button :icon="InfoFilled" @click="showProjectInfo = true">项目信息</el-button>
         <el-button :icon="Edit" type="primary" @click="handleEdit">编辑项目</el-button>
         <el-button :icon="Delete" type="danger" @click="handleDelete">删除项目</el-button>
       </div>
     </div>
 
     <!-- 标签页 -->
-    <el-tabs v-model="activeTab" class="detail-tabs">
-      <!-- 项目信息标签 -->
-      <el-tab-pane label="项目信息" name="info">
-        <el-collapse v-model="activeCollapse" class="info-collapse">
-          <el-collapse-item name="basic" title="基本信息">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="项目编码">{{ project?.code }}</el-descriptions-item>
-              <el-descriptions-item label="项目名称">{{ project?.name }}</el-descriptions-item>
-              <el-descriptions-item label="项目状态" :span="2">
-                <el-tag :type="getStatusType(project?.status)">
-                  {{ getStatusText(project?.status) }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="项目描述" :span="2">
-                {{ project?.description || '暂无描述' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="项目经理">{{ project?.managerName || '未设置' }}</el-descriptions-item>
-              <el-descriptions-item label="创建人">{{ project?.createUserName }}</el-descriptions-item>
-            </el-descriptions>
-          </el-collapse-item>
-
-          <el-collapse-item name="date" title="时间信息">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="计划开始时间">{{ project?.planStartDate || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="计划结束时间">{{ project?.planEndDate || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="实际开始时间">{{ project?.actualStartDate || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="实际结束时间">{{ project?.actualEndDate || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ formatDateTime(project?.createTime) }}</el-descriptions-item>
-              <el-descriptions-item label="更新时间">{{ formatDateTime(project?.updateTime) }}</el-descriptions-item>
-            </el-descriptions>
-          </el-collapse-item>
-        </el-collapse>
-      </el-tab-pane>
-
-      <!-- 项目成员标签 -->
-      <el-tab-pane name="members">
-        <template #label>
-          <span>
-            <el-icon><User /></el-icon>
-            项目成员
-            <el-badge :value="members.length" class="tab-badge" />
-          </span>
-        </template>
-        <div class="tab-content">
-          <div class="content-header">
-            <div class="header-title">
-              <h3>项目成员</h3>
-              <span class="subtitle">共 {{ members.length }} 位成员</span>
-            </div>
-            <el-button type="primary" :icon="Plus" @click="handleAddMember">
-              添加成员
-            </el-button>
-          </div>
-
-          <div v-if="members.length > 0" class="member-list">
-            <div v-for="member in members" :key="member.id" class="member-item">
-              <el-avatar :size="48">{{ (member.nickname || 'U').charAt(0) }}</el-avatar>
-              <div class="member-info">
-                <div class="member-name">{{ member.nickname }}</div>
-                <el-tag :type="getRoleType(member.roleType)" size="small">
-                  {{ member.roleName }}
-                </el-tag>
-              </div>
-              <div class="member-time">
-                加入时间: {{ formatDateTime(member.createTime) }}
-              </div>
-              <el-button
-                link
-                type="danger"
-                :icon="Delete"
-                @click="handleRemoveMember(member)"
-              >
-                移除
-              </el-button>
-            </div>
-          </div>
-          <el-empty v-else description="暂无成员，点击右上角添加" :image-size="100" />
-        </div>
-      </el-tab-pane>
-
-      <!-- 迭代管理标签 - 仅中大型项目显示 -->
-      <el-tab-pane v-if="project?.projectType === 'LARGE_SCALE'" name="iterations">
-        <template #label>
-          <span>
-            <el-icon><FolderOpened /></el-icon>
-            迭代管理
-            <el-badge :value="iterations.length" class="tab-badge" />
-          </span>
-        </template>
-        <div class="tab-content">
-          <div class="content-header">
-            <div class="header-title">
-              <h3>迭代列表</h3>
-              <span class="subtitle">共 {{ iterations.length }} 个迭代</span>
-            </div>
-            <el-button type="primary" :icon="Plus" @click="handleCreateIteration">
-              新建迭代
-            </el-button>
-          </div>
-
-          <!-- 迭代统计 -->
-          <div class="task-stats">
-            <div class="stat-item">
-              <div class="stat-label">全部</div>
-              <div class="stat-value">{{ iterations.length }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">未开始</div>
-              <div class="stat-value todo">{{ iterationStats.notStarted }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">进行中</div>
-              <div class="stat-value inProgress">{{ iterationStats.inProgress }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">已完成</div>
-              <div class="stat-value done">{{ iterationStats.completed }}</div>
-            </div>
-          </div>
-
-          <!-- 迭代列表 -->
-          <el-table :data="iterations" stripe style="width: 100%">
-            <el-table-column prop="id" label="ID" width="70" />
-            <el-table-column prop="name" label="迭代名称" min-width="200">
-              <template #default="{ row }">
-                <el-link type="primary" @click="handleViewIteration(row)">{{ row.name }}</el-link>
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态" width="100">
-              <template #default="{ row }">
-                <el-tag :type="getIterationStatusType(row.status)" size="small">
-                  {{ getIterationStatusText(row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="planStartDate" label="开始日期" width="110" />
-            <el-table-column prop="planEndDate" label="结束日期" width="110" />
-            <el-table-column prop="taskCount" label="任务数" width="80">
-              <template #default="{ row }">
-                {{ row.taskCount || 0 }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="150" fixed="right">
-              <template #default="{ row }">
-                <el-button link type="primary" :icon="View" @click="handleViewIteration(row)">查看</el-button>
-                <el-button link type="primary" :icon="Edit" @click="handleEditIteration(row)">编辑</el-button>
-                <el-button link type="danger" :icon="Delete" @click="handleDeleteIteration(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <el-empty v-if="iterations.length === 0" description="暂无迭代，点击右上角创建" :image-size="100" />
-        </div>
-      </el-tab-pane>
-
-      <!-- 项目任务标签 -->
-      <el-tab-pane name="tasks">
-        <template #label>
-          <span>
-            <el-icon><List /></el-icon>
-            项目任务
-            <el-badge :value="taskTotal" class="tab-badge" />
-          </span>
-        </template>
-        <div class="tab-content">
-          <div class="content-header">
-            <div class="header-title">
-              <h3>项目任务</h3>
-              <span class="subtitle">共 {{ taskTotal }} 个任务</span>
-            </div>
-            <el-button type="primary" :icon="Plus" @click="handleCreateTask">
-              新建任务
-            </el-button>
-          </div>
-
-          <!-- 任务统计 -->
-          <div class="task-stats">
-            <div class="stat-item">
-              <div class="stat-label">全部</div>
-              <div class="stat-value">{{ taskStats.total }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">待办</div>
-              <div class="stat-value todo">{{ taskStats.todo }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">进行中</div>
-              <div class="stat-value inProgress">{{ taskStats.inProgress }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">已完成</div>
-              <div class="stat-value done">{{ taskStats.done }}</div>
-            </div>
-          </div>
-
-          <!-- 任务列表 -->
-          <el-table :data="tasks" stripe style="width: 100%">
-            <el-table-column prop="id" label="ID" width="70" />
-            <el-table-column prop="title" label="任务标题" min-width="200">
-              <template #default="{ row }">
-                <el-link type="primary" @click="handleViewTask(row)">{{ row.title }}</el-link>
-              </template>
-            </el-table-column>
-            <el-table-column prop="assigneeName" label="负责人" width="110" />
-            <el-table-column prop="status" label="状态" width="90">
-              <template #default="{ row }">
-                <el-tag :type="getTaskStatusType(row.status)" size="small">
-                  {{ getTaskStatusText(row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="priority" label="优先级" width="90">
-              <template #default="{ row }">
-                <el-tag :type="getPriorityType(row.priority)" size="small">
-                  {{ getPriorityText(row.priority) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="planEndDate" label="计划结束" width="110" />
-            <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="150" fixed="right">
-              <template #default="{ row }">
-                <el-button link type="primary" :icon="View" @click="handleViewTask(row)">查看</el-button>
-                <el-button link type="primary" :icon="Edit" @click="handleEditTask(row)">编辑</el-button>
-                <el-button link type="danger" :icon="Delete" @click="handleDeleteTask(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <!-- 分页 -->
-          <div class="pagination">
-            <el-pagination
-              v-model:current-page="taskSearchForm.pageNum"
-              v-model:page-size="taskSearchForm.pageSize"
-              :total="taskTotal"
-              :page-sizes="[10, 20, 50, 100]"
-              layout="total, sizes, prev, pager, next, jumper"
-              @size-change="fetchTasks"
-              @current-change="fetchTasks"
+    <div class="tabs-container">
+      <el-tabs v-model="activeTab" class="detail-tabs">
+        <!-- 工作项管理标签 -->
+        <el-tab-pane name="workItems">
+          <template #label>
+            <span>
+              <el-icon><List /></el-icon>
+              工作项
+              <el-badge :value="taskTotal" class="tab-badge" />
+            </span>
+          </template>
+          <div class="tab-content">
+            <UnifiedWorkItemView
+              :project-type="project?.projectType"
+              :iterations="iterations"
+              :tasks="tasks"
+              :task-total="taskTotal"
+              :current-page="taskSearchForm.pageNum"
+              :page-size="taskSearchForm.pageSize"
+              @create-task="handleCreateTask"
+              @create-iteration="handleCreateIteration"
+              @view-iteration="handleViewIteration"
+              @edit-iteration="handleEditIteration"
+              @edit-task="handleEditTask"
+              @pagination-change="handlePaginationChange"
             />
           </div>
-        </div>
-      </el-tab-pane>
+        </el-tab-pane>
 
-      <!-- 甘特图标签 -->
-      <el-tab-pane name="gantt">
-        <template #label>
-          <span>
-            <el-icon><Grid /></el-icon>
-            甘特图
-          </span>
-        </template>
-        <div class="tab-content gantt-tab-content">
-          <ProjectGantt v-if="activeTab === 'gantt'" :project-id="projectId" />
-        </div>
-      </el-tab-pane>
-    </el-tabs>
+        <!-- 甘特图标签 -->
+        <el-tab-pane name="gantt">
+          <template #label>
+            <span>
+              <el-icon><Grid /></el-icon>
+              甘特图
+            </span>
+          </template>
+          <div class="tab-content gantt-tab-content">
+            <ProjectGantt v-if="activeTab === 'gantt'" :project-id="projectId" />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+
+      <!-- 标签页右侧操作按钮 -->
+      <div v-if="activeTab === 'workItems'" class="tab-right-actions">
+        <!-- 中大型项目：新建迭代 -->
+        <el-button
+          v-if="project?.projectType === 'LARGE_SCALE'"
+          type="success"
+          size="small"
+          :icon="FolderOpened"
+          @click="handleCreateIteration"
+        >
+          新建迭代
+        </el-button>
+        <!-- 常规项目：新建任务 -->
+        <el-button
+          v-else-if="project?.projectType === 'SCHEDULE'"
+          type="primary"
+          size="small"
+          :icon="Plus"
+          @click="handleCreateTask(undefined)"
+        >
+          新建任务
+        </el-button>
+      </div>
+    </div>
 
     <!-- 编辑项目对话框 -->
     <el-dialog
@@ -309,45 +119,6 @@
       </template>
     </el-dialog>
 
-    <!-- 添加成员对话框 -->
-    <el-dialog
-      v-model="memberDialogVisible"
-      title="添加项目成员"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="memberFormRef" :model="memberFormData" :rules="memberFormRules" label-width="100px">
-        <el-form-item label="选择用户" prop="userId">
-          <el-select
-            v-model="memberFormData.userId"
-            placeholder="请选择用户"
-            filterable
-            style="width: 100%"
-          >
-            <el-option
-              v-for="user in availableUsers"
-              :key="user.id"
-              :label="user.nickname"
-              :value="user.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="成员角色" prop="roleType">
-          <el-select v-model="memberFormData.roleType" placeholder="请选择角色" style="width: 100%">
-            <el-option label="项目管理员" :value="1" />
-            <el-option label="项目成员" :value="2" />
-            <el-option label="只读访客" :value="3" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="memberDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleAddMemberSubmit" :loading="memberSubmitLoading">
-          确定
-        </el-button>
-      </template>
-    </el-dialog>
-
     <!-- 新建任务对话框 -->
     <el-dialog
       v-model="taskDialogVisible"
@@ -356,6 +127,25 @@
       :close-on-click-modal="false"
     >
       <el-form ref="taskFormRef" :model="taskFormData" :rules="taskFormRules" label-width="100px">
+        <el-form-item label="所属迭代" v-if="iterations.length > 0 && !taskFormData.parentId">
+          <el-select
+            v-model="taskFormData.iterationId"
+            placeholder="请选择迭代"
+            filterable
+            style="width: 100%"
+            :disabled="!!taskFormData.iterationId"
+          >
+            <el-option
+              v-for="iter in iterations"
+              :key="iter.id"
+              :label="`${iter.name} (${getIterationStatusText(iter.status)})`"
+              :value="iter.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="父任务" v-if="taskFormData.parentId">
+          <el-input :value="getParentTaskName(taskFormData.parentId)" disabled />
+        </el-form-item>
         <el-form-item label="任务标题" prop="title">
           <el-input
             v-model="taskFormData.title"
@@ -496,11 +286,25 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 项目信息侧边栏 -->
+    <ProjectInfoSidebar
+      v-model:visible="showProjectInfo"
+      :project="project"
+      :members="members"
+      :available-users="availableUsers"
+      :member-count="members.length"
+      :iteration-count="iterations.length"
+      :task-count="taskTotal"
+      :can-manage-members="true"
+      @add-member="handleAddMemberSubmit"
+      @remove-member="handleRemoveMember"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -508,7 +312,6 @@ import {
   Edit,
   Delete,
   InfoFilled,
-  User,
   List,
   Plus,
   View,
@@ -516,21 +319,23 @@ import {
   FolderOpened
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
-import { getTaskList, createTask, updateTask, deleteTask } from '@/api/task'
+import { getTaskList, getTasksByProjectId, createTask, updateTask, deleteTask } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getProjectStatusInfo } from '@/utils/statusMapping'
 import { getIterationList, createIteration, updateIteration, deleteIteration, type IterationInfo } from '@/api/iteration'
 import ProjectGantt from '@/components/ProjectGantt.vue'
+import ProjectInfoSidebar from '@/components/ProjectInfoSidebar.vue'
+import UnifiedWorkItemView from '@/components/UnifiedWorkItemView.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectId = computed(() => Number(route.params.id))
 
-// 当前激活的标签页
-const activeTab = ref('info')
+// 当前激活的标签页（默认显示工作项列表，符合"工作项为核心"理念）
+const activeTab = ref('workItems')
 
-// 折叠面板激活项
-const activeCollapse = ref(['basic', 'date'])
+// 项目信息侧边栏显示状态
+const showProjectInfo = ref(false)
 
 // 项目信息
 const project = ref<any>(null)
@@ -586,19 +391,6 @@ const editFormRules: FormRules = {
   name: [{ required: true, message: '请输入项目名称', trigger: 'blur' }]
 }
 
-// 添加成员对话框
-const memberDialogVisible = ref(false)
-const memberSubmitLoading = ref(false)
-const memberFormRef = ref<FormInstance>()
-const memberFormData = reactive({
-  userId: undefined as number | undefined,
-  roleType: 2 // 默认为普通成员
-})
-const memberFormRules: FormRules = {
-  userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
-  roleType: [{ required: true, message: '请选择角色', trigger: 'change' }]
-}
-
 // 新建任务对话框
 const taskDialogVisible = ref(false)
 const taskSubmitLoading = ref(false)
@@ -609,12 +401,20 @@ const taskFormData = reactive({
   priority: 'MEDIUM',
   status: 'TODO',
   assigneeId: undefined as number | undefined,
+  iterationId: undefined as number | undefined,
+  parentId: undefined as number | undefined,
   planStartDate: '',
   planEndDate: '',
   estimateHours: undefined as number | undefined
 })
 const taskFormRules: FormRules = {
   title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
+}
+
+// 获取父任务名称
+const getParentTaskName = (parentId: number) => {
+  const parentTask = tasks.value.find(t => t.id === parentId)
+  return parentTask ? parentTask.title : '未知任务'
 }
 
 // 迭代对话框
@@ -655,19 +455,29 @@ const fetchMembers = async () => {
   try {
     const res = await getProjectMembers(projectId.value)
     members.value = res || []
+    // 获取成员后更新可用用户列表
+    await fetchAvailableUsers()
   } catch (error) {
     console.error('获取项目成员失败:', error)
   }
 }
 
-// 获取可用用户列表
+// 获取可用用户列表（用于任务负责人）
 const fetchAvailableUsers = async () => {
   try {
-    const res = await getAllUsers()
-    if (res.list) {
-      // 过滤掉已经是项目成员的用户
-      const memberIds = members.value.map(m => m.id)
-      availableUsers.value = res.list.filter((u: UserInfo) => !memberIds.includes(u.id))
+    // 任务负责人应该是项目成员
+    if (members.value.length > 0) {
+      // 使用项目成员作为可选的负责人列表
+      // 注意：members中的userId才是用户ID，id是成员表ID
+      availableUsers.value = members.value.map(m => ({
+        id: m.userId,  // 使用userId而不是id
+        nickname: m.nickname,
+        username: m.username || ''
+      }))
+    } else {
+      // 如果没有项目成员，获取所有用户
+      const res = await getAllUsers()
+      availableUsers.value = res.list || []
     }
   } catch (error) {
     console.error('获取用户列表失败:', error)
@@ -677,13 +487,27 @@ const fetchAvailableUsers = async () => {
 // 获取任务列表
 const fetchTasks = async () => {
   try {
-    taskSearchForm.projectId = projectId.value
-    const res = await getTaskList(taskSearchForm)
+    // 使用专门的项目任务接口，传入分页参数
+    const res = await getTasksByProjectId(
+      projectId.value,
+      taskSearchForm.pageNum,
+      taskSearchForm.pageSize
+    )
+    // 强制触发响应式更新：先清空再赋值
+    tasks.value = []
+    await nextTick()
     tasks.value = res.list || []
     taskTotal.value = res.total || 0
   } catch (error) {
     console.error('获取任务列表失败:', error)
   }
+}
+
+// 分页变化处理
+const handlePaginationChange = (pageNum: number, pageSize: number) => {
+  taskSearchForm.pageNum = pageNum
+  taskSearchForm.pageSize = pageSize
+  fetchTasks()
 }
 
 // 获取迭代列表（仅中大型项目）
@@ -757,37 +581,19 @@ const handleDelete = () => {
     .catch(() => {})
 }
 
-// 添加成员
-const handleAddMember = () => {
-  fetchAvailableUsers()
-  memberFormData.userId = undefined
-  memberFormData.roleType = 2 // 重置为普通成员
-  memberDialogVisible.value = true
-}
-
-// 提交添加成员
-const handleAddMemberSubmit = async () => {
-  if (!memberFormRef.value) return
-
-  await memberFormRef.value.validate(async (valid) => {
-    if (valid) {
-      memberSubmitLoading.value = true
-      try {
-        await addProjectMember(projectId.value, memberFormData.userId!, memberFormData.roleType)
-        ElMessage.success('添加成功')
-        memberDialogVisible.value = false
-        fetchMembers()
-      } catch (error) {
-        console.error('添加成员失败:', error)
-      } finally {
-        memberSubmitLoading.value = false
-      }
-    }
-  })
+// 提交添加成员（由侧边栏调用）
+const handleAddMemberSubmit = async (userId: number, roleType: number) => {
+  try {
+    await addProjectMember(projectId.value, userId, roleType)
+    ElMessage.success('添加成功')
+    fetchMembers()
+  } catch (error) {
+    console.error('添加成员失败:', error)
+  }
 }
 
 // 移除成员
-const handleRemoveMember = (member: ProjectMemberInfo) => {
+const handleRemoveMember = (member: any) => {
   ElMessageBox.confirm(`确定要移除成员 "${member.nickname}" 吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -806,7 +612,7 @@ const handleRemoveMember = (member: ProjectMemberInfo) => {
 }
 
 // 新建任务
-const handleCreateTask = () => {
+const handleCreateTask = (iterationId?: number, parentId?: number) => {
   // 重置表单
   Object.assign(taskFormData, {
     title: '',
@@ -814,12 +620,33 @@ const handleCreateTask = () => {
     priority: 'MEDIUM',
     status: 'TODO',
     assigneeId: undefined,
+    iterationId: iterationId || undefined,
+    parentId: parentId || undefined,
     planStartDate: '',
     planEndDate: '',
     estimateHours: undefined
   })
-  // 打开对话框
   taskDialogVisible.value = true
+}
+
+// 编辑迭代
+const handleEditIteration = (iteration: any) => {
+  // 打开编辑迭代对话框
+  Object.assign(iterationFormData, {
+    id: iteration.id,
+    name: iteration.name,
+    description: iteration.description || '',
+    status: iteration.status,
+    planStartDate: iteration.planStartDate || '',
+    planEndDate: iteration.planEndDate || ''
+  })
+  iterationDialogVisible.value = true
+}
+
+// 编辑任务
+const handleEditTask = (task: any) => {
+  // TODO: 打开编辑任务对话框或跳转到任务详情页
+  ElMessage.info('编辑任务功能待实现（可以跳转到任务详情页）')
 }
 
 // 提交新建任务
@@ -838,6 +665,8 @@ const handleCreateTaskSubmit = async () => {
         priority: taskFormData.priority,
         status: taskFormData.status,
         assigneeId: taskFormData.assigneeId,
+        iterationId: taskFormData.iterationId,
+        parentId: taskFormData.parentId,
         planStartDate: taskFormData.planStartDate || undefined,
         planEndDate: taskFormData.planEndDate || undefined,
         estimateHours: taskFormData.estimateHours
@@ -859,31 +688,6 @@ const handleCreateTaskSubmit = async () => {
 // 查看任务
 const handleViewTask = (task: TaskInfo) => {
   router.push(`/tasks/${task.id}`)
-}
-
-// 编辑任务
-const handleEditTask = (task: TaskInfo) => {
-  ElMessage.info('编辑任务功能开发中')
-  console.log('编辑任务:', task)
-}
-
-// 删除任务
-const handleDeleteTask = (task: TaskInfo) => {
-  ElMessageBox.confirm(`确定要删除任务 "${task.title}" 吗？`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(async () => {
-      try {
-        await deleteTask(task.id)
-        ElMessage.success('删除成功')
-        fetchTasks()
-      } catch (error) {
-        console.error('删除任务失败:', error)
-      }
-    })
-    .catch(() => {})
 }
 
 // 获取项目状态信息
@@ -960,19 +764,6 @@ const handleCreateIteration = () => {
   iterationDialogVisible.value = true
 }
 
-const handleEditIteration = (iteration: IterationInfo) => {
-  // 填充表单
-  Object.assign(iterationFormData, {
-    id: iteration.id,
-    name: iteration.name,
-    description: iteration.description || '',
-    status: iteration.status,
-    planStartDate: iteration.planStartDate || '',
-    planEndDate: iteration.planEndDate || ''
-  })
-  iterationDialogVisible.value = true
-}
-
 const handleIterationSubmit = async () => {
   if (!iterationFormRef.value) return
 
@@ -1034,7 +825,7 @@ const handleDeleteIteration = (iteration: IterationInfo) => {
     .catch(() => {})
 }
 
-const handleViewIteration = (iteration: IterationInfo) => {
+const handleViewIteration = (iteration: any) => {
   router.push(`/projects/${projectId.value}/iterations/${iteration.id}`)
 }
 
@@ -1090,11 +881,26 @@ onMounted(() => {
 }
 
 /* 标签页 */
-.detail-tabs {
+.tabs-container {
+  position: relative;
   background: #fff;
   padding: 24px;
   border-radius: 4px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.detail-tabs {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.tab-right-actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
 }
 
 :deep(.el-tabs__header) {
@@ -1115,6 +921,13 @@ onMounted(() => {
   margin-left: 8px;
 }
 
+/* 标签页右侧操作按钮 */
+.tab-actions {
+  display: flex;
+  gap: 8px;
+  padding-right: 16px;
+}
+
 /* 标签页内容 */
 .tab-content {
   min-height: 400px;
@@ -1127,6 +940,16 @@ onMounted(() => {
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.content-header :deep(.el-alert) {
+  max-width: 400px;
+  padding: 8px 16px;
+}
+
+.content-header :deep(.el-alert__title) {
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .header-title h3 {
@@ -1201,46 +1024,6 @@ onMounted(() => {
 
 .stat-value.done {
   color: #52c41a;
-}
-
-/* 成员列表 */
-.member-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 16px;
-}
-
-.member-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-  transition: all 0.3s;
-}
-
-.member-item:hover {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-color: #1890ff;
-}
-
-.member-info {
-  flex: 1;
-}
-
-.member-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.member-time {
-  font-size: 12px;
-  color: #8c8c8c;
 }
 
 /* 分页 */

@@ -231,7 +231,7 @@ import { getTaskList, type TaskInfo } from '@/api/task'
 
 const route = useRoute()
 const router = useRouter()
-const iterationId = computed(() => Number(route.params.id))
+const iterationId = computed(() => Number(route.params.iterationId))
 
 // 当前激活的标签页
 const activeTab = ref('info')

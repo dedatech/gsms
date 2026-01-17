@@ -98,9 +98,8 @@ const initGantt = () => {
       width: 280,
       resize: true,
       template: (obj: any) => {
-        const icon = getTypeIcon(obj.type || 'task')
-        // dhtmlx-gantt 会自动添加折叠/展开按钮，我们只需要在前面加图标
-        return `${icon} ${obj.text || ''}`
+        // 所有类型都不显示图标，只显示文本
+        return obj.text || ''
       }
     },
     { name: 'start_date', label: '开始日期', align: 'center', width: 90 },
@@ -407,6 +406,7 @@ onBeforeUnmount(() => {
   display: inline-block;
   vertical-align: middle;
   cursor: pointer;
+  margin-right: 4px;
 }
 
 :deep(.gantt_tree_icon.gantt_open) {
@@ -415,6 +415,18 @@ onBeforeUnmount(() => {
 
 :deep(.gantt_tree_icon.gantt_closed) {
   background-position: 0 -20px;
+}
+
+/* 确保任务名称文本垂直居中对齐 */
+:deep(.gantt_tree_content) {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+:deep(.gantt_cell) {
+  display: flex;
+  align-items: center;
 }
 
 :deep(.gantt_task_project) {

@@ -183,6 +183,7 @@
             v-loading="subtasksLoading"
             row-key="id"
             :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+            empty-text="暂无子任务"
             border
             stripe
             style="width: 100%"
@@ -218,7 +219,6 @@
               </template>
             </el-table-column>
           </el-table>
-          <el-empty v-if="!subtasksLoading && subtasks.length === 0" description="暂无子任务" :image-size="100" />
         </div>
       </el-tab-pane>
 
