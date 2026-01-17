@@ -42,7 +42,7 @@ public interface TaskMapper extends BaseMapper<Task> {
      * @return 任务列表
      */
     List<Task> selectByCondition(@Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId, @Param("status") Integer status);
-    
+
     /**
      * 根据条件查询用户可访问的任务（基于项目成员表）
      * @param userId 用户ID

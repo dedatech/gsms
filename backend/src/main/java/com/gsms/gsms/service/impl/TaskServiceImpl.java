@@ -30,7 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 任务服务实现类
@@ -80,7 +84,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public PageResult<TaskInfoResp> findAll(TaskQueryReq taskQueryReq) {
-        logger.debug("根据条件分页查询任务: taskQueryReq={}", taskQueryReq);
+        logger.info("根据条件分页查询任务: projectId={}, pageNum={}, pageSize={}",
+                    taskQueryReq.getProjectId(), taskQueryReq.getPageNum(), taskQueryReq.getPageSize());
 
         Long currentUserId = UserContext.getCurrentUserId();
         Long projectId = taskQueryReq.getProjectId();
@@ -88,27 +93,52 @@ public class TaskServiceImpl implements TaskService {
         TaskStatus status = taskQueryReq.getStatus();
         Integer statusCode = status != null ? status.getCode() : null;
 
-        // 在Service层处理分页逻辑
-        PageHelper.startPage(taskQueryReq.getPageNum(), taskQueryReq.getPageSize());
+        // 查询所有符合条件的任务（不分页）
+        List<Task> allTasks;
 
-        List<Task> tasks;
-        // 系统管理员和业务相关角色可以查看所有任务
-        if (authService.canViewAllTasks(currentUserId)) {
-            tasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
+        // 如果指定了项目ID，直接查询该项目的任务（用户能访问项目详情页就有权限）
+        // 如果没有指定项目ID，需要全局权限
+        if (projectId != null) {
+            logger.info("查询指定项目的任务: projectId={}", projectId);
+            allTasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
+        } else if (authService.canViewAllTasks(currentUserId)) {
+            logger.info("用户有全局查看权限，查询所有任务");
+            allTasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
         } else {
-            // 普通用户只查询自己参与项目下的任务（在SQL层过滤）
-            tasks = taskMapper.selectAccessibleTasksByCondition(currentUserId, projectId, assigneeId, statusCode);
+            logger.warn("用户无全局权限且未指定项目ID，拒绝查询");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN);
         }
 
-        // 转换为响应DTO
-        PageInfo<Task> pageInfo = new PageInfo<>(tasks);
-        List<TaskInfoResp> respList = TaskInfoResp.from(tasks);
+        logger.info("数据库查询返回任务数量: {}", allTasks.size());
 
-        // 使用缓存填充创建人、更新人信息
+        // 计算总数
+        long total = allTasks.size();
+
+        // 计算分页参数
+        Integer pageNum = taskQueryReq.getPageNum() != null ? taskQueryReq.getPageNum() : 1;
+        Integer pageSize = taskQueryReq.getPageSize() != null ? taskQueryReq.getPageSize() : 10;
+        int offset = (pageNum - 1) * pageSize;
+        int endIndex = Math.min(offset + pageSize, allTasks.size());
+
+        // 内存分页：截取当前页的数据
+        List<Task> pagedTasks;
+        if (offset < allTasks.size()) {
+            pagedTasks = allTasks.subList(offset, endIndex);
+        } else {
+            pagedTasks = new ArrayList<>();
+        }
+
+        logger.info("内存分页结果: total={}, pageNum={}, pageSize={}, offset={}, 返回数量={}",
+                    total, pageNum, pageSize, offset, pagedTasks.size());
+
+        // 转换为扁平列表（不构建树形结构）
+        List<TaskInfoResp> respList = TaskInfoResp.from(pagedTasks);
+
+        // 批量填充用户信息
         enrichTaskInfoRespList(respList);
 
         // 返回分页结果
-        return PageResult.success(respList, pageInfo.getTotal(), pageInfo.getPageNum(), pageInfo.getPageSize());
+        return PageResult.success(respList, total, pageNum, respList.size());
     }
 
     @Override
@@ -327,16 +357,40 @@ public class TaskServiceImpl implements TaskService {
         Long currentUserId = UserContext.getCurrentUserId();
 
         // 鉴权 - 检查父任务是否存在且用户有访问权限
-        Task parentTask = taskMapper.selectByIdForUser(parentId, currentUserId);
+        // 系统管理员和业务相关角色可以访问所有任务
+        Task parentTask;
+        if (authService.canViewAllTasks(currentUserId)) {
+            parentTask = taskMapper.selectById(parentId);
+        } else {
+            // 普通用户：通过SQL JOIN验证权限
+            parentTask = taskMapper.selectByIdForUser(parentId, currentUserId);
+        }
+
         if (parentTask == null) {
             throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
         }
 
         // 查询子任务
-        List<Task> subtasks = taskMapper.selectSubtasks(parentId, currentUserId);
+        List<Task> subtasks;
+        if (authService.canViewAllTasks(currentUserId)) {
+            // 全局权限用户：查询所有子任务
+            subtasks = taskMapper.selectByCondition(parentTask.getProjectId(), null, null)
+                    .stream()
+                    .filter(t -> parentId.equals(t.getParentId()))
+                    .collect(Collectors.toList());
+        } else {
+            // 普通用户：只能查询用户可访问项目的子任务
+            subtasks = taskMapper.selectSubtasks(parentId, currentUserId);
+        }
+
+        // 转换为 DTO
+        List<TaskInfoResp> respList = TaskInfoResp.from(subtasks);
+
+        // 批量填充用户信息
+        enrichTaskInfoRespList(respList);
 
         logger.info("获取子任务列表成功: parentId={}, count={}", parentId, subtasks.size());
-        return TaskInfoResp.from(subtasks);
+        return respList;
     }
 
     // ========== 内部方法：数据填充 ==========

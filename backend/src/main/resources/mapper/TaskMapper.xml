@@ -81,20 +81,28 @@
                 AND t.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
-        ORDER BY t.create_time DESC
+        ORDER BY
+            CASE WHEN t.parent_id IS NULL THEN 0 ELSE 1 END,
+            COALESCE(t.parent_id, t.id),
+            t.create_time DESC
     </select>
 
     <!-- 根据条件查询用户可访问的任务（基于项目成员表） -->
     <select id="selectAccessibleTasksByCondition" resultMap="TaskResultMap">
-        SELECT DISTINCT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
+        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
                t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
                t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
         FROM gsms_task t
-        INNER JOIN gsms_project_member pm ON t.project_id = pm.project_id AND pm.is_deleted = 0
         LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
         LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
         <where>
-            AND t.is_deleted = 0 AND pm.user_id = #{userId}
+            AND t.is_deleted = 0
+            AND EXISTS (
+                SELECT 1 FROM gsms_project_member pm
+                WHERE pm.project_id = t.project_id
+                AND pm.user_id = #{userId}
+                AND pm.is_deleted = 0
+            )
             <if test="projectId != null">
                 AND t.project_id = #{projectId}
             </if>
@@ -105,7 +113,10 @@
                 AND t.status = #{status, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
             </if>
         </where>
-        ORDER BY t.create_time DESC
+        ORDER BY
+            CASE WHEN t.parent_id IS NULL THEN 0 ELSE 1 END,
+            COALESCE(t.parent_id, t.id),
+            t.create_time DESC
     </select>
 
     <!-- 插入任务 -->

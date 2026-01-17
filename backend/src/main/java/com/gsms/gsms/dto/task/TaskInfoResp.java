@@ -8,6 +8,7 @@ import com.gsms.gsms.model.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +34,15 @@ public class TaskInfoResp {
 
     @Schema(description = "迭代名称")
     private String iterationName;
+
+    @Schema(description = "父任务ID")
+    private Long parentId;
+
+    @Schema(description = "预估工时")
+    private BigDecimal estimateHours;
+
+    @Schema(description = "子任务列表（嵌套结构）")
+    private java.util.List<TaskInfoResp> subtasks;
 
     @Schema(description = "任务标题")
     private String title;
@@ -136,6 +146,30 @@ public class TaskInfoResp {
 
     public void setIterationName(String iterationName) {
         this.iterationName = iterationName;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
+
+    public BigDecimal getEstimateHours() {
+        return estimateHours;
+    }
+
+    public void setEstimateHours(BigDecimal estimateHours) {
+        this.estimateHours = estimateHours;
+    }
+
+    public java.util.List<TaskInfoResp> getSubtasks() {
+        return subtasks;
+    }
+
+    public void setSubtasks(java.util.List<TaskInfoResp> subtasks) {
+        this.subtasks = subtasks;
     }
 
     public String getTitle() {
@@ -288,6 +322,7 @@ public class TaskInfoResp {
         resp.setProjectName(task.getProjectName());
         resp.setIterationId(task.getIterationId());
         resp.setIterationName(task.getIterationName());
+        resp.setParentId(task.getParentId());
         resp.setTitle(task.getTitle());
         resp.setDescription(task.getDescription());
         resp.setType(task.getType());
@@ -298,6 +333,7 @@ public class TaskInfoResp {
         resp.setPlanEndDate(task.getPlanEndDate());
         resp.setActualStartDate(task.getActualStartDate());
         resp.setActualEndDate(task.getActualEndDate());
+        resp.setEstimateHours(task.getEstimateHours());
         resp.setCreateUserId(task.getCreateUserId());
         resp.setUpdateUserId(task.getUpdateUserId());
         resp.setCreateTime(task.getCreateTime());
@@ -313,9 +349,49 @@ public class TaskInfoResp {
         if (tasks == null) {
             return java.util.Collections.emptyList();
         }
-        
+
         return tasks.stream()
                 .map(TaskInfoResp::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 构建任务树结构
+     * 将扁平的任务列表转换为树形结构，每个任务的 subtasks 字段包含其子任务
+     *
+     * @param tasks 扁平的任务列表
+     * @return 树形结构的任务列表（只包含顶级任务）
+     */
+    public static java.util.List<TaskInfoResp> buildTree(List<Task> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        // 1. 将所有任务转换为 TaskInfoResp
+        java.util.List<TaskInfoResp> allTasks = from(tasks);
+
+        // 2. 创建 ID 到任务的映射，方便快速查找
+        java.util.Map<Long, TaskInfoResp> taskMap = allTasks.stream()
+                .collect(Collectors.toMap(TaskInfoResp::getId, task -> task));
+
+        // 3. 构建树结构：将子任务添加到父任务的 subtasks 列表中
+        java.util.List<TaskInfoResp> rootTasks = new java.util.ArrayList<>();
+        for (TaskInfoResp task : allTasks) {
+            if (task.getParentId() == null) {
+                // 顶级任务
+                rootTasks.add(task);
+            } else {
+                // 子任务：添加到父任务的 subtasks 中
+                TaskInfoResp parentTask = taskMap.get(task.getParentId());
+                if (parentTask != null) {
+                    if (parentTask.getSubtasks() == null) {
+                        parentTask.setSubtasks(new java.util.ArrayList<>());
+                    }
+                    parentTask.getSubtasks().add(task);
+                }
+            }
+        }
+
+        return rootTasks;
     }
 }
