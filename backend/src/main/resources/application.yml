@@ -9,6 +9,14 @@ server:
 spring:
   profiles:
     active: dev  # 默认使用开发环境，生产环境改为 prod
+  # DevTools 热部署配置
+  devtools:
+    restart:
+      enabled: true  # 启用热部署
+      additional-paths: src/main/java  # 监控的目录
+      exclude: static/**,public/**  # 排除静态资源
+    livereload:
+      enabled: true  # 启用浏览器自动刷新
   datasource:
     url: jdbc:mysql://localhost:3306/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME:root}

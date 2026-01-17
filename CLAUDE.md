@@ -21,6 +21,58 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. 等待用户确认后再执行提交
 5. **不要自动执行 git push**，除非用户明确要求
 
+## 开发协作约定
+
+### 服务启动分工
+- **Claude 负责：** 前端服务（`npm run dev`，端口 3000）
+- **用户负责：** 后端服务（`mvn spring-boot:run`，端口 8080）
+- **特殊情况：** 只有当用户遇到无法解决的后端问题时，才会将后端服务交给 Claude 启动
+
+### 端口约定（固定，不可更改）
+- 前端：**3000**
+- 后端：**8080**
+- ⚠️ 严禁更换其他端口（因 CORS 跨域配置限制）
+
+### 后端热部署最佳实践
+
+**正确做法：使用 Spring Boot DevTools**
+```yaml
+# application.yml 已配置
+spring:
+  devtools:
+    restart:
+      enabled: true  # 启用热部署
+      additional-paths: src/main/java
+      exclude: static/**,public/**
+    livereload:
+      enabled: true
+```
+
+**优势：**
+- ✅ 修改 Java 代码后自动重启应用
+- ✅ 无需手动启停服务
+- ✅ 高效便捷，开发体验好
+
+**错误做法（严禁）：**
+- ❌ 查端口 → 杀进程（效率低）
+- ❌ 手动停止 → 重新启动（浪费时间）
+
+**使用方式：**
+1. 启动后端：`cd backend && mvn spring-boot:run`
+2. **修改 Java 代码后，必须先编译：`mvn compile`**
+3. DevTools 检测到 class 文件变化，自动触发重启
+4. 查看日志确认重启成功
+
+**⚠️ 关键点：**
+- DevTools 监控的是 **编译后的 class 文件**，不是源代码
+- 修改代码后**必须执行 `mvn compile`** 才能触发热部署
+- 不可跳过编译步骤，否则不会重启
+
+**IDE 支持：**
+- IntelliJ IDEA：修改文件后自动编译，无需手动操作
+- VS Code：安装 Spring Boot Extension Pack，自动编译
+- 命令行（Claude 使用）：手动执行 `mvn compile` 触发热部署
+
 ## 快速开始
 
 **环境要求：**
