@@ -89,6 +89,13 @@ public interface TaskMapper extends BaseMapper<Task> {
     int updateStatus(Task task);
 
     /**
+     * 更新任务的迭代ID（支持设置为null）
+     * @param task 任务实体（至少包含id和iterationId字段）
+     * @return 影响行数
+     */
+    int updateIterationId(Task task);
+
+    /**
      * 根据ID删除任务
      * @param id 任务ID
      * @return 影响行数

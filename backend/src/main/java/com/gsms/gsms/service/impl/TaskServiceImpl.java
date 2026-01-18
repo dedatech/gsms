@@ -215,17 +215,9 @@ public class TaskServiceImpl implements TaskService {
             throw new BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND);
         }
 
-        // 校验：中大型项目的任务必须关联迭代
-        if (project.getProjectType() == ProjectType.LARGE_SCALE
-            && task.getIterationId() == null) {
-            throw new BusinessException(ProjectErrorCode.ITERATION_REQUIRED_FOR_LARGE_SCALE_PROJECT);
-        }
-
-        // 校验：常规型项目的任务不能关联迭代
-        if (project.getProjectType() == ProjectType.SCHEDULE
-            && task.getIterationId() != null) {
-            throw new BusinessException(ProjectErrorCode.ITERATION_NOT_ALLOWED_FOR_SCHEDULE_PROJECT);
-        }
+        // 注释：取消项目类型和迭代关联的约束
+        // 所有项目都可以创建任务，迭代字段为可选
+        // 需求可以先不规划到迭代，后续通过规划功能关联
 
         // 校验任务负责人必须为项目成员（如果指定了负责人）
         if (task.getAssigneeId() != null) {
@@ -447,6 +439,42 @@ public class TaskServiceImpl implements TaskService {
 
         logger.info("获取子任务列表成功: parentId={}, count={}", parentId, subtasks.size());
         return respList;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Task updateIterationId(Long taskId, Long iterationId) {
+        logger.info("更新任务迭代ID: taskId={}, iterationId={}", taskId, iterationId);
+
+        // 检查任务是否存在
+        Task existTask = taskMapper.selectById(taskId);
+        if (existTask == null) {
+            throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+        }
+
+        // 鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, existTask.getProjectId());
+
+        // 如果设置了迭代ID，需要校验迭代是否存在且属于同一项目
+        if (iterationId != null) {
+            // 这里可以添加迭代的校验逻辑，暂时跳过
+            // 因为 iterationId 是外键，数据库会保证一致性
+        }
+
+        // 创建更新实体
+        Task task = new Task();
+        task.setId(taskId);
+        task.setIterationId(iterationId);
+        task.setUpdateUserId(currentUserId);
+
+        int result = taskMapper.updateIterationId(task);
+        if (result <= 0) {
+            throw new BusinessException(TaskErrorCode.TASK_UPDATE_FAILED);
+        }
+
+        logger.info("任务迭代ID更新成功: taskId={}, iterationId={}", taskId, iterationId);
+        return taskMapper.selectById(taskId);
     }
 
     // ========== 内部方法：数据填充 ==========

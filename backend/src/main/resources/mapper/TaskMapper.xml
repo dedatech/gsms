@@ -196,6 +196,15 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 更新任务的迭代ID（支持设置为null） -->
+    <update id="updateIterationId" parameterType="com.gsms.gsms.model.entity.Task">
+        UPDATE gsms_task
+        SET iteration_id = #{iterationId},
+            update_user_id = #{updateUserId},
+            update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
     <!-- 更新任务状态（支持将 actualStartDate 和 actualEndDate 更新为 null） -->
     <update id="updateStatus" parameterType="com.gsms.gsms.model.entity.Task">
         UPDATE gsms_task

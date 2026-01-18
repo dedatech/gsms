@@ -47,6 +47,14 @@ public interface TaskService {
     Task updateStatus(TaskStatusUpdateReq updateReq);
 
     /**
+     * 更新任务的迭代ID（支持设置为null，用于拖拽和移动）
+     * @param taskId 任务ID
+     * @param iterationId 迭代ID（可为null）
+     * @return 更新后的任务实体
+     */
+    Task updateIterationId(Long taskId, Long iterationId);
+
+    /**
      * 删除任务
      * @param id 任务ID
      */

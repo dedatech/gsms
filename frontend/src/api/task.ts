@@ -12,6 +12,7 @@ export interface TaskInfo {
   parentId?: number
   assigneeId?: number
   assigneeName?: string
+  type?: string  // 任务类型：TASK, REQUIREMENT, BUG
   status: string
   priority: string
   planStartDate?: string
@@ -58,7 +59,9 @@ export interface TaskCreateReq {
   iterationId?: number
   parentId?: number
   assigneeId?: number
-  priority?: number
+  type?: string  // 任务类型：TASK, REQUIREMENT, BUG
+  priority?: string  // 优先级：LOW, MEDIUM, HIGH
+  status?: string  // 状态：TODO, IN_PROGRESS, DONE
   planStartDate?: string
   planEndDate?: string
 }
@@ -98,6 +101,15 @@ export interface TaskStatusUpdateReq {
 
 export const updateTaskStatus = (data: TaskStatusUpdateReq) => {
   return request.put('/tasks/status', data)
+}
+
+// 更新任务迭代ID（轻量级接口，用于拖拽和移动，支持设置为null）
+export const updateTaskIterationId = (taskId: number, iterationId?: number) => {
+  const params: Record<string, any> = {}
+  if (iterationId !== undefined) {
+    params.iterationId = iterationId
+  }
+  return request.put(`/tasks/${taskId}/iteration`, null, { params })
 }
 
 // 删除任务

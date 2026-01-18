@@ -121,6 +121,25 @@ public class TaskController {
     }
 
     /**
+     * 更新任务的迭代ID（轻量级接口，支持拖拽和移动，支持设置为null）
+     *
+     * @param taskId 任务ID
+     * @param iterationId 迭代ID（可为null，表示移动到未规划）
+     * @return 更新后的任务信息
+     */
+    @PutMapping("/{taskId}/iteration")
+    @Operation(summary = "更新任务迭代ID")
+    public Result<TaskInfoResp> updateIterationId(
+            @PathVariable Long taskId,
+            @RequestParam(required = false) Long iterationId) {
+        logger.info("更新任务迭代ID: taskId={}, iterationId={}", taskId, iterationId);
+        Task updatedTask = taskService.updateIterationId(taskId, iterationId);
+        TaskInfoResp resp = TaskInfoResp.from(updatedTask);
+        logger.info("任务迭代ID更新成功: taskId={}, iterationId={}", taskId, iterationId);
+        return Result.success(resp);
+    }
+
+    /**
      * 删除任务
      *
      * @param id 任务ID
