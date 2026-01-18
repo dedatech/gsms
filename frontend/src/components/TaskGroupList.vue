@@ -242,11 +242,12 @@ interface TreeNode {
 
 // 按创建时间排序的任务列表
 const sortedTasks = computed(() => {
-  return [...props.tasks].sort((a, b) => {
+  const sorted = [...props.tasks].sort((a, b) => {
     const timeA = new Date(a.createTime || 0).getTime()
     const timeB = new Date(b.createTime || 0).getTime()
     return timeB - timeA
   })
+  return sorted
 })
 
 // 构建树形表格数据
@@ -256,10 +257,35 @@ const treeTableData = computed(() => {
     const tree: TreeNode[] = []
 
     props.iterations.forEach(iteration => {
-      // 获取该迭代下的所有任务（扁平列表）
-      const allIterTasks = sortedTasks.value.filter(t => t.iterationId === iteration.id)
-      const completedCount = allIterTasks.filter(t => t.status === 'DONE').length
-      const progress = allIterTasks.length > 0 ? Math.round((completedCount / allIterTasks.length) * 100) : 0
+      // 获取该迭代下的任务（后端已经构建好树形结构）
+      const iterTasks = sortedTasks.value.filter(t => t.iterationId === iteration.id)
+
+      // 统计信息（需要递归计算子任务）
+      const countAllTasks = (tasks: TaskInfo[]) => {
+        let count = 0
+        tasks.forEach(t => {
+          count++
+          if (t.subtasks && t.subtasks.length > 0) {
+            count += countAllTasks(t.subtasks)
+          }
+        })
+        return count
+      }
+
+      const countCompletedTasks = (tasks: TaskInfo[]) => {
+        let count = 0
+        tasks.forEach(t => {
+          if (t.status === 'DONE') count++
+          if (t.subtasks && t.subtasks.length > 0) {
+            count += countCompletedTasks(t.subtasks)
+          }
+        })
+        return count
+      }
+
+      const totalCount = countAllTasks(iterTasks)
+      const completedCount = countCompletedTasks(iterTasks)
+      const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
       // 迭代节点
       const iterationNode: TreeNode = {
@@ -269,87 +295,43 @@ const treeTableData = computed(() => {
         status: iteration.status,
         planStartDate: iteration.planStartDate || undefined,
         planEndDate: iteration.planEndDate || undefined,
-        taskCount: allIterTasks.length,
+        taskCount: totalCount,
         progress,
-        hasChildren: allIterTasks.length > 0,
-        children: []
+        hasChildren: iterTasks.length > 0,
+        children: iterTasks.map(task => taskToTreeNode(task))
       }
-
-      // 使用客户端构建树形结构（通过 parentId）
-      const taskTree = buildTreeData(allIterTasks)
-
-      // 将构建好的树添加到迭代节点下
-      iterationNode.children!.push(...taskTree)
 
       tree.push(iterationNode)
     })
 
     return tree
   } else {
-    // 如果没有迭代，直接返回任务树（常规项目）
-    return buildTreeData(sortedTasks.value)
+    // 没有迭代，直接返回任务树（常规项目）
+    const result = sortedTasks.value.map(task => taskToTreeNode(task))
+    return result
   }
 })
 
-// 客户端构建树形结构（通过 parentId）
-const buildTreeData = (flatTasks: TaskInfo[]): TreeNode[] => {
-  if (!flatTasks || flatTasks.length === 0) return []
-
-  // 创建 ID 到任务的映射
-  const taskMap = new Map<number, TreeNode>()
-  const rootTasks: TreeNode[] = []
-
-  // 第一步：创建所有节点
-  flatTasks.forEach(task => {
-    const node: TreeNode = {
-      id: task.id,
-      type: 'task',
-      title: task.title,
-      status: task.status,
-      priority: task.priority,
-      assigneeName: task.assigneeName || undefined,
-      planEndDate: task.planEndDate || undefined,
-      estimateHours: task.estimateHours || undefined,
-      iterationId: task.iterationId,
-      isSubtask: !!task.parentId,  // 通过 parentId 判断是否为子任务
-      parentId: task.parentId,
-      level: 0,  // 初始层级，后续计算
-      children: [],
-      hasChildren: false
-    }
-    taskMap.set(task.id, node)
-  })
-
-  // 第二步：建立父子关系
-  flatTasks.forEach(task => {
-    const node = taskMap.get(task.id)!
-    if (task.parentId) {
-      const parent = taskMap.get(task.parentId)
-      if (parent) {
-        parent.children!.push(node)
-        parent.hasChildren = true
-      } else {
-        // 找不到父任务，作为根任务处理
-        rootTasks.push(node)
-      }
-    } else {
-      rootTasks.push(node)
-    }
-  })
-
-  // 第三步：递归计算每个节点的层级（level）
-  const calculateLevel = (node: TreeNode, currentLevel: number) => {
-    node.level = currentLevel
-    if (node.children && node.children.length > 0) {
-      node.children.forEach(child => {
-        calculateLevel(child as TreeNode, currentLevel + 1)
-      })
-    }
+// 将后端返回的 TaskInfo 转换为 TreeNode
+const taskToTreeNode = (task: TaskInfo, level: number = 0): TreeNode => {
+  return {
+    id: task.id,
+    type: 'task',
+    title: task.title,
+    status: task.status,
+    priority: task.priority,
+    assigneeName: task.assigneeName || undefined,
+    planEndDate: task.planEndDate || undefined,
+    estimateHours: task.estimateHours || undefined,
+    iterationId: task.iterationId,
+    isSubtask: !!task.parentId,
+    parentId: task.parentId,
+    level: level,
+    hasChildren: task.subtasks && task.subtasks.length > 0,
+    children: task.subtasks && task.subtasks.length > 0
+      ? task.subtasks.map(st => taskToTreeNode(st, level + 1))
+      : []
   }
-
-  rootTasks.forEach(root => calculateLevel(root, 0))
-
-  return rootTasks
 }
 
 // 处理展开/折叠

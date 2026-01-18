@@ -32,8 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -84,61 +86,115 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public PageResult<TaskInfoResp> findAll(TaskQueryReq taskQueryReq) {
-        logger.info("根据条件分页查询任务: projectId={}, pageNum={}, pageSize={}",
-                    taskQueryReq.getProjectId(), taskQueryReq.getPageNum(), taskQueryReq.getPageSize());
+        logger.info("根据条件分页查询任务: projectId={}, assigneeId={}, status={}, pageNum={}, pageSize={}",
+                    taskQueryReq.getProjectId(), taskQueryReq.getAssigneeId(),
+                    taskQueryReq.getStatus(), taskQueryReq.getPageNum(), taskQueryReq.getPageSize());
 
         Long currentUserId = UserContext.getCurrentUserId();
         Long projectId = taskQueryReq.getProjectId();
         Long assigneeId = taskQueryReq.getAssigneeId();
         TaskStatus status = taskQueryReq.getStatus();
         Integer statusCode = status != null ? status.getCode() : null;
+        Integer pageNum = taskQueryReq.getPageNum() != null ? taskQueryReq.getPageNum() : 1;
+        Integer pageSize = taskQueryReq.getPageSize() != null ? taskQueryReq.getPageSize() : 10;
 
-        // 查询所有符合条件的任务（不分页）
-        List<Task> allTasks;
-
-        // 如果指定了项目ID，直接查询该项目的任务（用户能访问项目详情页就有权限）
-        // 如果没有指定项目ID，需要全局权限
-        if (projectId != null) {
-            logger.info("查询指定项目的任务: projectId={}", projectId);
-            allTasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
-        } else if (authService.canViewAllTasks(currentUserId)) {
-            logger.info("用户有全局查看权限，查询所有任务");
-            allTasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
-        } else {
+        // 权限判断
+        if (projectId == null && !authService.canViewAllTasks(currentUserId)) {
             logger.warn("用户无全局权限且未指定项目ID，拒绝查询");
             throw new BusinessException(CommonErrorCode.FORBIDDEN);
         }
 
-        logger.info("数据库查询返回任务数量: {}", allTasks.size());
+        // 1. 查询所有符合筛选条件的任务（可能是子任务）
+        logger.info("步骤1: 查询所有符合筛选条件的任务");
+        List<Task> matchedTasks = taskMapper.selectByCondition(projectId, assigneeId, statusCode);
+        logger.info("符合筛选条件的任务数量: {}", matchedTasks.size());
 
-        // 计算总数
-        long total = allTasks.size();
-
-        // 计算分页参数
-        Integer pageNum = taskQueryReq.getPageNum() != null ? taskQueryReq.getPageNum() : 1;
-        Integer pageSize = taskQueryReq.getPageSize() != null ? taskQueryReq.getPageSize() : 10;
-        int offset = (pageNum - 1) * pageSize;
-        int endIndex = Math.min(offset + pageSize, allTasks.size());
-
-        // 内存分页：截取当前页的数据
-        List<Task> pagedTasks;
-        if (offset < allTasks.size()) {
-            pagedTasks = allTasks.subList(offset, endIndex);
-        } else {
-            pagedTasks = new ArrayList<>();
+        // 2. 如果没有任务，直接返回空结果
+        if (matchedTasks.isEmpty()) {
+            logger.info("没有符合条件的任务，返回空结果");
+            return PageResult.success(new ArrayList<>(), 0L, pageNum, 0);
         }
 
-        logger.info("内存分页结果: total={}, pageNum={}, pageSize={}, offset={}, 返回数量={}",
-                    total, pageNum, pageSize, offset, pagedTasks.size());
+        // 3. 提取所有相关的父任务ID（包括：符合条件的父任务 + 子任务的父任务）
+        Set<Long> parentIds = new HashSet<>();
+        for (Task task : matchedTasks) {
+            if (task.getParentId() == null) {
+                // 是父任务，直接加入
+                parentIds.add(task.getId());
+            } else {
+                // 是子任务，加入其父任务ID
+                parentIds.add(task.getParentId());
+            }
+        }
+        logger.info("相关父任务ID集合: {}", parentIds);
 
-        // 转换为扁平列表（不构建树形结构）
-        List<TaskInfoResp> respList = TaskInfoResp.from(pagedTasks);
+        // 4. 查询父任务（分页）
+        List<Long> parentIdList = new ArrayList<>(parentIds);
+        PageHelper.startPage(pageNum, pageSize);
+        List<Task> parentTasks = taskMapper.selectTasksByIds(parentIdList);
+        PageInfo<Task> pageInfo = new PageInfo<>(parentTasks);
+        long total = pageInfo.getTotal();
+        logger.info("步骤2: 分页查询父任务，本页返回{}个，总计{}个父任务", parentTasks.size(), total);
 
-        // 批量填充用户信息
-        enrichTaskInfoRespList(respList);
+        // 5. 如果没有父任务，直接返回空结果
+        if (parentTasks.isEmpty()) {
+            logger.info("本页没有父任务，返回空结果");
+            return PageResult.success(new ArrayList<>(), total, pageNum, 0);
+        }
 
-        // 返回分页结果
-        return PageResult.success(respList, total, pageNum, respList.size());
+        // 6. 获取本页父任务的所有子任务
+        List<Long> pagedParentIds = parentTasks.stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+        List<Task> allSubtasks = taskMapper.selectSubtasksByParentIds(pagedParentIds);
+        logger.info("步骤3: 查询到{}个子任务", allSubtasks.size());
+
+        // 7. 合并父任务和子任务（使用 Set 去重）
+        Set<Long> taskIds = new HashSet<>();
+        List<Task> allTasks = new ArrayList<>();
+        for (Task task : parentTasks) {
+            if (taskIds.add(task.getId())) {
+                allTasks.add(task);
+            }
+        }
+        for (Task task : allSubtasks) {
+            if (taskIds.add(task.getId())) {
+                allTasks.add(task);
+            }
+        }
+        logger.info("步骤4: 合并后的任务总数（去重后）: {}", allTasks.size());
+
+        // 8. 使用后端已有方法构建树形结构
+        List<TaskInfoResp> respList = TaskInfoResp.buildTree(allTasks);
+        logger.info("步骤5: 构建树形结构，返回{}个根任务", respList.size());
+
+        // 9. 扁平化树形结构（用于填充用户信息）
+        List<TaskInfoResp> flatList = flattenTree(respList);
+        logger.info("扁平化后任务总数: {}", flatList.size());
+
+        // 10. 批量填充用户信息
+        enrichTaskInfoRespList(flatList);
+
+        // 11. 返回分页结果
+        logger.info("查询完成: total={}（父任务数）, pageNum={}, pageSize={}, 返回根任务数={}",
+                    total, pageNum, pageSize, respList.size());
+        return PageResult.success(respList, total, pageNum, Integer.valueOf(respList.size()));
+    }
+
+    /**
+     * 扁平化树形结构（递归）
+     * @param tree 树形结构的任务列表
+     * @return 扁平化的任务列表
+     */
+    private List<TaskInfoResp> flattenTree(List<TaskInfoResp> tree) {
+        List<TaskInfoResp> result = new ArrayList<>();
+        for (TaskInfoResp task : tree) {
+            result.add(task);
+            if (task.getSubtasks() != null && !task.getSubtasks().isEmpty()) {
+                result.addAll(flattenTree(task.getSubtasks()));
+            }
+        }
+        return result;
     }
 
     @Override

@@ -54,6 +54,20 @@ public interface TaskMapper extends BaseMapper<Task> {
     List<Task> selectAccessibleTasksByCondition(@Param("userId") Long userId, @Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId, @Param("status") Integer status);
 
     /**
+     * 根据任务ID列表查询任务
+     * @param taskIds 任务ID列表
+     * @return 任务列表
+     */
+    List<Task> selectTasksByIds(@Param("taskIds") List<Long> taskIds);
+
+    /**
+     * 批量查询子任务（通过父任务ID列表）
+     * @param parentIds 父任务ID列表
+     * @return 子任务列表
+     */
+    List<Task> selectSubtasksByParentIds(@Param("parentIds") List<Long> parentIds);
+
+    /**
      * 插入任务
      * @param task 任务实体
      * @return 影响行数

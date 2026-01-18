@@ -119,6 +119,46 @@
             t.create_time DESC
     </select>
 
+    <!-- 根据任务ID列表查询任务 -->
+    <select id="selectTasksByIds" resultMap="TaskResultMap">
+        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
+        <where>
+            AND t.is_deleted = 0
+            AND t.id IN
+            <foreach collection="taskIds" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+        ORDER BY
+            CASE WHEN t.parent_id IS NULL THEN 0 ELSE 1 END,
+            COALESCE(t.parent_id, t.id),
+            t.create_time DESC
+    </select>
+
+    <!-- 批量查询子任务（通过父任务ID列表） -->
+    <select id="selectSubtasksByParentIds" resultMap="TaskResultMap">
+        SELECT t.id, t.project_id, p.name as project_name, t.iteration_id, i.name as iteration_name, t.parent_id, t.title, t.description, t.type, t.priority,
+               t.assignee_id, t.status, t.plan_start_date, t.plan_end_date, t.actual_start_date, t.actual_end_date,
+               t.estimate_hours, t.create_user_id, t.update_user_id, t.create_time, t.update_time, t.is_deleted
+        FROM gsms_task t
+        LEFT JOIN gsms_project p ON t.project_id = p.id AND p.is_deleted = 0
+        LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
+        <where>
+            AND t.is_deleted = 0
+            AND t.parent_id IS NOT NULL
+            AND t.parent_id IN
+            <foreach collection="parentIds" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+        ORDER BY t.parent_id, t.create_time DESC
+    </select>
+
     <!-- 插入任务 -->
     <insert id="insert" parameterType="com.gsms.gsms.model.entity.Task"
             useGeneratedKeys="true" keyProperty="id">
