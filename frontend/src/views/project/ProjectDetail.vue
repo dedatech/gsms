@@ -1,87 +1,104 @@
 <template>
   <div class="page-root">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-left">
-        <el-button :icon="ArrowLeft" @click="goBack">返回</el-button>
-        <h2 class="page-title">{{ project?.name || '加载中...' }}</h2>
-        <el-tag :type="getStatusType(project?.status)" size="large">
-          {{ getStatusText(project?.status) }}
-        </el-tag>
+    <!-- 项目导航栏 -->
+    <div class="project-navigation">
+      <!-- 左侧：项目选择器 -->
+      <div class="nav-left">
+        <div class="project-selector-wrapper">
+          <ProjectSelector />
+        </div>
       </div>
-      <div class="header-right">
-        <el-button :icon="InfoFilled" @click="showProjectInfo = true">项目信息</el-button>
-        <el-button :icon="Edit" type="primary" @click="handleEdit">编辑项目</el-button>
-        <el-button :icon="Delete" type="danger" @click="handleDelete">删除项目</el-button>
+
+      <!-- 中间：模块标签 -->
+      <div class="nav-center">
+        <div class="module-tabs">
+          <div
+            v-for="tab in moduleTabs"
+            :key="tab.key"
+            class="module-tab"
+            :class="{ active: activeModule === tab.key }"
+            @click="activeModule = tab.key"
+          >
+            <span>{{ tab.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：操作按钮 -->
+      <div class="nav-right">
+        <el-button :icon="Setting" circle text />
+        <el-button type="primary" :icon="Plus">新建</el-button>
       </div>
     </div>
 
-    <!-- 标签页 -->
-    <div class="tabs-container">
-      <el-tabs v-model="activeTab" class="detail-tabs">
-        <!-- 工作项管理标签 -->
-        <el-tab-pane name="workItems">
-          <template #label>
-            <span>
-              <el-icon><List /></el-icon>
-              工作项
-              <el-badge :value="taskTotal" class="tab-badge" />
-            </span>
-          </template>
-          <div class="tab-content">
-            <UnifiedWorkItemView
-              :project-type="project?.projectType"
-              :iterations="iterations"
-              :tasks="tasks"
-              :task-total="taskTotal"
-              :current-page="taskSearchForm.pageNum"
-              :page-size="taskSearchForm.pageSize"
-              @create-task="handleCreateTask"
-              @create-iteration="handleCreateIteration"
-              @view-iteration="handleViewIteration"
-              @edit-iteration="handleEditIteration"
-              @edit-task="handleEditTask"
-              @pagination-change="handlePaginationChange"
-            />
-          </div>
-        </el-tab-pane>
+    <!-- 内容区域（根据模块标签显示不同内容） -->
+    <div class="content-area">
+      <!-- 概览 -->
+      <div v-if="activeModule === 'overview'" class="module-content">
+        <el-alert title="概览视图开发中" type="info" :closable="false" />
+      </div>
 
-        <!-- 甘特图标签 -->
-        <el-tab-pane name="gantt">
-          <template #label>
-            <span>
-              <el-icon><Grid /></el-icon>
-              甘特图
-            </span>
-          </template>
-          <div class="tab-content gantt-tab-content">
-            <ProjectGantt v-if="activeTab === 'gantt'" :project-id="projectId" />
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+      <!-- 需求 -->
+      <div v-else-if="activeModule === 'requirements'" class="module-content">
+        <RequirementsView
+          ref="requirementsViewRef"
+          :project-id="projectId"
+          @create-task="handleCreateTask"
+          @view-task="handleViewTask"
+          @edit-task="handleEditTask"
+          @delete-task="handleDeleteTask"
+        />
+      </div>
 
-      <!-- 标签页右侧操作按钮 -->
-      <div v-if="activeTab === 'workItems'" class="tab-right-actions">
-        <!-- 中大型项目：新建迭代 -->
-        <el-button
-          v-if="project?.projectType === 'LARGE_SCALE'"
-          type="success"
-          size="small"
-          :icon="FolderOpened"
-          @click="handleCreateIteration"
-        >
-          新建迭代
-        </el-button>
-        <!-- 常规项目：新建任务 -->
-        <el-button
-          v-else-if="project?.projectType === 'SCHEDULE'"
-          type="primary"
-          size="small"
-          :icon="Plus"
-          @click="handleCreateTask(undefined)"
-        >
-          新建任务
-        </el-button>
+      <!-- 规划 -->
+      <div v-else-if="activeModule === 'planning'" class="module-content">
+        <PlanningView
+          ref="planningViewRef"
+          :project-id="projectId"
+          @create-iteration="handleCreateIteration"
+          @edit-iteration="handleEditIteration"
+          @delete-iteration="handleDeleteIteration"
+          @create-requirement="handleCreateRequirement"
+          @edit-requirement="handleEditTask"
+          @delete-requirement="handleDeleteTask"
+        />
+      </div>
+
+      <!-- 迭代 -->
+      <div v-else-if="activeModule === 'iteration'" class="module-content">
+        <UnifiedWorkItemView
+          :iterations="iterations"
+          :tasks="tasks"
+          :task-total="taskTotal"
+          :current-page="taskSearchForm.pageNum"
+          :page-size="taskSearchForm.pageSize"
+          @create-task="handleCreateTask"
+          @create-iteration="handleCreateIteration"
+          @view-iteration="handleViewIteration"
+          @edit-iteration="handleEditIteration"
+          @edit-task="handleEditTask"
+          @pagination-change="handlePaginationChange"
+        />
+      </div>
+
+      <!-- 缺陷 -->
+      <div v-else-if="activeModule === 'defect'" class="module-content">
+        <el-alert title="缺陷视图开发中" type="info" :closable="false" />
+      </div>
+
+      <!-- 报表 -->
+      <div v-else-if="activeModule === 'report'" class="module-content">
+        <el-alert title="报表视图开发中" type="info" :closable="false" />
+      </div>
+
+      <!-- 文档 -->
+      <div v-else-if="activeModule === 'document'" class="module-content">
+        <el-alert title="文档视图开发中" type="info" :closable="false" />
+      </div>
+
+      <!-- 成员 -->
+      <div v-else-if="activeModule === 'member'" class="module-content">
+        <el-alert title="成员视图开发中" type="info" :closable="false" />
       </div>
     </div>
 
@@ -127,11 +144,12 @@
       :close-on-click-modal="false"
     >
       <el-form ref="taskFormRef" :model="taskFormData" :rules="taskFormRules" label-width="100px">
-        <el-form-item label="所属迭代" v-if="iterations.length > 0 && !taskFormData.parentId">
+        <el-form-item label="所属迭代" v-if="!taskFormData.parentId">
           <el-select
             v-model="taskFormData.iterationId"
-            placeholder="请选择迭代"
+            placeholder="选填：可选择关联迭代"
             filterable
+            clearable
             style="width: 100%"
             :disabled="!!taskFormData.iterationId"
           >
@@ -309,6 +327,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
   ArrowLeft,
+  ArrowDown,
+  ArrowRight,
   Edit,
   Delete,
   InfoFilled,
@@ -316,7 +336,14 @@ import {
   Plus,
   View,
   Grid,
-  FolderOpened
+  Document,
+  FolderOpened,
+  VideoPlay,
+  TrendCharts,
+  User,
+  Setting,
+  Filter,
+  Clock
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
 import { getTaskList, getTasksByProjectId, createTask, updateTask, deleteTask } from '@/api/task'
@@ -326,6 +353,11 @@ import { getIterationList, createIteration, updateIteration, deleteIteration, ty
 import ProjectGantt from '@/components/ProjectGantt.vue'
 import ProjectInfoSidebar from '@/components/ProjectInfoSidebar.vue'
 import UnifiedWorkItemView from '@/components/UnifiedWorkItemView.vue'
+import RequirementsView from '@/components/RequirementsView.vue'
+import PlanningView from '@/components/PlanningView.vue'
+import IterationSelector from '@/components/layout/IterationSelector.vue'
+import ViewModeTabs from '@/components/layout/ViewModeTabs.vue'
+import ProjectSelector from '@/components/layout/ProjectSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -333,6 +365,119 @@ const projectId = computed(() => Number(route.params.id))
 
 // 当前激活的标签页（默认显示工作项列表，符合"工作项为核心"理念）
 const activeTab = ref('workItems')
+
+// 当前激活的模块标签
+const activeModule = ref('overview')
+
+// RequirementsView 组件引用
+const requirementsViewRef = ref<InstanceType<typeof RequirementsView>>()
+
+// PlanningView 组件引用
+const planningViewRef = ref<InstanceType<typeof PlanningView>>()
+
+// 模块标签定义
+const moduleTabs = [
+  { key: 'overview', label: '概览' },
+  { key: 'requirements', label: '需求' },
+  { key: 'planning', label: '规划' },
+  { key: 'iteration', label: '迭代' },
+  { key: 'defect', label: '缺陷' },
+  { key: 'report', label: '报表' },
+  { key: 'document', label: '文档' },
+  { key: 'member', label: '成员' }
+]
+
+// ONES 风格：当前视图标签
+const currentViewTab = ref('kanban')
+
+// 视图标签定义
+const viewTabs = [
+  { key: 'overview', label: '概览' },
+  { key: 'kanban', label: '敏捷看板' },
+  { key: 'list', label: '列表视图' }
+]
+
+// 筛选器数量
+const filterCount = ref(0)
+
+// ========== 需求池视图 ==========
+// 需求筛选器
+const requirementFilter = ref('all')
+
+// ========== 规划视图 ==========
+// 展开的迭代列表
+const expandedIterations = ref<number[]>([])
+
+// 待规划任务（没有分配迭代的任务）
+const unplannedTasks = computed(() => {
+  return tasks.value.filter(t => !t.iterationId)
+})
+
+// 获取指定迭代的任务列表
+const getIterationTasks = (iterationId: number) => {
+  return tasks.value.filter(t => t.iterationId === iterationId)
+}
+
+// 获取指定迭代的任务数量
+const getIterationTaskCount = (iterationId: number) => {
+  return getIterationTasks(iterationId).length
+}
+
+// 获取指定迭代的预估工时
+const getIterationEstimateHours = (iterationId: number) => {
+  return getIterationTasks(iterationId).reduce((sum, t) => sum + (t.estimateHours || 0), 0)
+}
+
+// 切换迭代展开/收起状态
+const toggleIteration = (iterationId: number) => {
+  const idx = expandedIterations.value.indexOf(iterationId)
+  if (idx > -1) {
+    expandedIterations.value.splice(idx, 1)
+  } else {
+    expandedIterations.value.push(iterationId)
+  }
+}
+
+// 格式化日期（简化版，只显示月/日）
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
+// 看板列定义（三列）
+const kanbanColumns = computed(() => {
+  return [
+    {
+      key: 'todo',
+      label: '未开始',
+      color: '#faad14',
+      tasks: tasks.value.filter(t => t.status === 'TODO' || t.status === null)
+    },
+    {
+      key: 'inProgress',
+      label: '进行中',
+      color: '#1890ff',
+      tasks: tasks.value.filter(t => t.status === 'IN_PROGRESS')
+    },
+    {
+      key: 'done',
+      label: '已完成',
+      color: '#52c41a',
+      tasks: tasks.value.filter(t => t.status === 'DONE')
+    }
+  ].map(col => ({
+    ...col,
+    count: col.tasks.length
+  }))
+})
+
+// 获取负责人名称
+const getAssigneeName = (assigneeId?: number) => {
+  if (!assigneeId) return '未分配'
+  const member = members.value.find(m => m.userId === assigneeId)
+  return member ? member.nickname : '未知用户'
+}
 
 // 项目信息侧边栏显示状态
 const showProjectInfo = ref(false)
@@ -355,28 +500,8 @@ const taskSearchForm = reactive({
   pageSize: 10
 })
 
-// 任务统计
-const taskStats = computed(() => {
-  const stats = { total: tasks.value.length, todo: 0, inProgress: 0, done: 0 }
-  tasks.value.forEach(task => {
-    if (task.status === 'TODO' || task.status === null) stats.todo++
-    else if (task.status === 'IN_PROGRESS') stats.inProgress++
-    else if (task.status === 'DONE') stats.done++
-  })
-  return stats
-})
-
 // 迭代列表（仅中大型项目使用）
 const iterations = ref<IterationInfo[]>([])
-const iterationStats = computed(() => {
-  const stats = { notStarted: 0, inProgress: 0, completed: 0 }
-  iterations.value.forEach(iter => {
-    if (iter.status === 'NOT_STARTED') stats.notStarted++
-    else if (iter.status === 'IN_PROGRESS') stats.inProgress++
-    else if (iter.status === 'COMPLETED') stats.completed++
-  })
-  return stats
-})
 
 // 编辑项目对话框
 const editDialogVisible = ref(false)
@@ -398,6 +523,7 @@ const taskFormRef = ref<FormInstance>()
 const taskFormData = reactive({
   title: '',
   description: '',
+  type: 'REQUIREMENT',  // 默认为需求
   priority: 'MEDIUM',
   status: 'TODO',
   assigneeId: undefined as number | undefined,
@@ -440,10 +566,14 @@ const fetchProject = async () => {
   try {
     const res = await getProjectDetail(projectId.value)
     project.value = res
-    // 如果是中大型项目，获取迭代列表
-    if (res.projectType === 'LARGE_SCALE') {
-      await fetchIterations()
-    }
+
+    // 同步设置 projectStore 的当前项目，使项目选择器联动
+    const { useProjectStore } = await import('@/stores/project')
+    const projectStore = useProjectStore()
+    await projectStore.setCurrentProject(projectId.value)
+
+    // 获取迭代列表（所有项目都可以使用迭代功能）
+    await fetchIterations()
   } catch (error) {
     console.error('获取项目详情失败:', error)
     ElMessage.error('获取项目详情失败')
@@ -510,11 +640,8 @@ const handlePaginationChange = (pageNum: number, pageSize: number) => {
   fetchTasks()
 }
 
-// 获取迭代列表（仅中大型项目）
+// 获取迭代列表
 const fetchIterations = async () => {
-  if (project.value?.projectType !== 'LARGE_SCALE') {
-    return
-  }
   try {
     const res = await getIterationList({ projectId: projectId.value, pageNum: 1, pageSize: 100 })
     iterations.value = res.list || []
@@ -629,6 +756,11 @@ const handleCreateTask = (iterationId?: number, parentId?: number) => {
   taskDialogVisible.value = true
 }
 
+// 新建需求（由规划视图调用）
+const handleCreateRequirement = (iterationId?: number) => {
+  handleCreateTask(iterationId)
+}
+
 // 编辑迭代
 const handleEditIteration = (iteration: any) => {
   // 打开编辑迭代对话框
@@ -649,6 +781,33 @@ const handleEditTask = (task: any) => {
   ElMessage.info('编辑任务功能待实现（可以跳转到任务详情页）')
 }
 
+// 查看任务
+const handleViewTask = (task: any) => {
+  // 跳转到任务详情页
+  router.push(`/tasks/${task.id}`)
+}
+
+// 删除任务
+const handleDeleteTask = async (task: any) => {
+  try {
+    await deleteTask(task.id)
+    ElMessage.success('删除成功')
+    // 刷新需求视图
+    if (requirementsViewRef.value) {
+      requirementsViewRef.value.refresh()
+    }
+    // 刷新规划视图
+    if (planningViewRef.value) {
+      planningViewRef.value.refresh()
+    }
+    // 也刷新主任务列表（用于迭代视图）
+    await fetchTasks()
+  } catch (error) {
+    console.error('删除任务失败:', error)
+    ElMessage.error('删除失败')
+  }
+}
+
 // 提交新建任务
 const handleCreateTaskSubmit = async () => {
   if (!taskFormRef.value) return
@@ -662,6 +821,7 @@ const handleCreateTaskSubmit = async () => {
         projectId: projectId.value,
         title: taskFormData.title,
         description: taskFormData.description,
+        type: taskFormData.type,  // 添加任务类型
         priority: taskFormData.priority,
         status: taskFormData.status,
         assigneeId: taskFormData.assigneeId,
@@ -676,6 +836,14 @@ const handleCreateTaskSubmit = async () => {
       ElMessage.success('任务创建成功')
       taskDialogVisible.value = false
       fetchTasks() // 刷新任务列表
+      // 刷新需求视图
+      if (requirementsViewRef.value) {
+        requirementsViewRef.value.refresh()
+      }
+      // 刷新规划视图
+      if (planningViewRef.value) {
+        planningViewRef.value.refresh()
+      }
     } catch (error) {
       console.error('创建任务失败:', error)
       ElMessage.error('创建任务失败')
@@ -683,11 +851,6 @@ const handleCreateTaskSubmit = async () => {
       taskSubmitLoading.value = false
     }
   })
-}
-
-// 查看任务
-const handleViewTask = (task: TaskInfo) => {
-  router.push(`/tasks/${task.id}`)
 }
 
 // 获取项目状态信息
@@ -797,6 +960,10 @@ const handleIterationSubmit = async () => {
       }
       iterationDialogVisible.value = false
       fetchIterations() // 刷新迭代列表
+      // 刷新规划视图
+      if (planningViewRef.value) {
+        planningViewRef.value.refresh()
+      }
     } catch (error) {
       console.error('操作失败:', error)
       ElMessage.error(iterationFormData.id ? '更新失败' : '创建失败')
@@ -817,6 +984,10 @@ const handleDeleteIteration = (iteration: IterationInfo) => {
         await deleteIteration(iteration.id)
         ElMessage.success('删除成功')
         fetchIterations() // 刷新迭代列表
+        // 刷新规划视图
+        if (planningViewRef.value) {
+          planningViewRef.value.refresh()
+        }
       } catch (error) {
         console.error('删除迭代失败:', error)
         ElMessage.error('删除失败')
@@ -874,6 +1045,98 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 页面根容器 */
+.page-root {
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 内容区域 */
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.module-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+
+/* 项目导航栏 */
+.project-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.project-selector-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+
+.module-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.module-tab {
+  padding: 6px 16px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.module-tab:hover {
+  color: #1890ff;
+}
+
+.module-tab.active {
+  background: #fff;
+  color: #1890ff;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .header-left {
   display: flex;
   align-items: center;
@@ -884,7 +1147,7 @@ onMounted(() => {
 .tabs-container {
   position: relative;
   background: #fff;
-  padding: 24px;
+  padding: 8px;
   border-radius: 4px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
@@ -897,19 +1160,19 @@ onMounted(() => {
 
 .tab-right-actions {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 8px;
+  right: 8px;
   display: flex;
   gap: 8px;
 }
 
 :deep(.el-tabs__header) {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 :deep(.el-tabs__item) {
-  font-size: 16px;
-  padding: 0 24px;
+  font-size: 15px;
+  padding: 0 12px;
 }
 
 :deep(.el-tabs__item .el-icon) {
@@ -919,6 +1182,172 @@ onMounted(() => {
 
 .tab-badge {
   margin-left: 8px;
+}
+
+/* ========== ONES 风格内容区 ========== */
+.ones-style-content {
+  padding: 0;
+}
+
+/* 迭代和操作按钮区 */
+.iteration-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.iteration-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 视图标签行 */
+.view-tabs-bar {
+  display: flex;
+  gap: 32px;
+  padding: 16px 24px 0;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.view-tab-item {
+  padding-bottom: 12px;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.view-tab-item:hover {
+  color: #1890ff;
+}
+
+.view-tab-item.active {
+  color: #1890ff;
+  border-bottom-color: #1890ff;
+  font-weight: 500;
+}
+
+/* 看板视图 */
+.kanban-board-view {
+  padding: 6px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 300px);
+}
+
+.kanban-column {
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.kanban-column-header {
+  padding: 6px 8px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.column-count {
+  font-size: 12px;
+}
+
+.kanban-column-body {
+  padding: 4px;
+}
+
+/* 增强型任务卡片 */
+.task-card-enhanced {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.task-card-enhanced:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.task-card-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.task-card-number {
+  font-size: 12px;
+  color: #1890ff;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-weight: 500;
+}
+
+.task-status-tag {
+  font-size: 12px;
+}
+
+.task-card-title {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.task-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-card-assignee,
+.task-card-progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.task-card-assignee .el-icon,
+.task-card-progress .el-icon {
+  font-size: 14px;
+}
+
+.empty-state {
+  padding: 40px 0;
 }
 
 /* 标签页右侧操作按钮 */
@@ -1056,5 +1485,200 @@ onMounted(() => {
 
 :deep(.gantt-tab-content .project-gantt) {
   height: 100%;
+}
+
+/* ========== 需求池视图 ========== */
+.requirements-pool-view {
+  min-height: 500px;
+}
+
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-left,
+.filter-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.requirements-table {
+  margin-top: 16px;
+}
+
+.task-number {
+  color: #1890ff;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-weight: 500;
+}
+
+/* ========== 规划视图 ========== */
+.planning-view {
+  min-height: 500px;
+}
+
+.iterations-list,
+.unplanned-area {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 400px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 迭代卡片 */
+.iteration-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.iteration-card {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.iteration-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.iteration-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: #999;
+  transition: transform 0.3s;
+}
+
+.iteration-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.task-count-badge {
+  margin-left: auto;
+}
+
+.iteration-card-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #666;
+  background: #fff;
+}
+
+.iteration-date {
+  color: #666;
+}
+
+.iteration-hours {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.iteration-tasks {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 迷你任务卡片 */
+.mini-task-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mini-task-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+}
+
+.mini-task-card:last-child {
+  margin-bottom: 0;
+}
+
+.task-type-icon {
+  font-size: 16px;
+  color: #1890ff;
+  flex-shrink: 0;
+}
+
+.task-title {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unplanned-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.unplanned-tasks:empty {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 滚动条样式优化 - 完全隐藏但保持滚动功能 */
+.unplanned-tasks::-webkit-scrollbar {
+  display: none; /* Webkit浏览器：完全隐藏滚动条 */
+  width: 0;
+  height: 0;
+}
+
+/* Firefox 滚动条 - 完全隐藏 */
+.unplanned-tasks {
+  scrollbar-width: none; /* Firefox：完全隐藏滚动条 */
 }
 </style>

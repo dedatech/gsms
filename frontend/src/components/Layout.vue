@@ -568,7 +568,7 @@ onMounted(async () => {
 /* 主内容区样式 */
 .main-content {
   background-color: #f0f2f5;
-  padding: 24px;
+  padding: 12px;
   overflow-y: auto;
 }
 

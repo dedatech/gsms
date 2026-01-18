@@ -15,30 +15,6 @@
 
     <!-- 底部状态栏 -->
     <div class="status-footer">
-      <div class="status-stats">
-        <span class="status-item">
-          <i class="el-icon-files"></i>
-          全部: {{ totalTasks }}
-        </span>
-        <span class="separator">|</span>
-        <span class="status-item todo">
-          待办: {{ todoTasks }}
-        </span>
-        <span class="separator">|</span>
-        <span class="status-item in-progress">
-          进行中: {{ inProgressTasks }}
-        </span>
-        <span class="separator">|</span>
-        <span class="status-item done">
-          已完成: {{ doneTasks }}
-        </span>
-        <span v-if="isLargeScale && iterations.length > 0" class="separator">|</span>
-        <span v-if="isLargeScale && iterations.length > 0" class="status-item">
-          <i class="el-icon-folder"></i>
-          迭代: {{ iterations.length }}
-        </span>
-      </div>
-
       <!-- 分页组件 -->
       <el-pagination
         v-model:current-page="currentPage"
@@ -64,7 +40,6 @@ import TaskGroupList from '@/components/TaskGroupList.vue'
 
 // Props
 const props = defineProps<{
-  projectType?: string
   iterations: IterationInfo[]
   tasks: TaskInfo[]
   taskTotal: number
@@ -100,53 +75,6 @@ const handleSizeChange = (size: number) => {
 
 const handleCurrentChange = (page: number) => {
   emit('paginationChange', page, props.pageSize || 10)
-}
-
-// 是否是中大型项目
-const isLargeScale = computed(() => props.projectType === 'LARGE_SCALE')
-
-// 任务统计 - 递归统计所有任务（包括子任务）
-const totalTasks = computed(() => {
-  return countAllTasks(props.tasks)
-})
-
-const todoTasks = computed(() => {
-  return countTasksByStatus(props.tasks, 'TODO')
-})
-
-const inProgressTasks = computed(() => {
-  return countTasksByStatus(props.tasks, 'IN_PROGRESS')
-})
-
-const doneTasks = computed(() => {
-  return countTasksByStatus(props.tasks, 'DONE')
-})
-
-// 递归统计所有任务数量
-const countAllTasks = (tasks: any[]): number => {
-  let count = 0
-  tasks.forEach(task => {
-    count += 1
-    if (task.subtasks && task.subtasks.length > 0) {
-      count += countAllTasks(task.subtasks)
-    }
-  })
-  return count
-}
-
-// 递归统计指定状态的任务数量
-const countTasksByStatus = (tasks: any[], status: string): number => {
-  let count = 0
-  tasks.forEach(task => {
-    const taskStatus = task.status || 'TODO'
-    if (taskStatus === status) {
-      count += 1
-    }
-    if (task.subtasks && task.subtasks.length > 0) {
-      count += countTasksByStatus(task.subtasks, status)
-    }
-  })
-  return count
 }
 
 // 创建任务
@@ -196,7 +124,7 @@ const handleEditTask = (task: any) => {
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   padding: 12px 20px;
   background: #f5f7fa;
@@ -204,65 +132,6 @@ const handleEditTask = (task: any) => {
   font-size: 13px;
   color: #606266;
   z-index: 10;
-}
-
-.status-stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-}
-
-.footer-pagination {
-  flex-shrink: 0;
-}
-
-.pagination-debug {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pagination-debug span {
-  font-size: 12px;
-  color: #f56c6c;
-  font-weight: 500;
-}
-
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.total-text {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.status-item.todo {
-  color: #e6a23c;
-}
-
-.status-item.in-progress {
-  color: #409eff;
-}
-
-.status-item.done {
-  color: #67c23a;
-}
-
-.separator {
-  color: #dcdfe6;
-  margin: 0 4px;
 }
 
 /* Alert 样式调整 */

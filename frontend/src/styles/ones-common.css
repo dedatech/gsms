@@ -1,0 +1,507 @@
+/* ============================================
+   ONES 风格通用样式类
+   ============================================ */
+
+/* ========== 顶部导航栏 ========== */
+.top-navigation {
+  height: var(--top-nav-height);
+  background: var(--top-nav-bg);
+  border-bottom: 1px solid var(--top-nav-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.top-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ========== 项目标识 ========== */
+.project-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.project-brand-main {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--project-brand-main-color);
+}
+
+.project-brand-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--project-brand-sub-color);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.project-brand-sub:hover {
+  background: #f5f5f5;
+  color: var(--top-nav-text-hover);
+}
+
+.project-brand-sub .el-icon {
+  font-size: 12px;
+}
+
+/* ========== 功能模块标签 ========== */
+.module-tabs {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+}
+
+.module-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 100%;
+  color: var(--sidebar-text);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.module-tab:hover {
+  color: var(--top-nav-text-hover);
+}
+
+.module-tab.active {
+  color: var(--module-tab-active);
+  border-bottom-color: var(--module-tab-active);
+}
+
+/* ========== 左侧边栏（ONES 风格）========== */
+.left-sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s;
+}
+
+.left-sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* 菜单分组 */
+.sidebar-menu-group {
+  padding: 12px 8px;
+}
+
+.sidebar-menu-group-title {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.left-sidebar.collapsed .sidebar-menu-group-title {
+  display: none;
+}
+
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--menu-item-padding);
+  height: var(--menu-item-height);
+  color: var(--sidebar-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sidebar-menu-item:hover {
+  background: #f5f5f5;
+  color: var(--sidebar-text-hover);
+}
+
+.sidebar-menu-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--module-tab-active);
+}
+
+.sidebar-menu-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-menu-item-text {
+  flex: 1;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.left-sidebar.collapsed .sidebar-menu-item-text {
+  display: none;
+}
+
+.sidebar-menu-item-badge {
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.left-sidebar.collapsed .sidebar-menu-item-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* ========== 底部用户区 ========== */
+.sidebar-user-section {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.user-profile:hover {
+  background: #f5f5f5;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #999;
+}
+
+.left-sidebar.collapsed .user-info {
+  display: none;
+}
+
+/* ========== 迭代选择器 ========== */
+.iteration-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.iteration-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--iteration-select-bg);
+  border: 1px solid var(--iteration-select-border);
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 200px;
+  transition: all 0.3s;
+}
+
+.iteration-select-trigger:hover {
+  border-color: var(--module-tab-active);
+}
+
+.iteration-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.iteration-status-not-started {
+  background: var(--iteration-status-not-started);
+}
+
+.iteration-status-in-progress {
+  background: var(--iteration-status-in-progress);
+}
+
+.iteration-status-completed {
+  background: var(--iteration-status-completed);
+}
+
+/* ========== 视图标签 ========== */
+.view-mode-tabs {
+  display: flex;
+  gap: 24px;
+  padding: 16px 24px 0;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.view-tab {
+  padding-bottom: 12px;
+  color: var(--view-tab-color);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.view-tab:hover {
+  color: var(--view-tab-active-color);
+}
+
+.view-tab.active {
+  color: var(--view-tab-active-color);
+  border-bottom-color: var(--view-tab-active-color);
+}
+
+/* ========== 看板视图（三列）========== */
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 200px);
+}
+
+.kanban-column {
+  flex: 1;
+  min-width: 300px;
+  background: var(--kanban-column-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kanban-column-header {
+  padding: 16px;
+  background: var(--kanban-column-header);
+  border-bottom: 1px solid var(--kanban-column-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.kanban-column-count {
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.kanban-column-body {
+  padding: 16px;
+  min-height: 400px;
+}
+
+/* ========== 增强型任务卡片 ========== */
+.task-card-enhanced {
+  background: var(--task-card-bg);
+  border: 1px solid var(--task-card-border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  box-shadow: var(--task-card-shadow);
+  transition: all 0.3s;
+}
+
+.task-card-enhanced:hover {
+  box-shadow: var(--task-card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.task-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.task-card-number {
+  font-size: 12px;
+  color: #1890ff;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-weight: 500;
+}
+
+.task-card-type-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.task-card-title {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.task-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.task-card-assignee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.task-card-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.task-card-subtasks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.progress-bar-mini {
+  width: 60px;
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-mini-fill {
+  height: 100%;
+  background: #52c41a;
+  transition: width 0.3s;
+}
+
+/* ========== 状态标签 ========== */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-tag-todo {
+  background: #fff7e6;
+  color: #faad14;
+  border: 1px solid #ffd591;
+}
+
+.status-tag-in-progress {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-tag-done {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+/* ========== 类型图标颜色 ========== */
+.type-icon-requirement {
+  color: #faad14;
+}
+
+.type-icon-task {
+  color: #1890ff;
+}
+
+.type-icon-defect {
+  color: #ff4d4f;
+}
+
+/* ========== 优先级标签 ========== */
+.priority-tag {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.priority-low {
+  background: var(--priority-low);
+}
+
+.priority-medium {
+  background: var(--priority-medium);
+}
+
+.priority-high {
+  background: var(--priority-high);
+}

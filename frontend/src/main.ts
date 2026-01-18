@@ -12,6 +12,9 @@ import permissionDirective from './directives/permission'
 
 // 全局样式规范
 import '@/styles/page-common.css'
+// ONES 风格样式
+import '@/styles/ones-theme.css'
+import '@/styles/ones-common.css'
 
 const app = createApp(App)
 const pinia = createPinia()
