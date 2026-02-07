@@ -49,6 +49,8 @@
         <el-form-item label="用户名" prop="username">
           <el-input
             v-model="registerForm.username"
+            name="username"
+            autocomplete="username"
             placeholder="请输入用户名（3-20个字符）"
             :prefix-icon="User"
             clearable
@@ -58,6 +60,8 @@
         <el-form-item label="姓名" prop="nickname">
           <el-input
             v-model="registerForm.nickname"
+            name="nickname"
+            autocomplete="name"
             placeholder="请输入您的真实姓名"
             :prefix-icon="UserFilled"
             clearable
@@ -67,6 +71,9 @@
         <el-form-item label="邮箱" prop="email">
           <el-input
             v-model="registerForm.email"
+            name="email"
+            autocomplete="email"
+            type="email"
             placeholder="请输入邮箱地址"
             :prefix-icon="Message"
             clearable
@@ -76,6 +83,9 @@
         <el-form-item label="手机号" prop="phone">
           <el-input
             v-model="registerForm.phone"
+            name="phone"
+            autocomplete="tel"
+            type="tel"
             placeholder="请输入手机号"
             :prefix-icon="Phone"
             clearable
@@ -85,6 +95,8 @@
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="registerForm.password"
+            name="password"
+            autocomplete="new-password"
             type="password"
             placeholder="请输入密码（至少6位）"
             :prefix-icon="Lock"
@@ -96,6 +108,8 @@
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input
             v-model="registerForm.confirmPassword"
+            name="confirmPassword"
+            autocomplete="new-password"
             type="password"
             placeholder="请再次输入密码"
             :prefix-icon="Lock"

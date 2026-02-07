@@ -6,7 +6,7 @@
   >
     <!-- Logo 区域 -->
     <div class="logo-container">
-      <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" />
+      <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" :height="isCollapse ? 28 : 32" />
       <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
     </div>
 
@@ -255,7 +255,7 @@ defineExpose({
   gap: 12px;
   border-bottom: 1px solid var(--sidebar-border);
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .logo-text {
@@ -323,7 +323,7 @@ defineExpose({
   color: var(--sidebar-text);
   background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .collapse-btn:hover {
@@ -395,7 +395,7 @@ defineExpose({
 
 :deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.75);
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 :deep(.el-menu-item:hover) {
@@ -411,7 +411,7 @@ defineExpose({
 
 :deep(.el-sub-menu__title) {
   color: rgba(255, 255, 255, 0.75);
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 :deep(.el-sub-menu__title:hover) {

@@ -155,7 +155,7 @@ watch(() => route.path, () => {
   color: var(--sidebar-text);
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   font-size: 14px;
   position: relative;
 }

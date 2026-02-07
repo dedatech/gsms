@@ -1115,7 +1115,7 @@ onMounted(() => {
   color: #666;
   cursor: pointer;
   border-radius: 4px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   white-space: nowrap;
 }
 
@@ -1220,7 +1220,7 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .view-tab-item:hover {
@@ -1287,7 +1287,7 @@ onMounted(() => {
   margin-bottom: 6px;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .task-card-enhanced:hover {
@@ -1558,7 +1558,7 @@ onMounted(() => {
   border: 1px solid #f0f0f0;
   border-radius: 6px;
   overflow: hidden;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .iteration-card:hover {
@@ -1628,7 +1628,7 @@ onMounted(() => {
   border-radius: 4px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s, opacity 0.2s, border-color 0.2s, background-color 0.2s;
 }
 
 .mini-task-card:hover {
@@ -1648,6 +1648,7 @@ onMounted(() => {
 
 .task-title {
   flex: 1;
+  min-width: 0;
   font-size: 13px;
   color: #333;
   overflow: hidden;

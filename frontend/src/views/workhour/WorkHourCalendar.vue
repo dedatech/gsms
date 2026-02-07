@@ -460,7 +460,7 @@ onMounted(() => {
   border: 1px solid #e8e8e8;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s, opacity 0.2s, border-color 0.2s, background-color 0.2s;
 }
 
 .calendar-cell:hover {

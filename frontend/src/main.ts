@@ -39,4 +39,11 @@ authStore.restoreAuth()
 const themeStore = useThemeStore()
 themeStore.restoreTheme()
 
+// 开发环境：自动验证色彩对比度
+if (import.meta.env.DEV) {
+  import('./utils/colorContrast').then(({ autoValidateThemeInDev }) => {
+    autoValidateThemeInDev()
+  })
+}
+
 app.mount('#app')

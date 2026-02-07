@@ -554,7 +554,7 @@ defineExpose({
   cursor: pointer;
   margin-right: 8px;
   color: #909399;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   flex-shrink: 0;
 }
 

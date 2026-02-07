@@ -1142,7 +1142,7 @@ defineExpose({
   border: 1px solid #e8e8e8;
   border-radius: 8px;
   margin-bottom: 12px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .iteration-item:last-child {
@@ -1216,7 +1216,7 @@ defineExpose({
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .time-display:hover {
@@ -1241,7 +1241,7 @@ defineExpose({
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4px 12px 12px 12px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   min-height: 0; /* 重要：允许 flex 子项缩小 */
 }
 
@@ -1260,7 +1260,7 @@ defineExpose({
   border-bottom: 1px solid #e8e8e8;
   margin-bottom: 0;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .requirement-item:hover {
@@ -1324,7 +1324,7 @@ defineExpose({
   border: 2px dashed #e8e8e8;
   border-radius: 8px;
   background: #fafafa;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   cursor: pointer;
 }
 
@@ -1338,7 +1338,7 @@ defineExpose({
   font-size: 48px;
   color: #c0c4cc;
   margin-bottom: 12px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .empty-drag-zone.drag-over .drag-icon {
@@ -1372,7 +1372,7 @@ defineExpose({
   color: #409eff;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .quick-add-trigger:hover {

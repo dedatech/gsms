@@ -138,17 +138,18 @@
         label-width="100px"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="editForm.username" :disabled="isEdit" placeholder="请输入用户名" />
+          <el-input v-model="editForm.username" name="username" autocomplete="username" :disabled="isEdit" placeholder="请输入用户名" />
         </el-form-item>
         <el-form-item v-if="!isEdit" label="密码" prop="password">
-          <el-input v-model="editForm.password" type="password" show-password placeholder="请输入密码" />
+          <el-input v-model="editForm.password" name="password" autocomplete="new-password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
         <el-form-item label="姓名" prop="nickname">
-          <el-input v-model="editForm.nickname" placeholder="请输入姓名" />
+          <el-input v-model="editForm.nickname" name="nickname" autocomplete="name" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="部门" prop="departmentId">
           <el-tree-select
             v-model="editForm.departmentId"
+            name="departmentId"
             :data="departmentTree"
             :props="treeProps"
             value-key="id"
@@ -161,10 +162,10 @@
           />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="editForm.email" placeholder="请输入邮箱" />
+          <el-input v-model="editForm.email" name="email" autocomplete="email" type="email" placeholder="请输入邮箱" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="editForm.phone" placeholder="请输入手机号" />
+          <el-input v-model="editForm.phone" name="phone" autocomplete="tel" type="tel" placeholder="请输入手机号" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="editForm.status">
@@ -200,6 +201,8 @@
         <el-form-item label="新密码" prop="newPassword">
           <el-input
             v-model="resetPasswordForm.newPassword"
+            name="newPassword"
+            autocomplete="new-password"
             type="password"
             show-password
             placeholder="请输入新密码（6-20位）"
@@ -208,6 +211,8 @@
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input
             v-model="resetPasswordForm.confirmPassword"
+            name="confirmPassword"
+            autocomplete="new-password"
             type="password"
             show-password
             placeholder="请再次输入新密码"

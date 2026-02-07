@@ -338,7 +338,7 @@ const getRoleType = (roleType: number) => {
   padding: 12px;
   background: #f9f9f9;
   border-radius: 4px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .member-item:hover {

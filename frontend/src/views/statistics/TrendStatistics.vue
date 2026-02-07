@@ -413,7 +413,7 @@ onMounted(() => {
   align-items: flex-start;
   justify-content: center;
   padding-top: 4px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   position: relative;
 }
 

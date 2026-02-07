@@ -195,7 +195,7 @@ const handleCommand = (command: string) => {
   background: #f9f9f9;
   border: 1px solid #e8e8e8;
   border-radius: 6px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   cursor: pointer;
 }
 
@@ -214,7 +214,7 @@ const handleCommand = (command: string) => {
   cursor: pointer;
   margin-right: 8px;
   color: #909399;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 .expand-toggle:hover {
@@ -251,6 +251,7 @@ const handleCommand = (command: string) => {
 
 .task-title {
   flex: 1;
+  min-width: 0;
   font-size: 14px;
   color: #333;
   overflow: hidden;

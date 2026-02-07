@@ -181,7 +181,7 @@ onMounted(() => {
   border-radius: 4px;
   cursor: pointer;
   min-width: 200px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   font-size: 14px;
 }
 

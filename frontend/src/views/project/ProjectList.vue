@@ -537,11 +537,16 @@ const handleEdit = (project: ProjectInfo) => {
 
 // 删除项目
 const handleDelete = (project: ProjectInfo) => {
-  ElMessageBox.confirm(`确定要删除项目 "${project.name}" 吗？`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
+  ElMessageBox.confirm(
+    `确定要删除项目 "${project.name}" 吗？删除后将无法恢复！`,
+    '警告',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+      dangerouslyUseHTMLString: false
+    }
+  )
     .then(async () => {
       try {
         await deleteProject(project.id)
@@ -758,7 +763,7 @@ onMounted(() => {
   border: 2px solid #dcdfe6 !important;
   border-radius: 8px !important;
   padding: 16px !important;
-  transition: all 0.3s;
+  transition: border-color 0.3s, background-color 0.3s;
   background: #fff !important;
   cursor: pointer;
   height: auto !important;
@@ -849,5 +854,10 @@ onMounted(() => {
   font-size: 13px;
   color: #606266;
   line-height: 1.5;
+}
+
+/* 数字列等宽字体 */
+:deep(.el-table .number-column) {
+  font-variant-numeric: tabular-nums;
 }
 </style>

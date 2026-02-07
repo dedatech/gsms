@@ -6,7 +6,7 @@
         <h2 class="page-title">我的工时</h2>
       </div>
       <div class="header-right">
-        <el-button type="primary" :icon="Plus" @click="handleCreate">登记工时</el-button>
+        <el-button type="primary" :icon="Plus" @click="handleCreate">工时填报</el-button>
       </div>
     </div>
 
@@ -163,6 +163,7 @@
         <el-form-item label="工作日期" prop="workDate">
           <el-date-picker
             v-model="formData.workDate"
+            name="workDate"
             type="date"
             placeholder="选择日期"
             style="width: 100%"
@@ -195,6 +196,7 @@
         <el-form-item label="工作内容" prop="content">
           <el-input
             v-model="formData.content"
+            name="content"
             type="textarea"
             :rows="4"
             placeholder="请详细描述工作内容"
@@ -416,7 +418,7 @@ const handleCurrentChange = (page: number) => {
 
 // 创建
 const handleCreate = () => {
-  dialogTitle.value = '登记工时'
+  dialogTitle.value = '工时填报'
   const today = new Date().toISOString().split('T')[0]
   formData.id = undefined
   formData.workDate = today
@@ -536,5 +538,10 @@ onMounted(() => {
 .stats-icon.total {
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   color: #fff;
+}
+
+/* 数字列等宽字体 */
+:deep(.el-table .number-column) {
+  font-variant-numeric: tabular-nums;
 }
 </style>

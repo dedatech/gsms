@@ -3,7 +3,7 @@
     <el-card class="login-card">
       <template #header>
         <div class="login-header">
-          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="login-logo" />
+          <img src="@/assets/logo/logo-tm-letters.svg" width="64" height="64" alt="TeamMaster" class="login-logo" />
           <h2>TeamMaster</h2>
           <p class="login-subtitle">统领工时管理平台</p>
         </div>
@@ -11,12 +11,14 @@
 
       <el-form :model="loginForm" :rules="rules" ref="formRef" label-width="80px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="loginForm.username" placeholder="请输入用户名" />
+          <el-input v-model="loginForm.username" name="username" autocomplete="username" placeholder="请输入用户名" />
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="loginForm.password"
+            name="password"
+            autocomplete="current-password"
             type="password"
             placeholder="请输入密码"
             show-password

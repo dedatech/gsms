@@ -26,7 +26,7 @@
       <el-table :data="batchForm.items" border style="width: 100%; margin-bottom: 16px">
         <el-table-column label="功能内容" min-width="200">
           <template #default="{ row }">
-            <el-input v-model="row.content" placeholder="请输入工作内容" />
+            <el-input v-model="row.content" name="content" placeholder="请输入工作内容" />
           </template>
         </el-table-column>
         <el-table-column label="选择项目" width="180">
@@ -34,20 +34,20 @@
             <el-select
               v-model="row.projectId"
               placeholder="选择项目"
-              @change="handleProjectChange(row)"
+              @change="() => handleProjectChange(row)"
               style="width: 100%"
             >
               <el-option
                 v-for="project in projects"
                 :key="project.id"
                 :label="project.name"
-                :value="project.id"
+                :value="Number(project.id)"
               />
             </el-select>
           </template>
         </el-table-column>
         <el-table-column label="选择任务" width="180">
-          <template #default="{ row }">
+          <template #default="{ row, $index }">
             <el-select
               v-model="row.taskId"
               placeholder="选择任务（可选）"
@@ -55,13 +55,13 @@
               filterable
               style="width: 100%"
               :disabled="!row.projectId"
-              @change="handleTaskChange(row)"
+              @change="() => handleTaskChange(row, $index)"
             >
               <el-option
-                v-for="task in getProjectTasks(row.projectId)"
+                v-for="task in getAvailableTasks(row, $index)"
                 :key="task.id"
                 :label="task.title"
-                :value="task.id"
+                :value="Number(task.id)"
               />
             </el-select>
           </template>
@@ -80,9 +80,9 @@
           </template>
         </el-table-column>
         <el-table-column label="剩余工时" width="100">
-          <template #default="{ row }">
-            <span :class="getRemainingHoursClass(row)">
-              {{ getRemainingHours(row) }}
+          <template #default="{ row, $index }">
+            <span :class="getRemainingHoursClass(row, $index)">
+              {{ getRemainingHours(row, $index) }}
             </span>
           </template>
         </el-table-column>
@@ -101,7 +101,7 @@
       </el-table>
 
       <div style="margin-bottom: 16px">
-        <el-button type="primary" :icon="Plus" @click="addRow" plain>
+        <el-button type="primary" :icon="Plus" @click="() => addRow()" plain>
           添加一行
         </el-button>
       </div>
@@ -117,13 +117,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, toRaw } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { getProjectList } from '@/api/project'
 import { getTaskList } from '@/api/task'
-import { createWorkHoursBatch } from '@/api/workhour'
+import { createWorkHoursBatch, getTaskRemainingHours } from '@/api/workhour'
 
 interface Props {
   visible: boolean
@@ -192,7 +192,11 @@ const openDialog = async () => {
   // 加载项目列表
   try {
     const res = await getProjectList({ pageNum: 1, pageSize: 1000 })
-    projects.value = res.list || []
+    // 确保 project.id 是数字类型
+    projects.value = (res.list || []).map((p: any) => ({
+      ...p,
+      id: Number(p.id)
+    }))
   } catch (error) {
     console.error('获取项目列表失败:', error)
   }
@@ -200,15 +204,21 @@ const openDialog = async () => {
   // 加载任务列表
   try {
     const res = await getTaskList({ pageNum: 1, pageSize: 1000 })
-    allTasks.value = res.list || []
+    // 确保 task.id 和 task.projectId 是数字类型
+    allTasks.value = (res.list || []).map((t: any) => ({
+      ...t,
+      id: Number(t.id),
+      projectId: Number(t.projectId)
+    }))
   } catch (error) {
     console.error('获取任务列表失败:', error)
   }
 
   // 智能默认：当用户只有一个活跃项目时自动选中
-  const activeProjects = projects.value.filter(p =>
-    p.status === 'NOT_STARTED' || p.status === 'IN_PROGRESS'
-  )
+  const activeProjects = projects.value.filter(p => {
+    const status = parseInt(p.status)
+    return status === 1 || status === 2 // NOT_STARTED=1, IN_PROGRESS=2
+  })
   if (activeProjects.length === 1) {
     const defaultProjectId = activeProjects[0].id
     // 默认添加一行并自动选中项目
@@ -220,12 +230,23 @@ const openDialog = async () => {
 
 // 添加一行
 const addRow = (defaultProjectId?: number) => {
-  batchForm.items.push({
+  const itemCount = batchForm.items.length
+  const newItem: any = {
     content: '',
     projectId: defaultProjectId,
     taskId: undefined,
     hours: 1
-  })
+  }
+
+  // 如果不是第一行，且没有指定默认项目，则自动设置为"同上"（使用上一行的实际值）
+  if (itemCount > 0 && !defaultProjectId) {
+    const prevRow = toRaw(batchForm.items[itemCount - 1])
+    // 直接使用上一行的项目ID和任务ID作为默认值
+    newItem.projectId = prevRow.projectId ? Number(prevRow.projectId) : undefined
+    newItem.taskId = prevRow.taskId ? Number(prevRow.taskId) : undefined
+  }
+
+  batchForm.items.push(newItem)
 }
 
 // 删除一行
@@ -242,8 +263,14 @@ const handleProjectChange = (row: any) => {
   row.taskId = undefined
 }
 
+// 获取当前行可用的任务列表
+const getAvailableTasks = (row: any, index: number) => {
+  if (!row.projectId) return []
+  return allTasks.value.filter(task => task.projectId === row.projectId)
+}
+
 // 任务变化时计算剩余工时
-const handleTaskChange = (row: any) => {
+const handleTaskChange = (row: any, index: number) => {
   // 触发重新计算剩余工时
   if (row.taskId) {
     fetchTaskRemainingHours(row.taskId)
@@ -252,45 +279,45 @@ const handleTaskChange = (row: any) => {
 
 // 获取任务的剩余工时
 const fetchTaskRemainingHours = async (taskId: number) => {
-  if (taskRemainingHours.value[taskId]) {
+  if (taskRemainingHours.value[taskId] !== undefined) {
     return // 已缓存
   }
 
   try {
-    // TODO: 调用后端API获取任务剩余工时
-    // const res = await getTaskRemainingHours(taskId)
-    // taskRemainingHours.value[taskId] = res.remainingHours
-
-    // 暂时使用任务estimateHours字段（如果有的话）
-    const task = allTasks.value.find(t => t.id === taskId)
-    if (task && task.estimateHours) {
-      taskRemainingHours.value[taskId] = task.estimateHours
-    }
+    const res = await getTaskRemainingHours(taskId)
+    // 后端返回 null 表示未设置预估工时
+    taskRemainingHours.value[taskId] = res !== null && res !== undefined ? Number(res) : null
   } catch (error) {
     console.error('获取任务剩余工时失败:', error)
+    taskRemainingHours.value[taskId] = null
   }
 }
 
 // 获取剩余工时显示文本
-const getRemainingHours = (row: any): string => {
-  if (row.taskId && taskRemainingHours.value[row.taskId]) {
-    const remaining = taskRemainingHours.value[row.taskId]
-    return `${remaining}h`
-  }
-  if (row.projectId) {
-    // 显示项目剩余工时（TODO: 需要后端API）
-    return '-'
-  }
-  return '-'
-}
-
-// 获取剩余工时样式类
-const getRemainingHoursClass = (row: any): string => {
-  if (!row.taskId || !taskRemainingHours.value[row.taskId]) {
-    return ''
+const getRemainingHours = (row: any, index: number): string => {
+  if (!row.taskId) {
+    return '-' // 未选择任务
   }
 
   const remaining = taskRemainingHours.value[row.taskId]
+  if (remaining === null || remaining === undefined) {
+    return '未设置预估' // 未设置预估工时
+  }
+
+  return `${remaining}h` // 显示剩余工时
+}
+
+// 获取剩余工时样式类
+const getRemainingHoursClass = (row: any, index: number): string => {
+  if (!row.taskId) {
+    return '' // 未选择任务
+  }
+
+  const remaining = taskRemainingHours.value[row.taskId]
+  if (remaining === null || remaining === undefined) {
+    return 'remaining-hours-none' // 未设置预估工时
+  }
+
   const hours = row.hours || 0
 
   if (remaining - hours < 0) {
@@ -302,7 +329,7 @@ const getRemainingHoursClass = (row: any): string => {
   }
 }
 
-// 获取项目的任务列表
+// 获取项目的任务列表（兼容旧代码）
 const getProjectTasks = (projectId: number | undefined) => {
   if (!projectId) return []
   return allTasks.value.filter(task => task.projectId === projectId)
@@ -390,6 +417,11 @@ const handleBatchSubmit = async () => {
 }
 
 /* 剩余工时样式 */
+.remaining-hours-none {
+  color: #909399;
+  font-weight: 400;
+}
+
 .remaining-hours-normal {
   color: #67c23a;
   font-weight: 500;

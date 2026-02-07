@@ -8,7 +8,7 @@
         :data-theme-type="themeStore.currentTheme.sidebarType"
       >
         <div class="logo-container">
-          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" />
+          <img src="@/assets/logo/logo-tm-letters.svg" alt="TeamMaster" class="logo-icon" :width="isCollapse ? 28 : 32" :height="isCollapse ? 28 : 32" />
           <span v-if="!isCollapse" class="logo-text">TeamMaster</span>
         </div>
 
@@ -375,7 +375,7 @@ onMounted(async () => {
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 /* 浅色主题 logo 容器 */
@@ -484,7 +484,7 @@ onMounted(async () => {
   color: var(--theme-primary);
   background-color: var(--theme-primary-light);
   border-radius: 6px;
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
   border: 1px solid var(--theme-primary);
   font-weight: 500;
 }
@@ -596,7 +596,7 @@ onMounted(async () => {
 /* 深色主题菜单样式（默认） */
 :deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.75);
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 :deep(.el-menu-item:hover) {
@@ -612,7 +612,7 @@ onMounted(async () => {
 
 :deep(.el-sub-menu__title) {
   color: rgba(255, 255, 255, 0.75);
-  transition: all 0.3s;
+  transition: transform 0.3s, opacity 0.3s, border-color 0.3s, background-color 0.3s;
 }
 
 :deep(.el-sub-menu__title:hover) {

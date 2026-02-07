@@ -124,9 +124,59 @@
 
     <!-- 表格视图 -->
     <div v-else class="table-view">
-      <el-table :data="taskList" stripe style="width: 100%">
+      <!-- 错误提示 -->
+      <el-alert
+        v-if="error"
+        :title="error"
+        type="error"
+        :closable="false"
+        style="margin-bottom: 16px"
+      />
+
+      <el-table v-loading="loading" :data="taskList" stripe style="width: 100%">
+        <!-- 展开列 -->
+        <el-table-column type="expand" width="50">
+          <template #default="{ row }">
+            <div class="expand-content">
+              <el-descriptions :column="3" border>
+                <el-descriptions-item label="任务描述" :span="3">
+                  {{ row.description || '暂无描述' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="任务类型">
+                  {{ getTypeText(row.type) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="计划开始时间">
+                  {{ formatDate(row.planStartDate) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="计划结束时间">
+                  {{ formatDate(row.planEndDate) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="实际开始时间">
+                  {{ formatDate(row.actualStartDate) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="实际结束时间">
+                  {{ formatDate(row.actualEndDate) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="创建人">
+                  {{ row.createUserName || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="更新人">
+                  {{ row.updateUserName || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="创建时间" :span="2">
+                  {{ formatDateTime(row.createTime) }}
+                </el-descriptions-item>
+                <el-descriptions-item label="更新时间">
+                  {{ formatDateTime(row.updateTime) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 核心列（默认显示） -->
         <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column prop="title" label="任务标题" min-width="150">
+        <el-table-column prop="title" label="任务标题" min-width="200">
           <template #default="{ row }">
             <div class="table-task-title">
               <el-tag :type="getPriorityType(row.priority)" size="small" style="margin-right: 8px">
@@ -136,54 +186,23 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="projectName" label="所属项目" width="120" />
-        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="type" label="类型" width="90">
-          <template #default="{ row }">
-            {{ getTypeText(row.type) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="90">
+        <el-table-column prop="projectName" label="所属项目" width="140" />
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="assigneeName" label="负责人" width="100" />
-        <el-table-column prop="planStartDate" label="计划开始" width="110">
-          <template #default="{ row }">
-            {{ formatDate(row.planStartDate) }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="assigneeName" label="负责人" width="110" />
         <el-table-column prop="planEndDate" label="计划结束" width="110">
           <template #default="{ row }">
             {{ formatDate(row.planEndDate) }}
           </template>
         </el-table-column>
-        <el-table-column prop="actualStartDate" label="实际开始" width="110">
-          <template #default="{ row }">
-            {{ formatDate(row.actualStartDate) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="actualEndDate" label="实际结束" width="110">
-          <template #default="{ row }">
-            {{ formatDate(row.actualEndDate) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="createUserName" label="创建人" width="90" />
-        <el-table-column prop="updateUserName" label="更新人" width="90" />
-        <el-table-column prop="createTime" label="创建时间" width="155">
-          <template #default="{ row }">
-            {{ formatDateTime(row.createTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="155">
-          <template #default="{ row }">
-            {{ formatDateTime(row.updateTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+
+        <!-- 操作列 -->
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button
               link
@@ -228,7 +247,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="任务标题" prop="title">
-              <el-input v-model="formData.title" placeholder="请输入任务标题" />
+              <el-input v-model="formData.title" name="title" placeholder="请输入任务标题" />
             </el-form-item>
           </el-col>
           <el-col :span="12" v-if="!formData.parentId">
@@ -380,12 +399,16 @@ const searchForm = reactive({
   assigneeId: undefined as number | undefined,
   status: undefined as string | undefined,
   pageNum: 1,
-  pageSize: 50
+  pageSize: 10  // 优化：默认分页大小从50改为10
 })
 
 // 任务列表
 const taskList = ref<any[]>([])
 const total = ref(0)
+
+// 加载和错误状态
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 // 对话框
 const dialogVisible = ref(false)
@@ -479,19 +502,25 @@ const fetchUsers = async () => {
   }
 }
 
-// 根据状态获取任务（使用computed以优化性能和响应式）
-const todoTasks = computed(() => taskList.value.filter(task => task.status === 'TODO' || task.status === null))
-const inProgressTasks = computed(() => taskList.value.filter(task => task.status === 'IN_PROGRESS'))
-const doneTasks = computed(() => taskList.value.filter(task => task.status === 'DONE'))
+// 根据状态获取任务（优化：使用单个computed，性能从 O(3n) 提升到 O(n)）
+const tasksByStatus = computed(() => {
+  const groups: Record<string, any[]> = {
+    'TODO': [],
+    'IN_PROGRESS': [],
+    'DONE': []
+  }
+  taskList.value.forEach(task => {
+    const status = task.status || 'TODO'
+    if (groups[status]) {
+      groups[status].push(task)
+    }
+  })
+  return groups
+})
 
 // 辅助函数：根据状态值返回对应任务列表
 const getTasksByStatus = (status: string) => {
-  const statusMap: Record<string, any[]> = {
-    'TODO': todoTasks.value,
-    'IN_PROGRESS': inProgressTasks.value,
-    'DONE': doneTasks.value
-  }
-  return statusMap[status] || []
+  return tasksByStatus.value[status] || []
 }
 
 // 拖拽开始
@@ -554,13 +583,19 @@ const handleDrop = async (event: DragEvent) => {
 
 // 获取任务列表
 const fetchTasks = async () => {
+  loading.value = true
+  error.value = null
   try {
     const res = await getTaskList(searchForm)
     // PageResult 格式：{ list: [], total: 0 }
     taskList.value = res.list || []
     total.value = res.total || 0
-  } catch (error) {
-    console.error('获取任务列表失败:', error)
+  } catch (err: any) {
+    console.error('获取任务列表失败:', err)
+    error.value = err?.message || '获取任务列表失败，请稍后重试'
+    ElMessage.error(error.value)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -800,13 +835,13 @@ const getTypeText = (type: string) => {
   return texts[type] || '-'
 }
 
-// 格式化日期
+// 格式化日期（优化：后端已格式化为 yyyy-MM-dd，直接返回）
 const formatDate = (date: string) => {
   if (!date) return '-'
   return date
 }
 
-// 格式化日期时间
+// 格式化日期时间（优化：后端已格式化为 yyyy-MM-dd HH:mm:ss，直接返回）
 const formatDateTime = (date: string) => {
   if (!date) return '-'
   return date
@@ -835,6 +870,7 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   color: #333;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -893,5 +929,25 @@ onMounted(() => {
   margin-top: 4px;
   font-size: 12px;
   color: #e6a23c;
+}
+
+/* 数字列等宽字体 */
+:deep(.el-table .number-column) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 表格展开内容样式 */
+.expand-content {
+  padding: 20px;
+  background-color: #fafafa;
+}
+
+:deep(.expand-content .el-descriptions) {
+  --el-descriptions-table-border: 1px solid #e4e7ed;
+}
+
+:deep(.expand-content .el-descriptions__label) {
+  font-weight: 500;
+  background-color: #f5f5f5;
 }
 </style>

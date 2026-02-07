@@ -89,7 +89,7 @@ const handleDblClick = () => {
   padding: 8px;
   background: #fff;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s, opacity 0.2s, border-color 0.2s, background-color 0.2s;
   border-radius: 4px;
 }
 
