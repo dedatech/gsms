@@ -72,4 +72,11 @@ public interface WorkHourService {
      * @throws BusinessException 工时记录不存在时抛出异常
      */
     void deleteWorkHour(Long id);
+
+    /**
+     * 计算任务的已用工时
+     * @param taskId 任务ID
+     * @return 已用工时总和（小时）
+     */
+    java.math.BigDecimal getTotalHoursByTaskId(Long taskId);
 }

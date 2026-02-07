@@ -116,3 +116,8 @@ export const getWorkHourTrend = (params: {
 }): Promise<ApiResponse<unknown[]>> => {
   return request.get('/statistics/trend', { params })
 }
+
+// 获取任务剩余工时
+export const getTaskRemainingHours = (taskId: number): Promise<ApiResponse<number>> => {
+  return request.get(`/tasks/${taskId}/remaining-hours`)
+}

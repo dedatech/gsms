@@ -173,4 +173,12 @@ public class WorkHourServiceImpl implements WorkHourService {
             throw new BusinessException(WorkHourErrorCode.WORKHOUR_DELETE_FAILED);
         }
     }
+
+    @Override
+    public java.math.BigDecimal getTotalHoursByTaskId(Long taskId) {
+        List<WorkHour> workHours = workHourMapper.selectByTaskId(taskId);
+        return workHours.stream()
+                .map(WorkHour::getHours)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
 }

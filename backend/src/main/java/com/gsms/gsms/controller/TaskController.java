@@ -168,4 +168,19 @@ public class TaskController {
         logger.info("成功获取子任务列表: parentId={}, count={}", id, subtasks.size());
         return Result.success(subtasks);
     }
+
+    /**
+     * 获取任务剩余工时
+     *
+     * @param id 任务ID
+     * @return 剩余工时（预估工时 - 已用工时），如果未设置预估工时则返回null
+     */
+    @GetMapping("/{id}/remaining-hours")
+    @Operation(summary = "获取任务剩余工时")
+    public Result<java.math.BigDecimal> getRemainingHours(@PathVariable Long id) {
+        logger.info("获取任务剩余工时: taskId={}", id);
+        java.math.BigDecimal remainingHours = taskService.getRemainingHours(id);
+        logger.info("成功获取任务剩余工时: taskId={}, remainingHours={}", id, remainingHours);
+        return Result.success(remainingHours);
+    }
 }

@@ -66,4 +66,11 @@ public interface TaskService {
      * @return 子任务列表
      */
     java.util.List<TaskInfoResp> getSubtasks(Long parentId);
+
+    /**
+     * 获取任务剩余工时
+     * @param taskId 任务ID
+     * @return 剩余工时（预估工时 - 已用工时），如果未设置预估工时则返回null
+     */
+    java.math.BigDecimal getRemainingHours(Long taskId);
 }

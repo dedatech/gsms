@@ -24,6 +24,7 @@ import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.TaskService;
 import com.gsms.gsms.service.CacheService;
+import com.gsms.gsms.service.WorkHourService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,15 +51,18 @@ public class TaskServiceImpl implements TaskService {
     private final ProjectMemberMapper projectMemberMapper;
     private final AuthService authService;
     private final CacheService cacheService;
+    private final WorkHourService workHourService;
 
     public TaskServiceImpl(TaskMapper taskMapper, ProjectMapper projectMapper,
                            ProjectMemberMapper projectMemberMapper,
-                           AuthService authService, CacheService cacheService) {
+                           AuthService authService, CacheService cacheService,
+                           WorkHourService workHourService) {
         this.taskMapper = taskMapper;
         this.projectMapper = projectMapper;
         this.projectMemberMapper = projectMemberMapper;
         this.authService = authService;
         this.cacheService = cacheService;
+        this.workHourService = workHourService;
     }
 
     @Override
@@ -507,5 +511,28 @@ public class TaskServiceImpl implements TaskService {
         for (TaskInfoResp resp : respList) {
             enrichTaskInfoResp(resp);
         }
+    }
+
+    @Override
+    public java.math.BigDecimal getRemainingHours(Long taskId) {
+        // 查询任务信息
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+        }
+
+        // 如果未设置预估工时，返回null
+        if (task.getEstimateHours() == null) {
+            return null;
+        }
+
+        // 获取已用工时
+        java.math.BigDecimal totalUsedHours = workHourService.getTotalHoursByTaskId(taskId);
+
+        // 计算剩余工时 = 预估工时 - 已用工时
+        java.math.BigDecimal estimateHours = task.getEstimateHours();
+        java.math.BigDecimal usedHours = totalUsedHours != null ? totalUsedHours : java.math.BigDecimal.ZERO;
+
+        return estimateHours.subtract(usedHours);
     }
 }
