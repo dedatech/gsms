@@ -117,11 +117,12 @@
 
     <!-- 批量插入角色权限关联 -->
     <insert id="insertRolePermissions">
-        INSERT INTO sys_role_permission(role_id, permission_id)
+        INSERT INTO sys_role_permission(role_id, permission_id, is_deleted)
         VALUES
         <foreach collection="permissionIds" item="permissionId" separator=",">
-            (#{roleId}, #{permissionId})
+            (#{roleId}, #{permissionId}, 0)
         </foreach>
+        ON DUPLICATE KEY UPDATE is_deleted = 0
     </insert>
 
     <!-- 删除角色权限关联 -->
@@ -154,11 +155,12 @@
 
     <!-- 批量插入用户角色关联 -->
     <insert id="insertUserRoles">
-        INSERT INTO sys_user_role(user_id, role_id)
+        INSERT INTO sys_user_role(user_id, role_id, is_deleted)
         VALUES
         <foreach collection="roleIds" item="roleId" separator=",">
-            (#{userId}, #{roleId})
+            (#{userId}, #{roleId}, 0)
         </foreach>
+        ON DUPLICATE KEY UPDATE is_deleted = 0
     </insert>
 
     <!-- 删除用户角色关联 -->

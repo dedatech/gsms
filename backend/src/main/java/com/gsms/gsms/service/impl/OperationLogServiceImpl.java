@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -60,8 +59,8 @@ public class OperationLogServiceImpl implements OperationLogService {
                                      Object oldValue, Object newValue, String operationContent,
                                      HttpServletRequest request) {
         logWithChanges(userId, username, operationType, module, businessType, businessId,
-                      oldValue, newValue, operationContent, null,
-                      OperationStatus.SUCCESS, getIpAddress(request));
+                      oldValue, newValue, operationContent,
+                getIpAddress(request));
     }
 
     @Override
@@ -113,15 +112,18 @@ public class OperationLogServiceImpl implements OperationLogService {
                      OperationStatus status, String ipAddress) {
         try {
             OperationLog log = new OperationLog();
-            log.setUserId(userId);
-            log.setUsername(username);
+            // 如果 userId 为 null，使用 0 表示系统操作（因为 user_id 字段为 NOT NULL）
+            log.setUserId(userId != null ? userId : 0L);
+            log.setUsername(username != null ? username : "system");
             log.setOperationType(operationType);
             log.setModule(module);
-            log.setOperationContent(operationContent);
+            // operationContent 字段已移除，可以存储到 newValue 中
+            if (operationContent != null) {
+                log.setNewValue("{\"content\":\"" + operationContent.replace("\"", "\\\"") + "\"}");
+            }
             log.setIpAddress(ipAddress);
             log.setStatus(status);
             log.setErrorMessage(errorMessage);
-            log.setOperationTime(LocalDateTime.now());
 
             operationLogMapper.insert(log);
 
@@ -137,24 +139,30 @@ public class OperationLogServiceImpl implements OperationLogService {
      * 记录操作日志（带数据变更，内部方法）
      */
     private void logWithChanges(Long userId, String username, OperationType operationType,
-                               OperationModule module, String businessType, Long businessId,
-                               Object oldValue, Object newValue, String operationContent,
-                               String errorMessage, OperationStatus status, String ipAddress) {
+                                OperationModule module, String businessType, Long businessId,
+                                Object oldValue, Object newValue, String operationContent,
+                                String ipAddress) {
         try {
             OperationLog log = new OperationLog();
-            log.setUserId(userId);
-            log.setUsername(username);
+            // 如果 userId 为 null，使用 0 表示系统操作（因为 user_id 字段为 NOT NULL）
+            log.setUserId(userId != null ? userId : 0L);
+            log.setUsername(username != null ? username : "system");
             log.setOperationType(operationType);
             log.setModule(module);
             log.setBusinessType(businessType);
-            log.setBusinessId(businessId);
+            log.setBusinessId(businessId != null ? String.valueOf(businessId) : null);
             log.setOldValue(toJson(oldValue));
-            log.setNewValue(toJson(newValue));
-            log.setOperationContent(operationContent);
+            
+            // 如果有 operationContent，将其加入到 newValue 中
+            if (newValue != null) {
+                log.setNewValue(toJson(newValue));
+            } else if (operationContent != null) {
+                log.setNewValue("{\"content\":\"" + operationContent.replace("\"", "\\\"") + "\"}");
+            }
+            
             log.setIpAddress(ipAddress);
-            log.setStatus(status);
-            log.setErrorMessage(errorMessage);
-            log.setOperationTime(LocalDateTime.now());
+            log.setStatus(OperationStatus.SUCCESS);
+            log.setErrorMessage(null);
 
             operationLogMapper.insert(log);
 

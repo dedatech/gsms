@@ -7,36 +7,23 @@
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="username" property="username"/>
-        <result column="operation_type" property="operationType"/>
+        <result column="operation" property="operationType"/>
         <result column="module" property="module"/>
         <result column="business_type" property="businessType"/>
         <result column="business_id" property="businessId"/>
         <result column="old_value" property="oldValue"/>
         <result column="new_value" property="newValue"/>
-        <result column="operation_content" property="operationContent"/>
-        <result column="ip_address" property="ipAddress"/>
+        <result column="ip" property="ipAddress"/>
         <result column="status" property="status"/>
-        <result column="error_message" property="errorMessage"/>
-        <result column="operation_time" property="operationTime"/>
+        <result column="error_msg" property="errorMessage"/>
         <result column="create_time" property="createTime"/>
     </resultMap>
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, user_id, username, operation_type, module, business_type, business_id,
-        old_value, new_value, operation_content,
-        ip_address, status, error_message, operation_time, create_time
+        id, user_id, username, operation, module, business_type, business_id,
+        old_value, new_value, ip, status, error_msg, create_time
     </sql>
-
-    <!-- 插入操作日志 -->
-    <insert id="insert" parameterType="com.gsms.gsms.model.entity.OperationLog" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `sys_operation_log`
-        (user_id, username, operation_type, module, business_type, business_id, old_value, new_value,
-         operation_content, ip_address, status, error_message, operation_time)
-        VALUES
-        (#{userId}, #{username}, #{operationType}, #{module}, #{businessType}, #{businessId},
-         #{oldValue}, #{newValue}, #{operationContent}, #{ipAddress}, #{status}, #{errorMessage}, #{operationTime})
-    </insert>
 
     <!-- 根据条件查询操作日志 -->
     <select id="findByCondition" resultMap="OperationLogResultMap">
@@ -50,19 +37,19 @@
                 AND module = #{module}
             </if>
             <if test="operationType != null">
-                AND operation_type = #{operationType}
+                AND operation = #{operationType}
             </if>
             <if test="status != null">
                 AND status = #{status}
             </if>
             <if test="startTime != null and startTime != ''">
-                AND operation_time &gt;= #{startTime}
+                AND create_time &gt;= #{startTime}
             </if>
             <if test="endTime != null and endTime != ''">
-                AND operation_time &lt;= #{endTime}
+                AND create_time &lt;= #{endTime}
             </if>
         </where>
-        ORDER BY operation_time DESC
+        ORDER BY create_time DESC
     </select>
 
     <!-- 根据ID查询操作日志 -->

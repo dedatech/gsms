@@ -73,12 +73,14 @@ docker-compose down -v
 可以在 `docker-compose.yml` 中修改以下环境变量：
 
 **MySQL**:
+
 - `MYSQL_ROOT_PASSWORD`: Root 密码
 - `MYSQL_DATABASE`: 数据库名称
 - `MYSQL_USER`: 应用用户名
 - `MYSQL_PASSWORD`: 应用密码
 
 **后端**:
+
 - `SPRING_DATASOURCE_URL`: 数据库连接 URL
 - `SPRING_DATASOURCE_USERNAME`: 数据库用户名
 - `SPRING_DATASOURCE_PASSWORD`: 数据库密码
@@ -180,24 +182,32 @@ docker-compose logs backend
 
 ### 数据库连接失败
 
+
 1. 确认 MySQL 服务已就绪：
+
 ```bash
 docker-compose logs mysql
 ```
 
+
 2. 进入容器测试连接：
+
 ```bash
 docker exec -it gsms-mysql mysql -ugsms -pgsms123 gsms
 ```
 
 ### 前端无法访问后端
 
+
 1. 检查网络连接：
+
 ```bash
 docker network inspect gsms-network
 ```
 
+
 2. 确认后端健康状态：
+
 ```bash
 curl http://localhost:8080/actuator/health
 ```
@@ -264,6 +274,7 @@ curl http://localhost:8080/actuator/health
 
 ## 安全建议
 
+
 1. **修改默认密码**: 生产环境务必修改 MySQL root 密码和应用密码
 2. **限制端口暴露**: 仅暴露必要的端口
 3. **启用 HTTPS**: 使用 SSL/TLS 加密传输
@@ -276,3 +287,5 @@ curl http://localhost:8080/actuator/health
 - [Docker Compose 文档](https://docs.docker.com/compose/)
 - [Spring Boot Docker 部署](https://spring.io/guides/topicals/spring-boot-docker/)
 - [Nginx 配置指南](https://nginx.org/en/docs/)
+
+

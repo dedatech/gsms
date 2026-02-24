@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -160,6 +161,105 @@ public class UserServiceImpl implements UserService {
         UserInfoResp resp = UserInfoResp.from(createdUser);
         enrichUserInfoResp(resp);
         return resp;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public List<UserInfoResp> batchCreate(List<UserCreateReq> createReqList) {
+        logger.info("批量创建用户: 总数={}", createReqList == null ? 0 : createReqList.size());
+
+        if (createReqList == null || createReqList.isEmpty()) {
+            throw new BusinessException(UserErrorCode.USER_CREATE_FAILED);
+        }
+
+        List<UserInfoResp> successList = new java.util.ArrayList<>();
+        List<String> failedList = new java.util.ArrayList<>();
+        Long currentUserId = UserContext.getCurrentUserId();
+        Long createUserId = currentUserId != null ? currentUserId : 1L;
+
+        // 获取 EMPLOYEE 角色ID（一次查询，批量使用）
+        Long employeeRoleId = roleMapper.selectIdByCode("EMPLOYEE");
+        if (employeeRoleId == null) {
+            throw new BusinessException(UserErrorCode.DEFAULT_ROLE_NOT_FOUND);
+        }
+
+        // 批量创建用户
+        for (UserCreateReq createReq : createReqList) {
+            try {
+                // DTO转Entity
+                User user = UserConverter.toUser(createReq);
+
+                // 设置默认状态为禁用（需要管理员审核）
+                user.setStatus(UserStatus.DISABLED);
+
+                // 密码加密
+                user.setPassword(PasswordUtil.encrypt(user.getPassword()));
+
+                // 设置审计字段
+                user.setCreateUserId(createUserId);
+                user.setUpdateUserId(createUserId);
+
+                // 检查用户名是否已存在
+                User existUser = userMapper.selectByUsername(user.getUsername());
+                if (existUser != null) {
+                    failedList.add(String.format("%s(用户名已存在)", createReq.getUsername()));
+                    logger.warn("批量创建用户失败: 用户名已存在 - {}", createReq.getUsername());
+                    continue;
+                }
+
+                // 插入用户
+                int result = userMapper.insert(user);
+                if (result <= 0) {
+                    failedList.add(String.format("%s(数据库插入失败)", createReq.getUsername()));
+                    logger.warn("批量创建用户失败: 数据库插入失败 - {}", createReq.getUsername());
+                    continue;
+                }
+
+                // 自动分配 EMPLOYEE 角色
+                roleMapper.insertUserRoles(user.getId(), Collections.singletonList(employeeRoleId));
+
+                // 重新查询获取完整数据
+                User createdUser = userMapper.selectById(user.getId());
+                cacheService.putUser(createdUser);
+
+                // 记录操作日志
+                operationLogHelper.logSuccessWithChanges(
+                        OperationType.CREATE,
+                        OperationModule.USER,
+                        "USER",
+                        createdUser.getId(),
+                        null,
+                        createdUser,
+                        String.format("批量创建用户: %s (%s)", createdUser.getUsername(), createdUser.getNickname())
+                );
+
+                UserInfoResp resp = UserInfoResp.from(createdUser);
+                enrichUserInfoResp(resp);
+                successList.add(resp);
+
+                logger.info("批量创建用户成功: {}", user.getUsername());
+
+            } catch (Exception e) {
+                failedList.add(String.format("%s(%s)", createReq.getUsername(), e.getMessage()));
+                logger.error("批量创建用户异常: {} - {}", createReq.getUsername(), e.getMessage(), e);
+            }
+        }
+
+        // 记录批量操作结果
+        logger.info("批量创建用户完成: 总数={}, 成功={}, 失败={}",
+                createReqList.size(), successList.size(), failedList.size());
+
+        if (!failedList.isEmpty()) {
+            logger.warn("批量创建失败的用户: {}", String.join(", ", failedList));
+            operationLogHelper.logFailure(
+                    OperationType.CREATE,
+                    OperationModule.USER,
+                    String.format("批量创建用户: 成功%d个, 失败%d个", successList.size(), failedList.size()),
+                    "部分用户创建失败: " + String.join(", ", failedList)
+            );
+        }
+
+        return successList;
     }
 
     @Override

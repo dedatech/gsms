@@ -17,13 +17,6 @@ import java.util.List;
 public interface OperationLogMapper extends BaseMapper<OperationLog> {
 
     /**
-     * 插入操作日志
-     * @param log 操作日志实体
-     * @return 影响行数
-     */
-    int insert(OperationLog log);
-
-    /**
      * 根据条件查询操作日志
      * @param username 操作人用户名
      * @param module 操作模块

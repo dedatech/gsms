@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 操作状态枚举
+ * @author MagicBook
  */
 public enum OperationStatus {
     SUCCESS(1, "SUCCESS", "成功"),
     FAILED(2, "FAILED", "失败");
 
-    @EnumValue
+    @EnumValue  // MyBatis-Plus 会使用这个字段的值存储到数据库
     private final Integer code;
 
     private final String name;
@@ -35,9 +36,11 @@ public enum OperationStatus {
         return description;
     }
 
+    /**
+     * Jackson 序列化时使用枚举名称
+     */
     @JsonValue
-    @Override
-    public String toString() {
+    public String toJsonValue() {
         return this.name();
     }
 

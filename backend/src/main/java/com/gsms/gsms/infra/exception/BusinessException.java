@@ -1,5 +1,7 @@
 package com.gsms.gsms.infra.exception;
 
+import com.gsms.gsms.model.enums.errorcode.UserErrorCode;
+
 /**
  * 业务异常类
  */
@@ -29,7 +31,9 @@ public class BusinessException extends RuntimeException {
         super(errorCode.getMessage());
         this.code = errorCode.getCode();
     }
-    
+
+
+
     public Integer getCode() {
         return code;
     }

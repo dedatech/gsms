@@ -1,6 +1,7 @@
 package com.gsms.gsms.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -25,6 +26,7 @@ public class OperationLog {
     /**
      * 操作人ID
      */
+    @TableField("user_id")
     private Long userId;
 
     /**
@@ -33,65 +35,91 @@ public class OperationLog {
     private String username;
 
     /**
-     * 操作类型
+     * 操作类型（CREATE/UPDATE/DELETE/ASSIGN等）
      */
+    @TableField("operation")
     private OperationType operationType;
 
     /**
-     * 操作模块
+     * 操作模块（USER/ROLE/PROJECT等）
      */
     private OperationModule module;
 
     /**
-     * 业务类型（如 USER, PROJECT, TASK, WORK_HOUR 等）
+     * 业务类型（如 ROLE_PERMISSION, PROJECT_MEMBER 等）
      */
+    @TableField("business_type")
     private String businessType;
 
     /**
-     * 业务ID（对应实体的主键ID）
+     * 业务ID（JSON格式或关键ID）
      */
-    private Long businessId;
+    @TableField("business_id")
+    private String businessId;
 
     /**
      * 变更前数据（JSON格式）
      */
+    @TableField("old_value")
     private String oldValue;
 
     /**
      * 变更后数据（JSON格式）
      */
+    @TableField("new_value")
     private String newValue;
 
     /**
-     * 操作内容描述
+     * 请求方法（GET/POST/PUT/DELETE）
      */
-    private String operationContent;
+    @TableField("request_method")
+    private String requestMethod;
+
+    /**
+     * 请求参数
+     */
+    @TableField("request_params")
+    private String requestParams;
 
     /**
      * IP地址
      */
+    @TableField("ip")
     private String ipAddress;
 
     /**
-     * 操作状态
+     * 请求URI
+     */
+    private String uri;
+
+    /**
+     * 用户代理
+     */
+    @TableField("user_agent")
+    private String userAgent;
+
+    /**
+     * 执行时长（毫秒）
+     */
+    @TableField("execute_time")
+    private Integer executeTime;
+
+    /**
+     * 操作状态（1:成功 0:失败）
      */
     private OperationStatus status;
 
     /**
-     * 错误信息（如果失败）
+     * 错误信息
      */
+    @TableField("error_msg")
     private String errorMessage;
-
-    /**
-     * 操作时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
-    private LocalDateTime operationTime;
 
     /**
      * 创建时间（数据库自动填充）
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    @TableField("create_time")
     private LocalDateTime createTime;
 
     // Getter and Setter methods
@@ -144,11 +172,11 @@ public class OperationLog {
         this.businessType = businessType;
     }
 
-    public Long getBusinessId() {
+    public String getBusinessId() {
         return businessId;
     }
 
-    public void setBusinessId(Long businessId) {
+    public void setBusinessId(String businessId) {
         this.businessId = businessId;
     }
 
@@ -168,12 +196,20 @@ public class OperationLog {
         this.newValue = newValue;
     }
 
-    public String getOperationContent() {
-        return operationContent;
+    public String getRequestMethod() {
+        return requestMethod;
     }
 
-    public void setOperationContent(String operationContent) {
-        this.operationContent = operationContent;
+    public void setRequestMethod(String requestMethod) {
+        this.requestMethod = requestMethod;
+    }
+
+    public String getRequestParams() {
+        return requestParams;
+    }
+
+    public void setRequestParams(String requestParams) {
+        this.requestParams = requestParams;
     }
 
     public String getIpAddress() {
@@ -182,6 +218,30 @@ public class OperationLog {
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public Integer getExecuteTime() {
+        return executeTime;
+    }
+
+    public void setExecuteTime(Integer executeTime) {
+        this.executeTime = executeTime;
     }
 
     public OperationStatus getStatus() {
@@ -198,14 +258,6 @@ public class OperationLog {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
-    }
-
-    public LocalDateTime getOperationTime() {
-        return operationTime;
-    }
-
-    public void setOperationTime(LocalDateTime operationTime) {
-        this.operationTime = operationTime;
     }
 
     public LocalDateTime getCreateTime() {

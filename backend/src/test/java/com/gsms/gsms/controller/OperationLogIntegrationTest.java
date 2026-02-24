@@ -109,7 +109,7 @@ public class OperationLogIntegrationTest extends BaseControllerTest {
         com.gsms.gsms.model.entity.OperationLog createLog = logs.stream()
                 .filter(log -> log.getOperationType().name().equals("CREATE"))
                 .filter(log -> log.getBusinessType() != null && log.getBusinessType().equals("USER"))
-                .filter(log -> log.getOperationContent() != null && log.getOperationContent().contains("newuser001"))
+                .filter(log -> log.getNewValue() != null && log.getNewValue().contains("newuser001"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("未找到 CREATE 操作日志。提示：测试数据库可能未执行 Flyway 迁移 V20260113"));
 
@@ -169,14 +169,14 @@ public class OperationLogIntegrationTest extends BaseControllerTest {
         com.gsms.gsms.model.entity.OperationLog updateLog = logs.stream()
                 .filter(log -> log.getOperationType().name().equals("UPDATE"))
                 .filter(log -> log.getBusinessType() != null && log.getBusinessType().equals("USER"))
-                .filter(log -> log.getBusinessId().equals(createdUserId))
-                .filter(log -> log.getOperationContent() != null && log.getOperationContent().contains("更新后的昵称"))
+                .filter(log -> log.getBusinessId() != null && log.getBusinessId().equals(String.valueOf(createdUserId)))
+                .filter(log -> log.getNewValue() != null && log.getNewValue().contains("更新后的昵称"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("未找到 UPDATE 操作日志"));
 
         // 验证 business_type 和 business_id
         assert updateLog.getBusinessType().equals("USER") : "business_type 应该是 USER";
-        assert updateLog.getBusinessId().equals(createdUserId) : "business_id 应该匹配";
+        assert updateLog.getBusinessId() != null && updateLog.getBusinessId().equals(String.valueOf(createdUserId)) : "business_id 应该匹配";
 
         // 验证 old_value 包含更新前的数据
         assert updateLog.getOldValue() != null : "UPDATE 操作的 old_value 不应该为 null";
@@ -232,14 +232,14 @@ public class OperationLogIntegrationTest extends BaseControllerTest {
         com.gsms.gsms.model.entity.OperationLog deleteLog = logs.stream()
                 .filter(log -> log.getOperationType().name().equals("DELETE"))
                 .filter(log -> log.getBusinessType() != null && log.getBusinessType().equals("USER"))
-                .filter(log -> log.getBusinessId().equals(userIdToDelete))
-                .filter(log -> log.getOperationContent() != null && log.getOperationContent().contains("deletetest"))
+                .filter(log -> log.getBusinessId() != null && log.getBusinessId().equals(String.valueOf(userIdToDelete)))
+                .filter(log -> log.getOldValue() != null && log.getOldValue().contains("deletetest"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("未找到 DELETE 操作日志"));
 
         // 验证 business_type 和 business_id
         assert deleteLog.getBusinessType().equals("USER") : "business_type 应该是 USER";
-        assert deleteLog.getBusinessId().equals(userIdToDelete) : "business_id 应该匹配";
+        assert deleteLog.getBusinessId() != null && deleteLog.getBusinessId().equals(String.valueOf(userIdToDelete)) : "business_id 应该匹配";
 
         // 验证 old_value 包含删除前的数据
         assert deleteLog.getOldValue() != null : "DELETE 操作的 old_value 不应该为 null";

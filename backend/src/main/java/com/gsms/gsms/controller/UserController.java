@@ -70,6 +70,21 @@ public class UserController {
     }
 
     /**
+     * 批量创建用户
+     */
+    @PostMapping("/batch")
+    @Operation(summary = "批量创建用户")
+    public Result<java.util.List<UserInfoResp>> batchCreate(@Valid @RequestBody java.util.List<UserCreateReq> createReqList) {
+        logger.info("批量创建用户: 总数={}", createReqList == null ? 0 : createReqList.size());
+        java.util.List<UserInfoResp> respList = userService.batchCreate(createReqList);
+        String message = String.format("批量创建完成: 成功%d个", respList.size());
+        if (respList.size() < createReqList.size()) {
+            message += String.format(", 失败%d个", createReqList.size() - respList.size());
+        }
+        return Result.success(message, respList);
+    }
+
+    /**
      * 更新用户
      */
     @PutMapping

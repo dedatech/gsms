@@ -9,6 +9,8 @@ import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.infra.common.PageResult;
 
+import java.util.List;
+
 /**
  * 用户服务接口
  * Service层接收DTO，内部转换为Entity
@@ -41,6 +43,13 @@ public interface UserService {
      * @return 创建成功的用户响应DTO
      */
     UserInfoResp create(UserCreateReq createReq);
+
+    /**
+     * 批量创建用户
+     * @param createReqList 创建请求DTO列表
+     * @return 批量创建结果（成功的用户响应DTO列表）
+     */
+    List<UserInfoResp> batchCreate(List<UserCreateReq> createReqList);
 
     /**
      * 更新用户

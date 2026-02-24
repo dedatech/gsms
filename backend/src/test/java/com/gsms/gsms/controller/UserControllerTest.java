@@ -215,4 +215,140 @@ public class UserControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(2003));
     }
+
+    @Test
+    void testBatchCreateUsers_Success() throws Exception {
+        // Given - 准备批量创建的用户列表
+        java.util.List<UserCreateReq> createReqList = new java.util.ArrayList<>();
+        
+        for (int i = 1; i <= 3; i++) {
+            UserCreateReq req = new UserCreateReq();
+            req.setUsername("batchuser" + i);
+            req.setPassword("password123");
+            req.setNickname("批量用户" + i);
+            req.setEmail("batchuser" + i + "@example.com");
+            req.setPhone("1390013900" + String.format("%02d", i));
+            createReqList.add(req);
+        }
+
+        // When & Then
+        mockMvc.perform(post("/api/users/batch")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReqList))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("批量创建完成: 成功3个"))
+                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data[0].username").value("batchuser1"))
+                .andExpect(jsonPath("$.data[1].username").value("batchuser2"))
+                .andExpect(jsonPath("$.data[2].username").value("batchuser3"));
+    }
+
+    @Test
+    void testBatchCreateUsers_PartialSuccess() throws Exception {
+        // Given - 准备批量创建的用户列表，其中一个用户名已存在
+        java.util.List<UserCreateReq> createReqList = new java.util.ArrayList<>();
+        
+        // 第一个用户 - 正常
+        UserCreateReq req1 = new UserCreateReq();
+        req1.setUsername("batchuser10");
+        req1.setPassword("password123");
+        req1.setNickname("批量用户10");
+        req1.setEmail("batchuser10@example.com");
+        req1.setPhone("13900139010");
+        createReqList.add(req1);
+        
+        // 第二个用户 - 用户名与testuser冲突
+        UserCreateReq req2 = new UserCreateReq();
+        req2.setUsername("testuser");  // 已存在的用户名
+        req2.setPassword("password123");
+        req2.setNickname("重复用户");
+        req2.setEmail("duplicate@example.com");
+        req2.setPhone("13900139011");
+        createReqList.add(req2);
+        
+        // 第三个用户 - 正常
+        UserCreateReq req3 = new UserCreateReq();
+        req3.setUsername("batchuser11");
+        req3.setPassword("password123");
+        req3.setNickname("批量用户11");
+        req3.setEmail("batchuser11@example.com");
+        req3.setPhone("13900139012");
+        createReqList.add(req3);
+
+        // When & Then - 应该成功创建2个，1个失败
+        mockMvc.perform(post("/api/users/batch")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReqList))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("批量创建完成: 成功2个, 失败1个"))
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].username").value("batchuser10"))
+                .andExpect(jsonPath("$.data[1].username").value("batchuser11"));
+    }
+
+    @Test
+    void testBatchCreateUsers_EmptyList() throws Exception {
+        // Given - 空列表
+        java.util.List<UserCreateReq> createReqList = new java.util.ArrayList<>();
+
+        // When & Then - 应该返回错误
+        mockMvc.perform(post("/api/users/batch")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReqList))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(2001));  // USER_CREATE_FAILED
+    }
+
+    @Test
+    void testBatchCreateUsers_LargeBatch() throws Exception {
+        // Given - 批量创建10个用户
+        java.util.List<UserCreateReq> createReqList = new java.util.ArrayList<>();
+        
+        for (int i = 20; i < 30; i++) {
+            UserCreateReq req = new UserCreateReq();
+            req.setUsername("batchuser" + i);
+            req.setPassword("password123");
+            req.setNickname("批量用户" + i);
+            req.setEmail("batchuser" + i + "@example.com");
+            req.setPhone("1390013900" + String.format("%02d", i));
+            createReqList.add(req);
+        }
+
+        // When & Then
+        mockMvc.perform(post("/api/users/batch")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReqList))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("批量创建完成: 成功10个"))
+                .andExpect(jsonPath("$.data.length()").value(10));
+    }
+
+    @Test
+    void testBatchCreateUsers_ValidationFailure() throws Exception {
+        // Given - 准备一个验证失败的用户（用户名太短）
+        java.util.List<UserCreateReq> createReqList = new java.util.ArrayList<>();
+        
+        UserCreateReq req = new UserCreateReq();
+        req.setUsername("ab");  // 用户名太短，不满足3个字符
+        req.setPassword("password123");
+        req.setNickname("测试用户");
+        req.setEmail("test@example.com");
+        req.setPhone("13900139000");
+        createReqList.add(req);
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(post("/api/users/batch")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(Objects.requireNonNull(objectMapper.writeValueAsString(createReqList))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 验证失败
+    }
 }

@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ChangeDiffViewer: typeof import('./components/ChangeDiffViewer.vue')['default']
-    ContainerManager: typeof import('./components/ContainerManager.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -49,6 +48,7 @@ declare module 'vue' {
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
+    ElResult: typeof import('element-plus/es')['ElResult']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
@@ -78,7 +78,6 @@ declare module 'vue' {
     UnifiedWorkItemView: typeof import('./components/UnifiedWorkItemView.vue')['default']
     ViewModeTabs: typeof import('./components/layout/ViewModeTabs.vue')['default']
     WorkHourBatchDialog: typeof import('./components/WorkHourBatchDialog.vue')['default']
-    WorkItemManager: typeof import('./components/WorkItemManager.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

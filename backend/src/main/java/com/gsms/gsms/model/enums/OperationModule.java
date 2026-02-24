@@ -42,9 +42,11 @@ public enum OperationModule {
         return description;
     }
 
+    /**
+     * Jackson 序列化时使用枚举名称
+     */
     @JsonValue
-    @Override
-    public String toString() {
+    public String toJsonValue() {
         return this.name();
     }
 
