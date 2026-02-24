@@ -5,8 +5,11 @@
 在实现 User 模块性能优化时，对于缓存方案的选择进行了深入的技术调研和对比分析。
 
 本文档记录了：
+
+
 1. **缓存方案对比分析**：ConcurrentHashMap vs Caffeine vs Ehcache vs Redis
 2. **Spring 单例原理**：为什么非 static 字段也能实现多线程共享
+
 
 ---
 
@@ -15,6 +18,7 @@
 ### 1.1 当前方案：ConcurrentHashMap
 
 **实现方式：**
+
 ```java
 @Service
 public class CacheServiceImpl implements CacheService {
@@ -25,6 +29,7 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **优势：**
+
 - ✅ 零依赖，JDK 自带
 - ✅ 简单直观，代码完全可控
 - ✅ 启动快，内存占用极小
@@ -32,6 +37,7 @@ public class CacheServiceImpl implements CacheService {
 - ✅ 线程安全（ConcurrentHashMap 保证）
 
 **劣势：**
+
 - ❌ 无过期机制（数据永久驻留内存）
 - ❌ 无淘汰策略（内存可能无限增长）
 - ❌ 无缓存统计（看不到命中率）
@@ -39,9 +45,11 @@ public class CacheServiceImpl implements CacheService {
 - ❌ 无法限制缓存大小
 
 **适用场景：**
+
 - 用户数 < 5,000
 - 单机部署
 - 数据量 < 10,000 条
+
 
 ---
 
@@ -50,11 +58,13 @@ public class CacheServiceImpl implements CacheService {
 **官方文档：** https://github.com/ben-manes/caffeine
 
 **简介：**
+
 - Spring Boot 2.x 默认缓存框架
 - Java 8 性能最强的缓存库
 - 比 ConcurrentHashMap 快 30%
 
 **Maven 依赖：**
+
 ```xml
 <dependency>
     <groupId>com.github.ben-manes.caffeine</groupId>
@@ -64,6 +74,7 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **使用示例：**
+
 ```java
 @Configuration
 public class CacheConfig {
@@ -79,6 +90,7 @@ public class CacheConfig {
 ```
 
 **改造 CacheServiceImpl：**
+
 ```java
 @Service
 public class CacheServiceImpl implements CacheService {
@@ -133,6 +145,7 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **监控缓存性能：**
+
 ```java
 @RestController
 @RequestMapping("/admin")
@@ -157,6 +170,7 @@ public class CacheMonitorController {
 ```
 
 **示例输出：**
+
 ```json
 {
   "hitRate": 0.95,          // 95% 命中率
@@ -169,6 +183,7 @@ public class CacheMonitorController {
 ```
 
 **优势：**
+
 - ✅ **性能最强**：比 ConcurrentHashMap 快 30%（异步加载）
 - ✅ **自动过期**：支持 TTL、TTW、访问后过期
 - ✅ **淘汰策略**：LRU、LFU、基于大小
@@ -178,18 +193,22 @@ public class CacheMonitorController {
 - ✅ **异步刷新**：后台刷新，不阻塞请求
 
 **劣势：**
+
 - ⚠️ 增加一个依赖（约 2MB）
 - ⚠️ 需要学习 API（但很简单）
+
 
 ---
 
 ### 1.3 Ehcache
 
 **简介：**
+
 - 老牌缓存框架
 - 功能全面（磁盘缓存、集群支持）
 
 **对比 Caffeine：**
+
 - ✅ 功能更多
 - ❌ 性能较差（比 Caffeine 慢 20-30%）
 - ❌ 配置较复杂
@@ -197,11 +216,13 @@ public class CacheMonitorController {
 **不推荐理由：**
 Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有优势。
 
+
 ---
 
 ### 1.4 Redis（分布式缓存）
 
 **Maven 依赖：**
+
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -210,25 +231,29 @@ Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有
 ```
 
 **优势：**
+
 - ✅ 分布式共享（多实例部署必需）
 - ✅ 数据持久化
 - ✅ 丰富的数据结构
 
 **劣势：**
+
 - ❌ 需要额外部署 Redis 服务
 - ❌ 网络开销（比本地缓存慢 10-100 倍）
 - ❌ 运维成本
+
 
 ---
 
 ### 1.5 方案选型决策表
 
-| 方案 | 适用场景 | 用户规模 | 部署方式 | 是否推荐 |
-|------|---------|---------|---------|---------|
-| **ConcurrentHashMap** | 当前项目 | < 5,000 | 单机 | ✅ **当前方案** |
-| **Caffeine** | 需要过期+统计 | 5,000-50,000 | 单机 | ⏸️ **未来升级** |
-| **Ehcache** | 需要磁盘缓存 | 任意 | 单机 | ❌ **不推荐** |
-| **Redis** | 分布式集群 | > 10,000 | 多实例 | ❌ **暂不需要** |
+|方案 |适用场景 |用户规模 |部署方式 |是否推荐 |
+|---|---|---|---|---|
+|**ConcurrentHashMap** |当前项目 |< 5,000 |单机 |✅ **当前方案** |
+|**Caffeine** |需要过期+统计 |5,000-50,000 |单机 |⏸️ **未来升级** |
+|**Ehcache** |需要磁盘缓存 |任意 |单机 |❌ **不推荐** |
+|**Redis** |分布式集群 |> 10,000 |多实例 |❌ **暂不需要** |
+
 
 ---
 
@@ -241,6 +266,8 @@ Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有
 **方案：** ConcurrentHashMap
 
 **决策理由：**
+
+
 1. 用户规模小，数据量小
 2. 单机部署，不需要分布式
 3. 功能已经够用（启动预热 + 手动更新）
@@ -248,27 +275,33 @@ Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有
 
 **结论：✅ 不需要升级**
 
+
 ---
 
 ### 阶段 2：业务增长后（Caffeine）
 
 **时间：** 用户数 > 5,000
 **触发条件：** 满足以下任一条件
+
 - ❗ 缓存占用内存 > 100MB（需要淘汰策略）
 - ❗ 需要自动过期（数据一致性要求高）
 - ❗ 需要监控命中率（性能优化必需）
 
 **升级成本：**
+
 - 开发时间：1-2 小时
 - 代码改动：< 100 行
 - 测试时间：1 小时
 
 **升级步骤：**
+
+
 1. 添加 Caffeine 依赖
 2. 修改 `CacheServiceImpl` 字段类型
 3. 配置过期时间和最大容量
 4. 添加监控接口
 5. 运行测试验证
+
 
 ---
 
@@ -276,15 +309,19 @@ Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有
 
 **时间：** 用户数 > 10,000
 **触发条件：**
+
 - 需要水平扩展（多台服务器）
 - 缓存需要在多个实例间共享
 
 **升级步骤：**
+
+
 1. 部署 Redis 服务
 2. 添加 Redis 依赖
 3. 配置 Redis 连接
 4. 使用 Spring Cache 抽象层
 5. 灰度切流验证
+
 
 ---
 
@@ -293,6 +330,7 @@ Caffeine 性能更强且功能够用，Ehcache 在纯内存缓存场景下没有
 ### 3.1 问题：为什么非 static 也能多线程共享？
 
 **代码示例：**
+
 ```java
 @Service  // ← 关键！Spring 会创建单例 Bean
 public class CacheServiceImpl implements CacheService {
@@ -352,8 +390,10 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **核心原理：**
+
+
 1. **Spring Bean 默认是 Singleton（单例）**
-2. **整个应用只有一个 `CacheServiceImpl` 实例**
+2. **整个应用只有一个** `CacheServiceImpl` 实例
 3. **所有 HTTP 请求线程共享这个实例**
 4. **实例的字段自然就是共享的**
 
@@ -373,6 +413,7 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **问题：**
+
 - ❌ 无法被 Spring 代理（AOP 失效）
 - ❌ 单元测试困难（需要手动清理 static）
 - ❌ 无法有多个不同配置的实例
@@ -392,6 +433,7 @@ public class CacheServiceImpl implements CacheService {
 ```
 
 **优势：**
+
 - ✅ 可以被 Spring 管理（依赖注入）
 - ✅ 支持 AOP 代理（事务、日志等）
 - ✅ 单元测试简单（每个测试独立实例）
@@ -400,15 +442,15 @@ public class CacheServiceImpl implements CacheService {
 
 ### 3.5 关键概念对比
 
-| 特性 | static | Spring 单例 |
-|------|--------|------------|
-| **共享级别** | 类级别 | 应用级别 |
-| **实例数量** | 无数个对象共享一个字段 | 只有一个对象 |
-| **Spring 管理** | ❌ 不受管理 | ✅ 完全管理 |
-| **依赖注入** | ❌ 不支持 | ✅ 支持 |
-| **AOP 代理** | ❌ 不支持 | ✅ 支持 |
-| **测试隔离** | ❌ 需手动清理 | ✅ 自动隔离 |
-| **灵活性** | ❌ 差 | ✅ 好 |
+|特性 |static |Spring 单例 |
+|---|---|---|
+|**共享级别** |类级别 |应用级别 |
+|**实例数量** |无数个对象共享一个字段 |只有一个对象 |
+|**Spring 管理** |❌ 不受管理 |✅ 完全管理 |
+|**依赖注入** |❌ 不支持 |✅ 支持 |
+|**AOP 代理** |❌ 不支持 |✅ 支持 |
+|**测试隔离** |❌ 需手动清理 |✅ 自动隔离 |
+|**灵活性** |❌ 差 |✅ 好 |
 
 ### 3.6 验证单例特性
 
@@ -432,10 +474,12 @@ class SpringSingletonTest {
 ```
 
 **测试结果：**
+
 ```
 cacheService1: 1114834984
 cacheService2: 1114834984  ← 相同！
 ```
+
 
 ---
 
@@ -458,12 +502,14 @@ cacheService2: 1114834984  ← 相同！
 ### 4.3 当前方案决策
 
 **ConcurrentHashMap + Spring 单例**
+
 - ✅ 简单够用，零依赖
 - ✅ 性能良好
 - ✅ 易于维护
 - ✅ 满足当前业务需求
 
 **一句话：Spring 单例模式提供了 static 的共享能力，但保留了面向对象的灵活性。**
+
 
 ---
 
@@ -472,3 +518,5 @@ cacheService2: 1114834984  ← 相同！
 - **Caffeine 官方文档**: https://github.com/ben-manes/caffeine
 - **Spring Bean 作用域**: https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html
 - **Java ConcurrentHashMap**: https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html
+
+
