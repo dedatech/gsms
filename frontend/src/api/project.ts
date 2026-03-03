@@ -61,3 +61,28 @@ export const addProjectMember = (projectId: number, userId: number, roleType: nu
 export const removeProjectMember = (projectId: number, userId: number) => {
   return request.delete(`/projects/${projectId}/members/${userId}`)
 }
+
+// 批量添加项目成员
+export interface AddProjectMembersReq {
+  userIds: number[]
+  roleType: number  // 1: 项目经理, 2: 普通成员, 3: 只读访客
+}
+
+export const addProjectMembers = (projectId: number, data: AddProjectMembersReq) => {
+  return request.post(`/projects/${projectId}/members`, data.userIds, { params: { roleType: data.roleType } })
+}
+
+// 批量移除项目成员
+export const batchRemoveProjectMembers = (projectId: number, userIds: number[]) => {
+  return request.delete(`/projects/${projectId}/members/batch`, { data: userIds })
+}
+
+// 项目成员响应类型
+export interface ProjectMember {
+  id: number
+  userId: number
+  nickname: string
+  roleType: number
+  roleName: string
+  createTime: string
+}

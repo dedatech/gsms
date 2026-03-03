@@ -246,7 +246,7 @@
     <el-dialog
       v-model="detailDialogVisible"
       :title="`需求详情 #${currentRequirement?.id}`"
-      width="800px"
+      width="900px"
       @close="handleCloseDetail"
     >
       <div v-if="currentRequirement" class="requirement-detail">
@@ -291,6 +291,16 @@
             {{ currentRequirement.createTime || '-' }}
           </el-descriptions-item>
         </el-descriptions>
+
+        <!-- 附件列表 -->
+        <div class="requirement-attachments">
+          <AttachmentList
+            v-if="detailDialogVisible"
+            target-type="task"
+            :target-id="currentRequirement.id"
+            :can-upload="true"
+          />
+        </div>
       </div>
     </el-dialog>
 
@@ -373,6 +383,7 @@ import {
   MoreFilled
 } from '@element-plus/icons-vue'
 import { getTasksByProjectId, createTask, type TaskInfo } from '@/api/task'
+import AttachmentList from '@/components/AttachmentList.vue'
 import { getIterationList, updateIteration, type IterationInfo } from '@/api/iteration'
 import { updateTask, updateTaskIterationId } from '@/api/task'
 
@@ -386,6 +397,7 @@ const emit = defineEmits<{
   createIteration: []
   editIteration: [iteration: IterationInfo]
   deleteIteration: [iteration: IterationInfo]
+  attachmentUploaded: []
 }>()
 
 // 数据
@@ -1036,6 +1048,8 @@ const handleViewRequirement = (req: TaskInfo) => {
 const handleCloseDetail = () => {
   currentRequirement.value = null
   detailDialogVisible.value = false
+  // 通知父组件刷新项目附件列表
+  emit('attachmentUploaded')
 }
 
 // 刷新列表
@@ -1436,6 +1450,12 @@ defineExpose({
 /* 详情弹窗 */
 .requirement-detail {
   padding: 20px 0;
+}
+
+.requirement-attachments {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ebeef5;
 }
 
 /* 滚动条样式 - 完全隐藏但保持滚动功能 */

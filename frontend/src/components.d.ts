@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AttachmentList: typeof import('./components/AttachmentList.vue')['default']
     ChangeDiffViewer: typeof import('./components/ChangeDiffViewer.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
@@ -61,11 +62,13 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTree: typeof import('element-plus/es')['ElTree']
     ElTreeSelect: typeof import('element-plus/es')['ElTreeSelect']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     IterationSelector: typeof import('./components/layout/IterationSelector.vue')['default']
     Layout: typeof import('./components/Layout.vue')['default']
     LeftSidebar: typeof import('./components/layout/LeftSidebar.vue')['default']
     ModuleTabs: typeof import('./components/layout/ModuleTabs.vue')['default']
     PlanningView: typeof import('./components/PlanningView.vue')['default']
+    ProjectAttachmentList: typeof import('./components/ProjectAttachmentList.vue')['default']
     ProjectGantt: typeof import('./components/ProjectGantt.vue')['default']
     ProjectInfoSidebar: typeof import('./components/ProjectInfoSidebar.vue')['default']
     ProjectSelector: typeof import('./components/layout/ProjectSelector.vue')['default']

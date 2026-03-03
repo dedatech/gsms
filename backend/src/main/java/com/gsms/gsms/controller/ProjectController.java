@@ -146,4 +146,36 @@ public class ProjectController {
         projectMemberService.removeMember(projectId, userId);
         return Result.success("移除项目成员成功");
     }
+
+    /**
+     * 批量从项目中移除成员
+     *
+     * @param projectId 项目ID
+     * @param userIds 用户ID列表
+     * @return 操作结果
+     */
+    @DeleteMapping("/{projectId}/members/batch")
+    @Operation(summary = "批量从项目中移除成员")
+    public Result<String> batchRemoveProjectMembers(@PathVariable Long projectId,
+                                                    @Valid @RequestBody List<Long> userIds) {
+        int successCount = 0;
+        int failCount = 0;
+        StringBuilder errorMessages = new StringBuilder();
+
+        for (Long userId : userIds) {
+            try {
+                projectMemberService.removeMember(projectId, userId);
+                successCount++;
+            } catch (Exception e) {
+                failCount++;
+                errorMessages.append(String.format("用户[%d]: %s; ", userId, e.getMessage()));
+            }
+        }
+
+        String message = String.format("批量移除完成：成功%d个，失败%d个", successCount, failCount);
+        if (failCount > 0) {
+            message += "。失败原因：" + errorMessages.toString();
+        }
+        return Result.success(message);
+    }
 }

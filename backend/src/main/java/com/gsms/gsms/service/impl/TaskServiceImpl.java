@@ -14,8 +14,8 @@ import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.dto.task.TaskConverter;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
-import com.gsms.gsms.model.enums.errorcode.TaskErrorCode;
 import com.gsms.gsms.model.enums.errorcode.ProjectErrorCode;
+import com.gsms.gsms.model.enums.errorcode.TaskErrorCode;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.TaskMapper;
@@ -218,6 +218,49 @@ public class TaskServiceImpl implements TaskService {
         // 注释：取消项目类型和迭代关联的约束
         // 所有项目都可以创建任务，迭代字段为可选
         // 需求可以先不规划到迭代，后续通过规划功能关联
+
+        // 如果是创建子任务，校验父任务的约束条件
+        if (task.getParentId() != null) {
+            Task parentTask = taskMapper.selectById(task.getParentId());
+            if (parentTask == null) {
+                throw new BusinessException(TaskErrorCode.TASK_NOT_FOUND);
+            }
+
+            // 校验子任务的计划时间范围
+            if (parentTask.getPlanStartDate() != null && task.getPlanStartDate() != null) {
+                if (task.getPlanStartDate().isBefore(parentTask.getPlanStartDate())) {
+                    throw new BusinessException(TaskErrorCode.TASK_DATE_OUT_OF_RANGE);
+                }
+            }
+
+            if (parentTask.getPlanEndDate() != null && task.getPlanEndDate() != null) {
+                if (task.getPlanEndDate().isAfter(parentTask.getPlanEndDate())) {
+                    throw new BusinessException(TaskErrorCode.TASK_DATE_OUT_OF_RANGE);
+                }
+            }
+
+            // 校验子任务的预估工时总和不能超过父任务的工时
+            if (parentTask.getEstimateHours() != null && task.getEstimateHours() != null) {
+                // 获取父任务的所有子任务
+                List<Task> siblingTasks = taskMapper.selectSubtasks(task.getParentId(), currentUserId);
+
+                // 计算现有子任务的总工时
+                java.math.BigDecimal totalSiblingHours = java.math.BigDecimal.ZERO;
+                for (Task sibling : siblingTasks) {
+                    if (sibling.getEstimateHours() != null) {
+                        totalSiblingHours = totalSiblingHours.add(sibling.getEstimateHours());
+                    }
+                }
+
+                // 加上当前任务的工时
+                java.math.BigDecimal newTotalHours = totalSiblingHours.add(task.getEstimateHours());
+
+                // 比较工时
+                if (newTotalHours.compareTo(parentTask.getEstimateHours()) > 0) {
+                    throw new BusinessException(TaskErrorCode.TASK_ESTIMATE_HOURS_EXCEEDED);
+                }
+            }
+        }
 
         // 校验任务负责人必须为项目成员（如果指定了负责人）
         if (task.getAssigneeId() != null) {

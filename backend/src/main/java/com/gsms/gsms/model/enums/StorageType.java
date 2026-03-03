@@ -4,24 +4,25 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 项目成员角色枚举
+ * 存储类型枚举
  */
-public enum ProjectMemberRole {
-    PROJECT_MANAGER(1, "项目经理"),
-    MEMBER(2, "普通成员"),
-    READ_ONLY(3, "只读访客");
+public enum StorageType {
+    LOCAL("local", "本地存储"),
+    OSS("oss", "阿里云OSS"),
+    COS("cos", "腾讯云COS"),
+    MINIO("minio", "MinIO对象存储");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
-    private final Integer code;
+    private final String code;
     private final String desc;
 
-    ProjectMemberRole(Integer code, String desc) {
+    StorageType(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
     @JsonValue  // Jackson 序列化为JSON时输出的值
-    public Integer getCode() {
+    public String getCode() {
         return code;
     }
 
@@ -32,15 +33,15 @@ public enum ProjectMemberRole {
     /**
      * 根据 code 获取枚举
      */
-    public static ProjectMemberRole fromCode(Integer code) {
+    public static StorageType fromCode(String code) {
         if (code == null) {
             return null;
         }
-        for (ProjectMemberRole role : ProjectMemberRole.values()) {
-            if (role.code.equals(code)) {
-                return role;
+        for (StorageType type : StorageType.values()) {
+            if (type.code.equals(code)) {
+                return type;
             }
         }
-        throw new IllegalArgumentException("无效的项目成员角色: " + code);
+        throw new IllegalArgumentException("无效的存储类型: " + code);
     }
 }

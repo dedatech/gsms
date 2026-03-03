@@ -234,4 +234,14 @@
         WHERE t.parent_id = #{parentId} AND t.is_deleted = 0 AND pm.user_id = #{userId}
         ORDER BY t.create_time DESC
     </select>
+
+    <!-- 统计指定用户在项目中的未完成任务数量 -->
+    <select id="countUnfinishedTasksByUserAndProject" resultType="int">
+        SELECT COUNT(*)
+        FROM gsms_task
+        WHERE project_id = #{projectId}
+          AND assignee_id = #{assigneeId}
+          AND status IN (1, 2)
+          AND is_deleted = 0
+    </select>
 </mapper>

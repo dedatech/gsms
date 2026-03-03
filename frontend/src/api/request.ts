@@ -34,7 +34,12 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { data } = response
+    const { data, config } = response
+
+    // 如果是 blob 类型的响应（文件下载、预览等），直接返回数据
+    if (config.responseType === 'blob') {
+      return data
+    }
 
     // 检查是否是 PageResult 格式（有 total, pageNum, pageSize 等字段）
     // PageResult 继承自 Result<List<T>>，所以会有 code, message, data, total 等字段
@@ -66,7 +71,23 @@ service.interceptors.response.use(
 
     // 处理 HTTP 错误状态码
     if (error.response) {
-      const { status } = error.response
+      const { status, data, config } = error.response
+
+      // 对于 blob 类型的请求，如果出错，需要从 blob 中读取错误消息
+      if (config?.responseType === 'blob' && data instanceof Blob) {
+        // 创建 FileReader 来读取 blob 内容
+        const reader = new FileReader()
+        reader.onload = () => {
+          try {
+            const errorData = JSON.parse(reader.result as string)
+            ElMessage.error(errorData.message || '请求失败')
+          } catch {
+            ElMessage.error('请求失败')
+          }
+        }
+        reader.readAsText(data)
+        return Promise.reject(error)
+      }
 
       switch (status) {
         case 401:
@@ -86,7 +107,7 @@ service.interceptors.response.use(
           ElMessage.error('服务器错误')
           break
         default:
-          ElMessage.error(error.response.data?.message || '请求失败')
+          ElMessage.error(data?.message || '请求失败')
       }
     } else if (error.request) {
       ElMessage.error('网络错误，请检查网络连接')

@@ -109,4 +109,12 @@ public interface TaskMapper extends BaseMapper<Task> {
      * @return 子任务列表
      */
     List<Task> selectSubtasks(@Param("parentId") Long parentId, @Param("userId") Long userId);
+
+    /**
+     * 统计指定用户在项目中的未完成任务数量
+     * @param projectId 项目ID
+     * @param assigneeId 负责人ID
+     * @return 未完成任务数量（状态为 TODO 或 IN_PROGRESS）
+     */
+    int countUnfinishedTasksByUserAndProject(@Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId);
 }

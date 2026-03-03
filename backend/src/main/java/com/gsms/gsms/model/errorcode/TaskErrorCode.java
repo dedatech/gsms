@@ -17,7 +17,9 @@ public enum TaskErrorCode implements ErrorCode {
     TASK_STATUS_INVALID(4004, "任务状态无效"),
     TASK_PRIORITY_INVALID(4005, "任务优先级无效"),
     TASK_PROJECT_INVALID(4006, "任务所属项目无效"),
-    
+    TASK_ESTIMATE_HOURS_EXCEEDED(4007, "子任务工时总和不能超过父任务工时"),
+    TASK_DATE_OUT_OF_RANGE(4008, "子任务计划时间必须在父任务计划时间范围内"),
+
     // ========== 操作失败（建议HTTP 500） ==========
     TASK_CREATE_FAILED(4901, "任务创建失败"),
     TASK_UPDATE_FAILED(4902, "任务更新失败"),

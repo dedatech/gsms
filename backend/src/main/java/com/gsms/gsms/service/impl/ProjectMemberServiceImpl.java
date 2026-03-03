@@ -3,11 +3,13 @@ package com.gsms.gsms.service.impl;
 import com.gsms.gsms.dto.project.ProjectMemberResp;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
+import com.gsms.gsms.model.enums.errorcode.ProjectErrorCode;
 import com.gsms.gsms.infra.exception.BusinessException;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.repository.ProjectMapper;
+import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.UserMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.CacheService;
@@ -31,14 +33,16 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     private final ProjectMemberMapper projectMemberMapper;
     private final ProjectMapper projectMapper;
+    private final TaskMapper taskMapper;
     private final UserMapper userMapper;
     private final AuthService authService;
     private final CacheService cacheService;
 
     public ProjectMemberServiceImpl(ProjectMemberMapper projectMemberMapper, ProjectMapper projectMapper,
-                                   UserMapper userMapper, AuthService authService, CacheService cacheService) {
+                                   TaskMapper taskMapper, UserMapper userMapper, AuthService authService, CacheService cacheService) {
         this.projectMemberMapper = projectMemberMapper;
         this.projectMapper = projectMapper;
+        this.taskMapper = taskMapper;
         this.userMapper = userMapper;
         this.authService = authService;
         this.cacheService = cacheService;
@@ -85,8 +89,31 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             return resp;
         }).collect(Collectors.toList());
 
+        // 排序：项目经理 > 普通成员 > 只读访客
+        respList.sort((a, b) -> {
+            int aOrder = getRoleOrder(a.getRoleType());
+            int bOrder = getRoleOrder(b.getRoleType());
+            return Integer.compare(aOrder, bOrder);
+        });
+
         logger.info("查询到{}个项目成员响应", respList.size());
         return respList;
+    }
+
+    /**
+     * 获取角色排序权重
+     * @param roleType 角色类型
+     * @return 排序权重（越小越靠前）
+     */
+    private int getRoleOrder(Integer roleType) {
+        if (ProjectMemberRole.PROJECT_MANAGER.getCode().equals(roleType)) {
+            return 1;
+        } else if (ProjectMemberRole.MEMBER.getCode().equals(roleType)) {
+            return 2;
+        } else if (ProjectMemberRole.READ_ONLY.getCode().equals(roleType)) {
+            return 3;
+        }
+        return 999;
     }
 
     @Override
@@ -160,12 +187,39 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (projectMapper.selectById(projectId) == null) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
+
+        // 权限校验：只有项目经理可以删除成员
         if (!authService.canViewAllProjects(currentUserId)) {
-            List<Long> memberIds = projectMemberMapper.selectUserIdsByProjectId(projectId);
-            if (memberIds == null || !memberIds.contains(currentUserId)) {
-                throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(projectId);
+            boolean isCurrentUserManager = members.stream()
+                    .anyMatch(m -> m.getUserId().equals(currentUserId)
+                            && ProjectMemberRole.PROJECT_MANAGER.getCode().equals(m.getRoleType()));
+            if (!isCurrentUserManager) {
+                throw new BusinessException(ProjectErrorCode.MEMBER_NOT_PROJECT_MANAGER);
             }
         }
+
+        // 检查是否为最后一个项目经理
+        List<ProjectMember> members = projectMemberMapper.selectMembersByProjectId(projectId);
+        ProjectMember memberToRemove = members.stream()
+                .filter(m -> m.getUserId().equals(userId))
+                .findFirst()
+                .orElse(null);
+        if (memberToRemove != null && ProjectMemberRole.PROJECT_MANAGER.getCode().equals(memberToRemove.getRoleType())) {
+            long managerCount = members.stream()
+                    .filter(m -> ProjectMemberRole.PROJECT_MANAGER.getCode().equals(m.getRoleType()))
+                    .count();
+            if (managerCount <= 1) {
+                throw new BusinessException(ProjectErrorCode.LAST_PROJECT_MANAGER_CANNOT_REMOVE);
+            }
+        }
+
+        // 检查用户是否有未完成的任务
+        int unfinishedCount = taskMapper.countUnfinishedTasksByUserAndProject(projectId, userId);
+        if (unfinishedCount > 0) {
+            throw new BusinessException(ProjectErrorCode.MEMBER_HAS_UNFINISHED_TASKS);
+        }
+
         int updated = projectMemberMapper.deleteProjectMember(projectId, userId);
         if (updated <= 0) {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);

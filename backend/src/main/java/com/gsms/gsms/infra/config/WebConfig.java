@@ -1,12 +1,14 @@
 package com.gsms.gsms.infra.config;
 
 import com.gsms.gsms.infra.converter.StringToEnumConverterFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -17,6 +19,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
     private final CorsProperties corsProperties;
+
+    @Value("${attachment.storage.local.upload-dir:./uploads}")
+    private String uploadDir;
 
     public WebConfig(JwtInterceptor jwtInterceptor, CorsProperties corsProperties) {
         this.jwtInterceptor = jwtInterceptor;
@@ -46,6 +51,17 @@ public class WebConfig implements WebMvcConfigurer {
         filter.setEncoding("UTF-8");
         filter.setForceEncoding(true);
         return filter;
+    }
+
+    /**
+     * 配置静态资源处理
+     * 允许通过URL直接访问上传的附件文件
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 映射 /api/attachments/file/** 到本地上传目录
+        registry.addResourceHandler("/api/attachments/file/**")
+                .addResourceLocations("file:" + uploadDir + "/");
     }
 
     /**

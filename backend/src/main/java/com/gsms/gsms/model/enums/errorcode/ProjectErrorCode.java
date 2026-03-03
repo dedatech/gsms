@@ -27,6 +27,11 @@ public enum ProjectErrorCode implements ErrorCode {
     NOT_PROJECT_MANAGER(3010, "只有项目经理角色才能创建项目"),
     PROJECT_MANAGER_NOT_QUALIFIED(3011, "指定的项目经理不具备项目经理角色"),
 
+    // ========== 项目成员管理错误 ==========
+    MEMBER_HAS_UNFINISHED_TASKS(3012, "该成员存在未完成的任务，无法移除"),
+    MEMBER_NOT_PROJECT_MANAGER(3013, "只有项目经理才能执行此操作"),
+    LAST_PROJECT_MANAGER_CANNOT_REMOVE(3014, "项目经理不能为空，至少保留一名项目经理"),
+
     // ========== 操作失败（建议HTTP 500） ==========
     PROJECT_CREATE_FAILED(3901, "项目创建失败"),
     PROJECT_UPDATE_FAILED(3902, "项目更新失败"),

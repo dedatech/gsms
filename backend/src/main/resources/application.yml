@@ -47,9 +47,16 @@ spring:
     # 校验迁移脚本（线上未使用Flyway，首次引入时设为false）
     validate-on-migrate: true
     # 允许乱序迁移（生产环境建议false）
-    out-of-order: false
+    out-of-order: true
     # 清理模式（生产环境必须false）
     clean-disabled: true
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+      file-size-threshold: 0
 
 # 日志配置
 logging:
@@ -102,3 +109,11 @@ cors:
   allowed-origins:
     - http://localhost:3000
     - http://127.0.0.1:3000
+
+# 附件存储配置
+attachment:
+  storage:
+    type: local  # 存储类型: local, oss, cos, minio
+    local:
+      upload-dir: ./uploads  # 本地存储目录
+      url-prefix: /api/attachments/file  # 访问URL前缀

@@ -131,7 +131,7 @@
       <el-dialog
         v-model="detailDialogVisible"
         :title="`任务详情 #${currentTask?.id}`"
-        width="800px"
+        width="900px"
         @close="handleCloseDetail"
       >
         <div v-if="currentTask" class="task-detail">
@@ -181,6 +181,16 @@
               {{ currentTask.updateTime || '-' }}
             </el-descriptions-item>
           </el-descriptions>
+
+          <!-- 附件列表 -->
+          <div class="task-attachments">
+            <AttachmentList
+              v-if="detailDialogVisible"
+              target-type="task"
+              :target-id="currentTask.id"
+              :can-upload="true"
+            />
+          </div>
         </div>
       </el-dialog>
 
@@ -221,6 +231,7 @@ import {
   Document
 } from '@element-plus/icons-vue'
 import { getTasksByProjectId, type TaskInfo } from '@/api/task'
+import AttachmentList from '@/components/AttachmentList.vue'
 
 // Props
 const props = defineProps<{
@@ -233,6 +244,7 @@ const emit = defineEmits<{
   viewTask: [task: TaskInfo]
   editTask: [task: TaskInfo]
   deleteTask: [task: TaskInfo]
+  attachmentUploaded: []
 }>()
 
 // 任务列表（树形结构）
@@ -472,6 +484,8 @@ const handleViewDetail = (row: FlatTask) => {
 const handleCloseDetail = () => {
   currentTask.value = null
   detailDialogVisible.value = false
+  // 通知父组件刷新项目附件列表
+  emit('attachmentUploaded')
 }
 
 // 刷新列表
@@ -662,6 +676,12 @@ defineExpose({
 /* 任务详情弹窗样式 */
 .task-detail {
   padding: 20px 0;
+}
+
+.task-attachments {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ebeef5;
 }
 </style>
 

@@ -47,6 +47,7 @@
           @view-task="handleViewTask"
           @edit-task="handleEditTask"
           @delete-task="handleDeleteTask"
+          @attachment-uploaded="handleAttachmentUploaded"
         />
       </div>
 
@@ -61,6 +62,7 @@
           @create-requirement="handleCreateRequirement"
           @edit-requirement="handleEditTask"
           @delete-requirement="handleDeleteTask"
+          @attachment-uploaded="handleAttachmentUploaded"
         />
       </div>
 
@@ -98,7 +100,19 @@
 
       <!-- 成员 -->
       <div v-else-if="activeModule === 'member'" class="module-content">
-        <el-alert title="成员视图开发中" type="info" :closable="false" />
+        <ProjectMemberView
+          ref="memberViewRef"
+          :project-id="projectId"
+        />
+      </div>
+
+      <!-- 附件 -->
+      <div v-else-if="activeModule === 'attachment'" class="module-content">
+        <ProjectAttachmentList
+          ref="projectAttachmentListRef"
+          :project-id="projectId"
+          :can-upload="canUploadAttachment"
+        />
       </div>
     </div>
 
@@ -238,6 +252,25 @@
           />
           <span style="margin-left: 10px; color: #999">小时</span>
         </el-form-item>
+        <el-form-item label="附件">
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            :on-remove="handleFileRemove"
+            :file-list="taskAttachments"
+            :limit="10"
+            multiple
+            action="#"
+          >
+            <el-button type="primary" :icon="Upload">点击上传</el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持上传多个附件，单个文件不超过10MB
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="taskDialogVisible = false">取消</el-button>
@@ -324,6 +357,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
   ArrowLeft,
@@ -343,25 +377,35 @@ import {
   User,
   Setting,
   Filter,
-  Clock
+  Clock,
+  Upload
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
 import { getTaskList, getTasksByProjectId, createTask, updateTask, deleteTask } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getProjectStatusInfo } from '@/utils/statusMapping'
 import { getIterationList, createIteration, updateIteration, deleteIteration, type IterationInfo } from '@/api/iteration'
+import { uploadAttachment } from '@/api/attachment'
 import ProjectGantt from '@/components/ProjectGantt.vue'
 import ProjectInfoSidebar from '@/components/ProjectInfoSidebar.vue'
 import UnifiedWorkItemView from '@/components/UnifiedWorkItemView.vue'
 import RequirementsView from '@/components/RequirementsView.vue'
 import PlanningView from '@/components/PlanningView.vue'
+import ProjectMemberView from './ProjectMemberView.vue'
+import AttachmentList from '@/components/AttachmentList.vue'
+import ProjectAttachmentList from '@/components/ProjectAttachmentList.vue'
 import IterationSelector from '@/components/layout/IterationSelector.vue'
 import ViewModeTabs from '@/components/layout/ViewModeTabs.vue'
 import ProjectSelector from '@/components/layout/ProjectSelector.vue'
+import type { UploadFile, UploadUserFile, UploadProps } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const projectId = computed(() => Number(route.params.id))
+
+// 附件上传权限：项目成员都可以上传附件
+const canUploadAttachment = computed(() => authStore.isAuthenticated)
 
 // 当前激活的标签页（默认显示工作项列表，符合"工作项为核心"理念）
 const activeTab = ref('workItems')
@@ -375,6 +419,15 @@ const requirementsViewRef = ref<InstanceType<typeof RequirementsView>>()
 // PlanningView 组件引用
 const planningViewRef = ref<InstanceType<typeof PlanningView>>()
 
+// ProjectMemberView 组件引用
+const memberViewRef = ref<InstanceType<typeof ProjectMemberView>>()
+
+// AttachmentList 组件引用
+const attachmentListRef = ref<InstanceType<typeof AttachmentList>>()
+
+// ProjectAttachmentList 组件引用
+const projectAttachmentListRef = ref<InstanceType<typeof ProjectAttachmentList>>()
+
 // 模块标签定义
 const moduleTabs = [
   { key: 'overview', label: '概览' },
@@ -384,6 +437,7 @@ const moduleTabs = [
   { key: 'defect', label: '缺陷' },
   { key: 'report', label: '报表' },
   { key: 'document', label: '文档' },
+  { key: 'attachment', label: '附件' },
   { key: 'member', label: '成员' }
 ]
 
@@ -520,6 +574,8 @@ const editFormRules: FormRules = {
 const taskDialogVisible = ref(false)
 const taskSubmitLoading = ref(false)
 const taskFormRef = ref<FormInstance>()
+const uploadRef = ref()
+const taskAttachments = ref<UploadUserFile[]>([])
 const taskFormData = reactive({
   title: '',
   description: '',
@@ -535,6 +591,16 @@ const taskFormData = reactive({
 })
 const taskFormRules: FormRules = {
   title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
+}
+
+// 处理文件选择
+const handleFileChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
+  taskAttachments.value = uploadFiles
+}
+
+// 处理文件移除
+const handleFileRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+  taskAttachments.value = uploadFiles
 }
 
 // 获取父任务名称
@@ -753,6 +819,9 @@ const handleCreateTask = (iterationId?: number, parentId?: number) => {
     planEndDate: '',
     estimateHours: undefined
   })
+  // 重置附件列表
+  taskAttachments.value = []
+  uploadRef.value?.clearFiles()
   taskDialogVisible.value = true
 }
 
@@ -808,6 +877,13 @@ const handleDeleteTask = async (task: any) => {
   }
 }
 
+// 附件上传后刷新项目附件列表
+const handleAttachmentUploaded = () => {
+  if (projectAttachmentListRef.value) {
+    projectAttachmentListRef.value.refresh()
+  }
+}
+
 // 提交新建任务
 const handleCreateTaskSubmit = async () => {
   if (!taskFormRef.value) return
@@ -832,8 +908,26 @@ const handleCreateTaskSubmit = async () => {
         estimateHours: taskFormData.estimateHours
       }
 
-      await createTask(taskData)
-      ElMessage.success('任务创建成功')
+      const result = await createTask(taskData)
+      const newTaskId = result.id
+
+      // 上传附件（如果有）
+      if (taskAttachments.value.length > 0 && newTaskId) {
+        const uploadPromises = taskAttachments.value
+          .filter(file => file.raw) // 只处理有原始文件的项
+          .map(file => uploadAttachment('task', newTaskId, file.raw!))
+
+        try {
+          await Promise.all(uploadPromises)
+          ElMessage.success(`任务创建成功，已上传 ${uploadPromises.length} 个附件`)
+        } catch (uploadError) {
+          console.error('附件上传失败:', uploadError)
+          ElMessage.warning('任务创建成功，但部分附件上传失败')
+        }
+      } else {
+        ElMessage.success('任务创建成功')
+      }
+
       taskDialogVisible.value = false
       fetchTasks() // 刷新任务列表
       // 刷新需求视图
