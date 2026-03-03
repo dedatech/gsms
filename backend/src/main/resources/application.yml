@@ -18,9 +18,9 @@ spring:
     livereload:
       enabled: true  # 启用浏览器自动刷新
   datasource:
-    url: jdbc:mysql://localhost:3307/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://49.235.153.206:31266/gsms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
-    password: tju614
+    password: mysql_b8PdXs
     driver-class-name: com.mysql.cj.jdbc.Driver
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
