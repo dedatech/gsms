@@ -83,6 +83,12 @@ export const TASK_STATUS_MAP: StatusMapConfig = {
     text: '进行中',
     color: '#1890ff'
   },
+  DONE: {
+    type: 'success',
+    text: '已完成',
+    color: '#52c41a'
+  },
+  // 兼容旧版本前端代码
   COMPLETED: {
     type: 'success',
     text: '已完成',
