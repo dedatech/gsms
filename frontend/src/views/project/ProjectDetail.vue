@@ -153,7 +153,7 @@
     <!-- 新建任务对话框 -->
     <el-dialog
       v-model="taskDialogVisible"
-      title="新建任务"
+      :title="taskFormData.parentId ? '新建子任务' : '新建任务'"
       width="600px"
       :close-on-click-modal="false"
     >
@@ -274,7 +274,23 @@
       </el-form>
       <template #footer>
         <el-button @click="taskDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateTaskSubmit" :loading="taskSubmitLoading">
+        <el-button @click="handleCreateTaskSubmit(false)" :loading="taskSubmitLoading">
+          保存并关闭
+        </el-button>
+        <el-button
+          v-if="taskFormData.parentId"
+          type="primary"
+          @click="handleCreateTaskSubmit(true)"
+          :loading="taskSubmitLoading"
+        >
+          保存并继续创建
+        </el-button>
+        <el-button
+          v-else
+          type="primary"
+          @click="handleCreateTaskSubmit(false)"
+          :loading="taskSubmitLoading"
+        >
           确定
         </el-button>
       </template>
@@ -885,7 +901,7 @@ const handleAttachmentUploaded = () => {
 }
 
 // 提交新建任务
-const handleCreateTaskSubmit = async () => {
+const handleCreateTaskSubmit = async (continueCreating: boolean = false) => {
   if (!taskFormRef.value) return
 
   await taskFormRef.value.validate(async (valid) => {
@@ -928,8 +944,8 @@ const handleCreateTaskSubmit = async () => {
         ElMessage.success('任务创建成功')
       }
 
-      taskDialogVisible.value = false
-      fetchTasks() // 刷新任务列表
+      // 刷新任务列表
+      fetchTasks()
       // 刷新需求视图
       if (requirementsViewRef.value) {
         requirementsViewRef.value.refresh()
@@ -937,6 +953,42 @@ const handleCreateTaskSubmit = async () => {
       // 刷新规划视图
       if (planningViewRef.value) {
         planningViewRef.value.refresh()
+      }
+
+      // 如果是继续创建模式，只重置部分字段
+      if (continueCreating) {
+        // 保留 parentId、iterationId、priority、status、assigneeId、时间等
+        // 只清空标题、描述和附件
+        const preservedFields = {
+          parentId: taskFormData.parentId,
+          iterationId: taskFormData.iterationId,
+          priority: taskFormData.priority,
+          status: taskFormData.status,
+          assigneeId: taskFormData.assigneeId,
+          planStartDate: taskFormData.planStartDate,
+          planEndDate: taskFormData.planEndDate,
+          estimateHours: taskFormData.estimateHours
+        }
+
+        Object.assign(taskFormData, {
+          title: '',
+          description: '',
+          type: 'REQUIREMENT',
+          ...preservedFields
+        })
+
+        // 重置附件列表
+        taskAttachments.value = []
+        uploadRef.value?.clearFiles()
+
+        // 聚焦到标题输入框，方便继续输入
+        nextTick(() => {
+          const titleInput = document.querySelector('.el-dialog input[placeholder*="任务标题"]') as HTMLInputElement
+          titleInput?.focus()
+        })
+      } else {
+        // 非继续创建模式，关闭对话框
+        taskDialogVisible.value = false
       }
     } catch (error) {
       console.error('创建任务失败:', error)

@@ -18,7 +18,16 @@ public enum UserErrorCode implements ErrorCode {
     PHONE_FORMAT_ERROR(2005, "手机号格式错误"),
     USER_DISABLED(2006, "用户已禁用"),             // 也可 HTTP 403
     DEFAULT_ROLE_NOT_FOUND(2007, "默认角色不存在"), // EMPLOYEE角色未配置
-    
+
+    // ========== 验证码相关错误 ==========
+    CAPTCHA_ERROR(2008, "验证码错误或已过期"),
+    CAPTCHA_REQUIRED(2009, "请输入验证码"),
+
+    // ========== 登录安全相关错误 ==========
+    LOGIN_ATTEMPTS_EXCEEDED(2010, "登录失败次数过多，账户已临时锁定，请10分钟后再试"),
+    ACCOUNT_LOCKED(2011, "账户已锁定，请联系管理员"),
+    IP_BLOCKED(2012, "该IP地址登录尝试过多，已被临时限制"),
+
     // ========== 操作失败（建议HTTP 500） ==========
     USER_CREATE_FAILED(2901, "用户创建失败"),
     USER_UPDATE_FAILED(2902, "用户更新失败"),

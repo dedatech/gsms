@@ -5,6 +5,8 @@ import type { ApiResponse, LoginRequest, LoginResponse, UnknownError } from '@/t
 export interface LoginReq {
   username: string
   password: string
+  captchaCode: string
+  captchaUuid: string
 }
 
 export interface LoginResp {
@@ -18,6 +20,16 @@ export interface LoginResp {
 
 export const login = (data: LoginReq): Promise<ApiResponse<LoginResp>> => {
   return request.post('/users/login', data)
+}
+
+// 获取验证码
+export interface CaptchaResp {
+  uuid: string
+  image: string
+}
+
+export const getCaptcha = (): Promise<ApiResponse<CaptchaResp>> => {
+  return request.get('/captcha')
 }
 
 // 用户注册

@@ -22,6 +22,8 @@ import com.gsms.gsms.repository.RoleMapper;
 import com.gsms.gsms.repository.PermissionMapper;
 import com.gsms.gsms.service.UserService;
 import com.gsms.gsms.service.CacheService;
+import com.gsms.gsms.service.CaptchaService;
+import com.gsms.gsms.service.LoginAttemptService;
 import com.gsms.gsms.infra.utils.OperationLogHelper;
 import com.gsms.gsms.model.enums.OperationModule;
 import com.gsms.gsms.model.enums.OperationType;
@@ -49,16 +51,22 @@ public class UserServiceImpl implements UserService {
     private final RoleMapper roleMapper;
     private final PermissionMapper permissionMapper;
     private final OperationLogHelper operationLogHelper;
+    private final CaptchaService captchaService;
+    private final LoginAttemptService loginAttemptService;
 
     public UserServiceImpl(UserMapper userMapper, DepartmentMapper departmentMapper, CacheService cacheService,
                              RoleMapper roleMapper, PermissionMapper permissionMapper,
-                             OperationLogHelper operationLogHelper) {
+                             OperationLogHelper operationLogHelper,
+                             CaptchaService captchaService,
+                             LoginAttemptService loginAttemptService) {
         this.userMapper = userMapper;
         this.departmentMapper = departmentMapper;
         this.cacheService = cacheService;
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
         this.operationLogHelper = operationLogHelper;
+        this.captchaService = captchaService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -350,24 +358,51 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User login(String username, String password) {
-        logger.info("用户登录: {}", username);
+    public User login(String username, String password, String captchaUuid, String captchaCode, String ip) {
+        logger.info("用户登录: {}, ip={}", username, ip);
 
-        // 从缓存获取用户
+        // 1. 检查用户是否被锁定
+        if (loginAttemptService.isLocked(username)) {
+            long remainingTime = loginAttemptService.getRemainingLockTime(username);
+            logger.warn("用户登录失败 - 账户已锁定: username={}, 剩余时间={}秒", username, remainingTime);
+            throw new BusinessException(UserErrorCode.LOGIN_ATTEMPTS_EXCEEDED);
+        }
+
+        // 2. 检查IP是否被限制
+        if (loginAttemptService.isIpBlocked(ip)) {
+            logger.warn("用户登录失败 - IP已被限制: ip={}", ip);
+            throw new BusinessException(UserErrorCode.IP_BLOCKED);
+        }
+
+        // 3. 验证验证码
+        if (!captchaService.verifyCaptcha(captchaUuid, captchaCode)) {
+            // 验证码错误，记录失败
+            loginAttemptService.recordLoginFailure(username, ip);
+            logger.warn("用户登录失败 - 验证码错误: username={}", username);
+            throw new BusinessException(UserErrorCode.CAPTCHA_ERROR);
+        }
+
+        // 4. 从缓存获取用户
         User user = cacheService.getUserByUsername(username)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
+        // 5. 验证密码
         if (!PasswordUtil.verify(password, user.getPassword())) {
+            // 密码错误，记录失败
+            loginAttemptService.recordLoginFailure(username, ip);
+            logger.warn("用户登录失败 - 密码错误: username={}", username);
             throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
         }
 
-        // 检查用户状态
+        // 6. 检查用户状态
         if (user.getStatus() != UserStatus.NORMAL) {
             logger.warn("用户登录失败 - 用户已禁用: username={}", username);
             throw new BusinessException(UserErrorCode.USER_DISABLED);
         }
 
-        logger.info("用户登录成功: {}", username);
+        // 7. 登录成功，清除失败记录
+        loginAttemptService.recordLoginSuccess(username, ip);
+        logger.info("用户登录成功: username={}, ip={}", username, ip);
         return user;
     }
 

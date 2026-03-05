@@ -68,9 +68,12 @@ public interface UserService {
      * 用户登录
      * @param username 用户名
      * @param password 密码
+     * @param captchaUuid 验证码UUID
+     * @param captchaCode 验证码
+     * @param ip 客户端IP地址
      * @return 登录成功的用户实体
      */
-    User login(String username, String password);
+    User login(String username, String password, String captchaUuid, String captchaCode, String ip);
 
     /**
      * 修改密码

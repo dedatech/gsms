@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 /**
@@ -111,13 +112,50 @@ public class UserController {
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录")
-    public Result<String> login(@Valid @RequestBody UserLoginReq req) {
-        logger.info("用户登录: {}", req.getUsername());
-        User user = userService.login(req.getUsername(), req.getPassword());
+    public Result<String> login(@Valid @RequestBody UserLoginReq req, HttpServletRequest request) {
+        // 获取客户端IP地址
+        String ip = getClientIp(request);
+        logger.info("用户登录: {}, ip={}", req.getUsername(), ip);
+
+        User user = userService.login(
+                req.getUsername(),
+                req.getPassword(),
+                req.getCaptchaUuid(),
+                req.getCaptchaCode(),
+                ip
+        );
+
         // 使用注入的JwtUtil实例生成token
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-        logger.info("用户登录成功: {}", user.getUsername());
+        logger.info("用户登录成功: {}, ip={}", user.getUsername(), ip);
         return Result.success("登录成功", token);
+    }
+
+    /**
+     * 获取客户端IP地址
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // 处理多个IP的情况（X-Forwarded-For可能包含多个IP）
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
     /**

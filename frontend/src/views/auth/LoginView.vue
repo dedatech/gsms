@@ -23,6 +23,30 @@
           />
         </el-form-item>
 
+        <el-form-item label="验证码" prop="captchaCode">
+          <div style="display: flex; gap: 12px">
+            <el-input
+              v-model="loginForm.captchaCode"
+              placeholder="请输入验证码"
+              style="flex: 1"
+              maxlength="4"
+            />
+            <div
+              class="captcha-image"
+              :title="'点击刷新验证码'"
+              @click="fetchCaptcha"
+            >
+              <img
+                v-if="captchaImage"
+                :src="captchaImage"
+                alt="验证码"
+                style="height: 40px; cursor: pointer"
+              />
+              <span v-else style="color: #999">加载中...</span>
+            </div>
+          </div>
+        </el-form-item>
+
         <el-form-item>
           <el-button type="primary" @click="handleLogin" :loading="loading" style="width: 100%">
             登录
@@ -40,22 +64,25 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { login } from '@/api/auth'
+import { login, getCaptcha } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
+const captchaImage = ref('')
 
 // 表单数据
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
+  captchaCode: '',
+  captchaUuid: ''
 })
 
 // 表单验证规则
@@ -65,7 +92,31 @@ const rules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' }
+  ],
+  captchaCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 4, message: '验证码长度为4位', trigger: 'blur' }
   ]
+}
+
+// 获取验证码
+const fetchCaptcha = async () => {
+  try {
+    const res = await getCaptcha()
+    console.log('验证码响应:', res)
+
+    if (res && res.uuid && res.image) {
+      loginForm.captchaUuid = res.uuid
+      captchaImage.value = res.image
+      // 清空验证码输入框
+      loginForm.captchaCode = ''
+    } else {
+      ElMessage.error('获取验证码失败')
+    }
+  } catch (error) {
+    console.error('获取验证码错误:', error)
+    ElMessage.error('获取验证码失败')
+  }
 }
 
 // 登录处理
@@ -101,11 +152,18 @@ const handleLogin = async () => {
       console.error('登录错误:', error)
       const errorMsg = error instanceof Error ? error.message : '登录失败'
       ElMessage.error(errorMsg)
+      // 登录失败后刷新验证码
+      fetchCaptcha()
     } finally {
       loading.value = false
     }
   })
 }
+
+// 组件挂载时获取验证码
+onMounted(() => {
+  fetchCaptcha()
+})
 </script>
 
 <style scoped>
@@ -159,5 +217,22 @@ const handleLogin = async () => {
 
 .footer-links a:hover {
   text-decoration: underline;
+}
+
+.captcha-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 40px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  transition: all 0.3s;
+}
+
+.captcha-image:hover {
+  border-color: #409eff;
+  background-color: #fff;
 }
 </style>
