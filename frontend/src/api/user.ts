@@ -112,3 +112,31 @@ export const resetPassword = (data: {
 }) => {
   return request.put('/users/password/reset', data)
 }
+
+/**
+ * 获取当前登录用户信息
+ */
+export const getCurrentUserInfo = () => {
+  return request.get<UserInfo>('/users/current')
+}
+
+/**
+ * 更新当前用户信息
+ */
+export const updateCurrentUserInfo = (data: {
+  nickname?: string
+  email?: string
+  phone?: string
+}) => {
+  return request.put('/users/current', data)
+}
+
+/**
+ * 修改当前用户密码
+ */
+export const changePassword = (data: {
+  oldPassword: string
+  newPassword: string
+}) => {
+  return request.put('/users/current/password', data)
+}

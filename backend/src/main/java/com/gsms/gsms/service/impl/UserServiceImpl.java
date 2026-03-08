@@ -9,6 +9,7 @@ import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.UserProfileUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.dto.user.UserConverter;
@@ -582,5 +583,80 @@ public class UserServiceImpl implements UserService {
         // 检查用户是否存在
         getUserById(userId);
         return permissionMapper.selectPermissionCodesByUserId(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCurrentUserInfo(Long userId, UserProfileUpdateReq req) {
+        logger.info("更新当前用户信息: userId={}", userId);
+
+        // 查询用户
+        User user = getUserById(userId);
+
+        // 检查是否有字段需要更新
+        boolean hasUpdate = (req.getNickname() != null && !req.getNickname().isEmpty()) ||
+                          (req.getEmail() != null && !req.getEmail().isEmpty()) ||
+                          (req.getPhone() != null && !req.getPhone().isEmpty());
+
+        if (!hasUpdate) {
+            logger.info("没有需要更新的字段: userId={}", userId);
+            return;
+        }
+
+        // 使用专门的 Mapper 方法更新
+        int rows = userMapper.updateCurrentUserInfo(
+            userId,
+            req.getNickname(),
+            req.getEmail(),
+            req.getPhone(),
+            userId
+        );
+
+        if (rows > 0) {
+            // 记录操作日志
+            operationLogHelper.logSuccess(OperationType.UPDATE, OperationModule.USER,
+                    String.format("用户 %s 更新个人信息", user.getUsername()));
+
+            logger.info("当前用户信息更新成功: userId={}", userId);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeCurrentPassword(Long userId, PasswordChangeReq req) {
+        logger.info("修改当前用户密码: userId={}", userId);
+
+        // 查询用户
+        User user = getUserById(userId);
+        String oldPasswordHash = user.getPassword();
+        logger.info("当前用户密码哈希: {}", oldPasswordHash);
+
+        // 验证旧密码
+        boolean oldPasswordMatch = PasswordUtil.verify(req.getOldPassword(), oldPasswordHash);
+        logger.info("旧密码验证结果: {}", oldPasswordMatch);
+
+        if (!oldPasswordMatch) {
+            logger.warn("修改密码失败：旧密码错误: userId={}", userId);
+            throw new BusinessException(UserErrorCode.PASSWORD_ERROR);
+        }
+
+        // 加密新密码
+        String encodedNewPassword = PasswordUtil.encrypt(req.getNewPassword());
+        logger.info("新密码哈希: {}", encodedNewPassword);
+
+        // 使用专门的 Mapper 方法更新密码
+        int rows = userMapper.updatePassword(userId, encodedNewPassword, userId);
+        logger.info("密码更新影响行数: rows={}", rows);
+
+        if (rows == 0) {
+            logger.error("密码更新失败：影响行数为0, userId={}", userId);
+            throw new RuntimeException("密码更新失败");
+        }
+
+        // 记录操作日志
+        operationLogHelper.logSuccess(OperationType.UPDATE, OperationModule.USER,
+                String.format("用户 %s 修改密码", user.getUsername()));
+
+        logger.info("当前用户密码修改成功: userId={}", userId);
     }
 }

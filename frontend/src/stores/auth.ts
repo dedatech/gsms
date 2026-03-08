@@ -215,6 +215,16 @@ export const useAuthStore = defineStore('auth', () => {
     ])
   }
 
+  /**
+   * 更新用户信息
+   */
+  const updateUserInfo = (updates: Partial<{ username: string; nickname: string }>) => {
+    if (updates.username) {
+      username.value = updates.username
+      localStorage.setItem('username', updates.username)
+    }
+  }
+
   return {
     // 状态
     token,
@@ -236,6 +246,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUserRoles,
     hasPermission,
     hasAnyPermission,
-    refreshAuth
+    refreshAuth,
+    updateUserInfo
   }
 })

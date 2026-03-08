@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.user.UserInfoResp;
 import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.UserProfileUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.infra.common.PageResult;
@@ -114,4 +115,18 @@ public interface UserService {
      * @return 权限编码列表
      */
     java.util.List<String> getPermissionCodes(Long userId);
+
+    /**
+     * 更新当前用户信息
+     * @param userId 用户ID
+     * @param req 个人信息更新请求DTO
+     */
+    void updateCurrentUserInfo(Long userId, UserProfileUpdateReq req);
+
+    /**
+     * 修改当前用户密码
+     * @param userId 用户ID
+     * @param req 修改密码请求DTO
+     */
+    void changeCurrentPassword(Long userId, PasswordChangeReq req);
 }

@@ -7,11 +7,13 @@ import com.gsms.gsms.dto.user.UserQueryReq;
 import com.gsms.gsms.dto.user.UserRegisterReq;
 import com.gsms.gsms.dto.user.UserCreateReq;
 import com.gsms.gsms.dto.user.UserUpdateReq;
+import com.gsms.gsms.dto.user.UserProfileUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.PasswordResetReq;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.utils.JwtUtil;
+import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -247,5 +249,43 @@ public class UserController {
     public Result<java.util.List<String>> getPermissions(@PathVariable Long id) {
         logger.info("查询用户权限编码列表: userId={}", id);
         return Result.success(userService.getPermissionCodes(id));
+    }
+
+    /**
+     * 获取当前登录用户信息
+     */
+    @GetMapping("/current")
+    @Operation(summary = "获取当前登录用户信息")
+    public Result<UserInfoResp> getCurrentUserInfo() {
+        Long currentUserId = UserContext.getCurrentUserId();
+        logger.info("获取当前用户信息: userId={}", currentUserId);
+        UserInfoResp resp = userService.getById(currentUserId);
+        return Result.success(resp);
+    }
+
+    /**
+     * 更新当前用户信息
+     */
+    @PutMapping("/current")
+    @Operation(summary = "更新当前用户信息")
+    public Result<Void> updateCurrentUserInfo(
+            @Valid @RequestBody UserProfileUpdateReq req) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        logger.info("更新当前用户信息: userId={}", currentUserId);
+        userService.updateCurrentUserInfo(currentUserId, req);
+        return Result.success();
+    }
+
+    /**
+     * 修改当前用户密码
+     */
+    @PutMapping("/current/password")
+    @Operation(summary = "修改当前用户密码")
+    public Result<Void> changeCurrentPassword(
+            @Valid @RequestBody PasswordChangeReq req) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        logger.info("修改当前用户密码: userId={}", currentUserId);
+        userService.changeCurrentPassword(currentUserId, req);
+        return Result.success();
     }
 }

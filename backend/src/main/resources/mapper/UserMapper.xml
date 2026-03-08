@@ -109,4 +109,26 @@
         WHERE is_deleted = 0
         ORDER BY create_time DESC
     </select>
+
+    <!-- 更新用户密码 -->
+    <update id="updatePassword">
+        UPDATE `sys_user`
+        SET password = #{password},
+            update_user_id = #{updateUserId},
+            update_time = CURRENT_TIMESTAMP
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 更新当前用户信息 -->
+    <update id="updateCurrentUserInfo">
+        UPDATE `sys_user`
+        <set>
+            <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            update_user_id = #{updateUserId},
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{userId}
+    </update>
 </mapper>

@@ -168,6 +168,12 @@
         </el-main>
       </el-container>
     </el-container>
+
+    <!-- 个人信息对话框 -->
+    <ProfileDialog
+      v-model:visible="profileDialogVisible"
+      @success="handleProfileSuccess"
+    />
   </div>
 </template>
 
@@ -178,6 +184,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 import { useThemeStore } from '@/stores/theme'
 import { getUserMenuTree, type MenuInfo } from '@/api/menu'
+import ProfileDialog from '@/components/user/ProfileDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -208,6 +215,9 @@ const fetchUserMenus = async () => {
 // 用户名（从 localStorage 获取）
 const username = ref(localStorage.getItem('username') || '用户')
 const userAvatar = ref('')
+
+// 个人信息对话框显示状态
+const profileDialogVisible = ref(false)
 
 // 侧边栏折叠状态（从 localStorage 读取，默认 false）
 const isCollapse = ref(localStorage.getItem('sidebarCollapsed') === 'true')
@@ -309,7 +319,7 @@ const handleThemeChange = (themeId: string) => {
 const handleUserAction = (command: string) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人信息功能开发中')
+      profileDialogVisible.value = true
       break
     case 'settings':
       ElMessage.info('系统设置功能开发中')
@@ -329,6 +339,12 @@ const handleUserAction = (command: string) => {
         .catch(() => {})
       break
   }
+}
+
+// 个人信息更新成功回调
+const handleProfileSuccess = () => {
+  // 更新显示的用户名
+  username.value = localStorage.getItem('username') || '用户'
 }
 
 // 组件挂载时恢复主题并加载菜单

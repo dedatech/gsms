@@ -75,4 +75,31 @@ public interface UserMapper extends BaseMapper<User> {
      * @return 用户列表
      */
     List<User> selectAll();
+
+    /**
+     * 更新用户密码
+     * @param userId 用户ID
+     * @param password 新密码
+     * @param updateUserId 更新人ID
+     * @return 影响行数
+     */
+    @org.apache.ibatis.annotations.Options(flushCache = org.apache.ibatis.annotations.Options.FlushCachePolicy.TRUE)
+    int updatePassword(@Param("userId") Long userId,
+                      @Param("password") String password,
+                      @Param("updateUserId") Long updateUserId);
+
+    /**
+     * 更新当前用户信息（昵称、邮箱、电话）
+     * @param userId 用户ID
+     * @param nickname 昵称
+     * @param email 邮箱
+     * @param phone 电话
+     * @param updateUserId 更新人ID
+     * @return 影响行数
+     */
+    int updateCurrentUserInfo(@Param("userId") Long userId,
+                             @Param("nickname") String nickname,
+                             @Param("email") String email,
+                             @Param("phone") String phone,
+                             @Param("updateUserId") Long updateUserId);
 }

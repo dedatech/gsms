@@ -351,4 +351,176 @@ public class UserControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400));  // 验证失败
     }
+
+    // ==================== 个人信息管理功能测试 ====================
+
+    @Test
+    void testGetCurrentUserInfo_Success() throws Exception {
+        // When & Then - 获取当前登录用户信息
+        mockMvc.perform(get("/api/users/current")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.id").value(testUser.getId().intValue()))
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.nickname").value("测试用户"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("13800138000"));
+    }
+
+    @Test
+    void testGetCurrentUserInfo_Unauthorized() throws Exception {
+        // When & Then - 未登录访问，应该返回 401
+        mockMvc.perform(get("/api/users/current"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testUpdateCurrentUserInfo_Success() throws Exception {
+        // Given - 准备更新数据
+        String updateJson = "{\"nickname\":\"新昵称\",\"email\":\"newemail@example.com\",\"phone\":\"13900139000\"}";
+
+        // When & Then - 更新当前用户信息
+        mockMvc.perform(put("/api/users/current")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        // 验证更新是否成功 - 重新查询用户信息
+        mockMvc.perform(get("/api/users/current")
+                .header("Authorization", "Bearer " + testToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.nickname").value("新昵称"))
+                .andExpect(jsonPath("$.data.email").value("newemail@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("13900139000"));
+    }
+
+    @Test
+    void testUpdateCurrentUserInfo_UpdateNicknameOnly() throws Exception {
+        // Given - 只更新昵称
+        String updateJson = "{\"nickname\":\"只改昵称\"}";
+
+        // When & Then
+        mockMvc.perform(put("/api/users/current")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    void testUpdateCurrentUserInfo_ValidationFailed_EmailFormat() throws Exception {
+        // Given - 邮箱格式错误
+        String updateJson = "{\"email\":\"invalid-email\"}";
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(put("/api/users/current")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 参数校验失败
+    }
+
+    @Test
+    void testUpdateCurrentUserInfo_ValidationFailed_PhoneFormat() throws Exception {
+        // Given - 手机号格式错误
+        String updateJson = "{\"phone\":\"12345\"}";
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(put("/api/users/current")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 参数校验失败
+    }
+
+    @Test
+    void testUpdateCurrentUserInfo_ValidationFailed_NicknameTooShort() throws Exception {
+        // Given - 昵称太短
+        String updateJson = "{\"nickname\":\"a\"}";
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(put("/api/users/current")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 参数校验失败
+    }
+
+    @Test
+    void testChangeCurrentPassword_Success() throws Exception {
+        // Given - 准备修改密码数据
+        String passwordJson = "{\"oldPassword\":\"password\",\"newPassword\":\"newPassword123\"}";
+
+        // When & Then - 修改密码成功
+        mockMvc.perform(put("/api/users/current/password")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        // 注意：修改密码后需要重新登录获取新 Token
+        // 这里我们只测试密码修改接口本身是否成功
+    }
+
+    @Test
+    void testChangeCurrentPassword_WrongOldPassword() throws Exception {
+        // Given - 旧密码错误
+        String passwordJson = "{\"oldPassword\":\"wrongPassword\",\"newPassword\":\"newPassword123\"}";
+
+        // When & Then - 应该返回密码错误
+        mockMvc.perform(put("/api/users/current/password")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(2003));  // 旧密码错误
+    }
+
+    @Test
+    void testChangeCurrentPassword_ValidationFailed_NewPasswordTooShort() throws Exception {
+        // Given - 新密码太短
+        String passwordJson = "{\"oldPassword\":\"password\",\"newPassword\":\"12345\"}";
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(put("/api/users/current/password")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 参数校验失败
+    }
+
+    @Test
+    void testChangeCurrentPassword_ValidationFailed_MissingOldPassword() throws Exception {
+        // Given - 缺少旧密码
+        String passwordJson = "{\"newPassword\":\"newPassword123\"}";
+
+        // When & Then - 应该返回验证错误
+        mockMvc.perform(put("/api/users/current/password")
+                .header("Authorization", "Bearer " + testToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400));  // 参数校验失败
+    }
+
+    @Test
+    void testChangeCurrentPassword_Unauthorized() throws Exception {
+        // Given - 准备修改密码数据
+        String passwordJson = "{\"oldPassword\":\"password\",\"newPassword\":\"newPassword123\"}";
+
+        // When & Then - 未登录访问，应该返回 401
+        mockMvc.perform(put("/api/users/current/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(passwordJson))
+                .andExpect(status().isUnauthorized());
+    }
 }
