@@ -289,9 +289,9 @@
               <el-select v-model="formData.assigneeId" placeholder="请选择负责人（可选）" clearable filterable style="width: 100%">
                 <el-option
                   v-for="user in projectMembers"
-                  :key="user.id"
+                  :key="user.userId"
                   :label="user.nickname"
-                  :value="user.id"
+                  :value="user.userId"
                 />
               </el-select>
             </el-form-item>

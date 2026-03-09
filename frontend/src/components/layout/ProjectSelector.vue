@@ -19,7 +19,10 @@
             >
               <div class="project-item">
                 <div class="project-dot" :style="{ backgroundColor: getProjectColor(project.status) }"></div>
-                <span class="project-name">{{ project.name }}</span>
+                <div class="project-info">
+                  <span class="project-name">{{ project.name }}</span>
+                  <span class="project-time">{{ formatProjectTime(project.planStartDate, project.planEndDate) }}</span>
+                </div>
               </div>
             </el-dropdown-item>
           </div>
@@ -34,7 +37,10 @@
             >
               <div class="project-item">
                 <div class="project-dot" :style="{ backgroundColor: getProjectColor(project.status) }"></div>
-                <span class="project-name">{{ project.name }}</span>
+                <div class="project-info">
+                  <span class="project-name">{{ project.name }}</span>
+                  <span class="project-time">{{ formatProjectTime(project.planStartDate, project.planEndDate) }}</span>
+                </div>
               </div>
             </el-dropdown-item>
           </div>
@@ -86,6 +92,17 @@ const getProjectColor = (status: string) => {
     'ON_HOLD': '#faad14'
   }
   return colorMap[status] || '#d9d9d9'
+}
+
+// 格式化项目时间显示
+const formatProjectTime = (startDate: string | null, endDate: string | null) => {
+  if (!startDate && !endDate) {
+    return ''
+  }
+
+  const start = startDate || '-'
+  const end = endDate || '-'
+  return `${start} ~ ${end}`
 }
 
 // 处理项目选择
@@ -151,6 +168,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 280px;
 }
 
 .project-dot {
@@ -160,12 +178,24 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
 .project-name {
   font-size: 14px;
   color: #333;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.project-time {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
   white-space: nowrap;
 }
 

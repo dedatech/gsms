@@ -86,3 +86,24 @@ export interface ProjectMember {
   roleName: string
   createTime: string
 }
+
+// 项目信息响应类型
+export interface ProjectInfoResp {
+  id: number
+  name: string
+  code: string
+  projectType: string
+  description: string
+  managerId: number
+  status: string
+  planStartDate: string
+  planEndDate: string
+  actualStartDate: string
+  actualEndDate: string
+  createUserId: number
+  createUserName: string
+  updateUserId: number
+  updateUserName: string
+  createTime: string
+  updateTime: string
+}

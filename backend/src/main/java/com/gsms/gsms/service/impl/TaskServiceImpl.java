@@ -312,6 +312,30 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
+        // 如果任务有父任务，校验计划时间范围是否在父任务范围内
+        if (existTask.getParentId() != null) {
+            Task parentTask = taskMapper.selectById(existTask.getParentId());
+            if (parentTask != null) {
+                // 获取最终的计划时间值（传入的值或现有值）
+                LocalDate planStartDate = task.getPlanStartDate() != null ? task.getPlanStartDate() : existTask.getPlanStartDate();
+                LocalDate planEndDate = task.getPlanEndDate() != null ? task.getPlanEndDate() : existTask.getPlanEndDate();
+
+                // 校验子任务的计划开始时间不能早于父任务
+                if (parentTask.getPlanStartDate() != null && planStartDate != null) {
+                    if (planStartDate.isBefore(parentTask.getPlanStartDate())) {
+                        throw new BusinessException(TaskErrorCode.TASK_DATE_OUT_OF_RANGE);
+                    }
+                }
+
+                // 校验子任务的计划结束时间不能晚于父任务
+                if (parentTask.getPlanEndDate() != null && planEndDate != null) {
+                    if (planEndDate.isAfter(parentTask.getPlanEndDate())) {
+                        throw new BusinessException(TaskErrorCode.TASK_DATE_OUT_OF_RANGE);
+                    }
+                }
+            }
+        }
+
         // 如果任务状态更新为已完成且实际结束日期未设置，则自动设置实际结束日期
         if (task.getStatus() != null &&
             task.getStatus() == TaskStatus.DONE &&
