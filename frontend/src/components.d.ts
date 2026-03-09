@@ -7,7 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AiBreakdownDialog: typeof import('./components/ai-breakdown/AiBreakdownDialog.vue')['default']
     AttachmentList: typeof import('./components/AttachmentList.vue')['default']
+    BreakdownResult: typeof import('./components/ai-breakdown/BreakdownResult.vue')['default']
     ChangeDiffViewer: typeof import('./components/ChangeDiffViewer.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
@@ -69,6 +71,7 @@ declare module 'vue' {
     ProjectGantt: typeof import('./components/ProjectGantt.vue')['default']
     ProjectInfoSidebar: typeof import('./components/ProjectInfoSidebar.vue')['default']
     ProjectSelector: typeof import('./components/layout/ProjectSelector.vue')['default']
+    RequirementForm: typeof import('./components/ai-breakdown/RequirementForm.vue')['default']
     RequirementsView: typeof import('./components/RequirementsView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
