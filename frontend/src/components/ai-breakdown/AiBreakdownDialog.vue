@@ -63,7 +63,8 @@ const formData = reactive<RequirementBreakdownReq>({
   requirement: '',
   projectType: '',
   teamSize: undefined,
-  expectedDays: undefined
+  expectedDays: undefined,
+  estimateHours: undefined
 })
 
 // 拆分结果
@@ -89,6 +90,7 @@ const resetForm = () => {
   formData.projectType = ''
   formData.teamSize = undefined
   formData.expectedDays = undefined
+  formData.estimateHours = undefined
   breakdownResult.value = null
 }
 

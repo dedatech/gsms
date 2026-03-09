@@ -8,6 +8,7 @@ export interface RequirementBreakdownReq {
   projectType?: string     // 项目类型
   teamSize?: number        // 团队规模
   expectedDays?: number    // 期望完成时间（天）
+  estimateHours?: number   // 期望工时（小时）
 }
 
 /**

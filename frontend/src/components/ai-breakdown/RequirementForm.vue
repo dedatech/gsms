@@ -38,7 +38,7 @@
       </el-form-item>
 
       <!-- 团队规模和期望完成时间 -->
-      <el-form-item label="团队规模">
+      <el-form-item label="团队规模" prop="teamSize">
         <el-input-number
           v-model="formData.teamSize"
           :min="1"
@@ -47,10 +47,10 @@
           placeholder="团队人数"
           style="width: 100%"
         />
-        <div class="form-tip">选填，用于更准确的工时估算</div>
+        <div class="form-tip">必填，用于更准确的工时估算</div>
       </el-form-item>
 
-      <el-form-item label="期望时间">
+      <el-form-item label="期望时间" prop="expectedDays">
         <el-input-number
           v-model="formData.expectedDays"
           :min="1"
@@ -59,7 +59,20 @@
           placeholder="天数"
           style="width: 100%"
         />
-        <div class="form-tip">选填，期望完成时间（天）</div>
+        <div class="form-tip">必填，期望完成时间（天）</div>
+      </el-form-item>
+
+      <el-form-item label="期望工时" prop="estimateHours">
+        <el-input-number
+          v-model="formData.estimateHours"
+          :min="1"
+          :max="10000"
+          :step="8"
+          :disabled="loading"
+          placeholder="小时"
+          style="width: 100%"
+        />
+        <div class="form-tip">必填，期望总工时（小时）</div>
       </el-form-item>
 
       <!-- 操作按钮 -->
@@ -108,13 +121,47 @@ const projectTypes = [
 ]
 
 // 表单验证规则
-const formRules: FormRules = {
+const formRules: FormRules<RequirementBreakdownReq> = {
   requirement: [
     { required: true, message: '请输入需求描述', trigger: 'blur' },
     { min: 10, message: '需求描述至少需要 10 个字符', trigger: 'blur' }
   ],
   projectType: [
     { required: true, message: '请选择项目类型', trigger: 'change' }
+  ],
+  teamSize: [
+    { required: true, message: '请输入团队规模', trigger: 'blur' },
+    { type: 'number', min: 1, max: 50, message: '团队规模应在 1-50 人之间', trigger: 'blur' }
+  ],
+  expectedDays: [
+    { required: true, message: '请输入期望完成时间', trigger: 'blur' },
+    { type: 'number', min: 1, max: 365, message: '期望时间应在 1-365 天之间', trigger: 'blur' }
+  ],
+  estimateHours: [
+    { required: true, message: '请输入期望工时', trigger: 'blur' },
+    { type: 'number', min: 1, max: 10000, message: '期望工时应在 1-10000 小时之间', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        const teamSize = props.formData.teamSize
+        const expectedDays = props.formData.expectedDays
+
+        if (!teamSize || !expectedDays || !value) {
+          callback()
+          return
+        }
+
+        // 计算可用工时：团队人数 * 期望天数 * 8小时
+        const availableHours = teamSize * expectedDays * 8
+
+        // 验证：期望工时不能超过可用工时
+        if (value > availableHours) {
+          callback(new Error(`期望工时不能超过可用工时（${teamSize}人 × ${expectedDays}天 × 8小时 = ${availableHours}小时）`))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 }
 
