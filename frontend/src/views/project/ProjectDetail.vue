@@ -72,6 +72,7 @@
           :iterations="iterations"
           :tasks="tasks"
           :task-total="taskTotal"
+          :project-id="projectId"
           :current-page="taskSearchForm.pageNum"
           :page-size="taskSearchForm.pageSize"
           @create-task="handleCreateTask"
@@ -80,6 +81,7 @@
           @edit-iteration="handleEditIteration"
           @edit-task="handleEditTask"
           @pagination-change="handlePaginationChange"
+          @refresh="handleRefreshTasks"
         />
       </div>
 
@@ -720,6 +722,12 @@ const handlePaginationChange = (pageNum: number, pageSize: number) => {
   taskSearchForm.pageNum = pageNum
   taskSearchForm.pageSize = pageSize
   fetchTasks()
+}
+
+// 刷新任务列表（AI 拆分成功后调用）
+const handleRefreshTasks = () => {
+  fetchTasks()
+  fetchIterations() // 同时刷新迭代，因为任务数量可能变化
 }
 
 // 获取迭代列表

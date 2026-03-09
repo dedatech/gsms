@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "deepseek": {
+      "source": "vm0-ai/vm0-skills",
+      "sourceType": "github",
+      "computedHash": "cd8377d819763aeeeb1ec531ae38dc0b4364ee0c86193ef8f99c5fee07e60f4c"
+    }
+  }
+}

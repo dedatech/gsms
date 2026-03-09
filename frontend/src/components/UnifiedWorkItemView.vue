@@ -5,11 +5,13 @@
       <TaskGroupList
         :tasks="tasks"
         :iterations="iterations"
+        :project-id="projectId"
         @create-task="handleCreateTask"
         @create-iteration="handleCreateIteration"
         @view-iteration="handleViewIteration"
         @edit-iteration="handleEditIteration"
         @edit-task="handleEditTask"
+        @refresh="handleRefresh"
       />
     </div>
 
@@ -45,6 +47,7 @@ const props = defineProps<{
   taskTotal: number
   currentPage?: number
   pageSize?: number
+  projectId?: number
 }>()
 
 // Emits
@@ -55,6 +58,7 @@ const emit = defineEmits<{
   editIteration: [iteration: any]
   editTask: [task: any]
   paginationChange: [pageNum: number, pageSize: number]
+  refresh: []  // 刷新任务列表
 }>()
 
 // 分页参数（从 props 获取，如果没有则使用默认值）
@@ -100,6 +104,11 @@ const handleEditIteration = (iteration: any) => {
 // 编辑任务
 const handleEditTask = (task: any) => {
   emit('editTask', task)
+}
+
+// 刷新任务列表
+const handleRefresh = () => {
+  emit('refresh')
 }
 </script>
 

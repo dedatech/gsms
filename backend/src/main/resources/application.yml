@@ -117,3 +117,12 @@ attachment:
     local:
       upload-dir: ./uploads  # 本地存储目录
       url-prefix: /api/attachments/file  # 访问URL前缀
+
+# DeepSeek API 配置
+deepseek:
+  api:
+    key: sk-cafb7c4bbc884fd9bcb0dd2fcda0f2ea  # DeepSeek API Key
+    url: https://api.deepseek.com/v1/chat/completions  # DeepSeek API 地址
+    model: deepseek-chat  # 使用的模型
+    timeout: 180000  # 请求超时时间（毫秒）- 增加到 3 分钟
+    max-retries: 3  # 最大重试次数

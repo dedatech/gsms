@@ -90,3 +90,14 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# DeepSeek API 配置（生产环境）
+# 生产环境必须通过环境变量设置 API Key
+# 部署时设置环境变量：DEEPSEEK_API_KEY=your_api_key
+deepseek:
+  api:
+    key: ${DEEPSEEK_API_KEY:}
+    url: https://api.deepseek.com/v1/chat/completions
+    model: deepseek-chat
+    timeout: 60000
+    max-retries: 3

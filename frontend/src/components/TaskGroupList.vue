@@ -122,7 +122,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <!-- 迭代操作 -->
             <template v-if="row.type === 'iteration'">
@@ -153,6 +153,17 @@
             </template>
             <!-- 任务操作 -->
             <template v-if="row.type === 'task'">
+              <!-- AI拆分按钮（仅根任务显示） -->
+              <el-button
+                v-if="!row.parentId"
+                link
+                type="primary"
+                size="small"
+                @click.stop="handleAiBreakdown(row)"
+              >
+                <el-icon><MagicStick /></el-icon>
+                AI拆分
+              </el-button>
               <el-button
                 link
                 type="primary"
@@ -187,22 +198,39 @@
         description="暂无任务"
         :image-size="80"
       />
+
+      <!-- AI 拆分对话框 -->
+      <AiBreakdownDialog
+        ref="aiBreakdownDialogRef"
+        :project-id="projectId"
+        :iteration-id="currentIterationId"
+        :parent-task-id="currentParentTaskId"
+        @success="handleAiBreakdownSuccess"
+      />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { FolderOpened, Plus, Document, Folder } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { FolderOpened, Plus, Document, Folder, MagicStick } from '@element-plus/icons-vue'
 import type { TaskInfo } from '@/api/task'
 import type { IterationInfo } from '@/api/iteration'
+import AiBreakdownDialog from './ai-breakdown/AiBreakdownDialog.vue'
 
 const router = useRouter()
+
+// AI 拆分对话框
+const aiBreakdownDialogRef = ref<InstanceType<typeof AiBreakdownDialog>>()
+const currentIterationId = ref<number>()
+const currentParentTaskId = ref<number>()  // 当前被拆分的父任务 ID
 
 // Props
 const props = defineProps<{
   tasks: TaskInfo[]
   iterations: IterationInfo[]
+  projectId?: number
 }>()
 
 // Emits
@@ -212,6 +240,7 @@ const emit = defineEmits<{
   viewIteration: [iteration: any]
   editIteration: [iteration: any]
   editTask: [task: any]
+  refresh: []  // 刷新任务列表
 }>()
 
 // 展开的行
@@ -418,6 +447,26 @@ const handleViewIteration = (iteration: TreeNode) => {
 // 编辑迭代
 const handleEditIteration = (iteration: TreeNode) => {
   emit('editIteration', iteration)
+}
+
+// AI 拆分（仅根任务可拆分）
+const handleAiBreakdown = (task: TreeNode) => {
+  // 只允许拆分根任务（没有 parentId 的任务）
+  if (task.parentId) {
+    ElMessage.warning('只能对一级需求进行 AI 拆分')
+    return
+  }
+  // 使用任务所属的迭代 ID
+  currentIterationId.value = task.iterationId
+  // 保存当前任务 ID，作为子任务的父任务
+  currentParentTaskId.value = task.id
+  aiBreakdownDialogRef.value?.open()
+}
+
+// AI 拆分成功回调
+const handleAiBreakdownSuccess = () => {
+  // 刷新任务列表
+  emit('refresh')
 }
 
 // 编辑任务

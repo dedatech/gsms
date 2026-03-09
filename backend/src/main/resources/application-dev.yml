@@ -33,3 +33,11 @@ cors:
     - http://127.0.0.1:3000
     - http://localhost:5173
     - http://127.0.0.1:5173
+# DeepSeek API 配置（开发环境）
+deepseek:
+  api:
+    key: sk-cafb7c4bbc884fd9bcb0dd2fcda0f2ea
+    url: https://api.deepseek.com/v1/chat/completions
+    model: deepseek-chat
+    timeout: 60000
+    max-retries: 3
