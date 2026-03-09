@@ -2,6 +2,7 @@ package com.gsms.gsms.model.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  * 任务实体类
  */
 @Schema(description = "任务信息")
+@TableName("gsms_task")
 public class Task {
     /**
      * 任务ID

@@ -188,6 +188,14 @@
               >
                 编辑
               </el-button>
+              <el-button
+                link
+                type="danger"
+                size="small"
+                @click.stop="handleDeleteTask(row)"
+              >
+                删除
+              </el-button>
             </template>
           </template>
         </el-table-column>
@@ -213,10 +221,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { FolderOpened, Plus, Document, Folder, MagicStick } from '@element-plus/icons-vue'
 import type { TaskInfo } from '@/api/task'
 import type { IterationInfo } from '@/api/iteration'
+import { deleteTask } from '@/api/task'
 import AiBreakdownDialog from './ai-breakdown/AiBreakdownDialog.vue'
 
 const router = useRouter()
@@ -533,6 +542,42 @@ const getPriorityText = (priority: string) => {
     'HIGH': '高'
   }
   return texts[priority] || '未知'
+}
+
+// 删除任务
+const handleDeleteTask = async (task: TreeNode) => {
+  // 检查是否有子任务
+  const hasSubtasks = task.hasChildren || false
+
+  let confirmMessage = '确认删除该任务吗？'
+  if (hasSubtasks) {
+    confirmMessage = '该任务存在子任务，确认将删除所有子任务，此操作不可恢复！'
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      confirmMessage,
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        distinguishCancelAndClose: true
+      }
+    )
+
+    // 调用删除API
+    await deleteTask(task.id)
+    ElMessage.success('任务删除成功')
+
+    // 刷新列表
+    emit('refresh')
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      console.error('删除任务失败:', error)
+      ElMessage.error('删除任务失败')
+    }
+  }
 }
 </script>
 

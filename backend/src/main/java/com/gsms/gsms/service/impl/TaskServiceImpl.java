@@ -2,6 +2,7 @@ package com.gsms.gsms.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.model.entity.Project;
 import com.gsms.gsms.model.enums.TaskStatus;
@@ -457,12 +458,35 @@ public class TaskServiceImpl implements TaskService {
         Long currentUserId = UserContext.getCurrentUserId();
         authService.checkProjectAccess(currentUserId, existTask.getProjectId());
 
-        int result = taskMapper.deleteById(id);
+        // 递归删除所有子任务
+        deleteTaskWithSubtasks(id);
+
+        logger.info("任务及其子任务删除成功: {}", id);
+    }
+
+    /**
+     * 递归删除任务及其所有子任务
+     *
+     * @param taskId 任务ID
+     */
+    private void deleteTaskWithSubtasks(Long taskId) {
+        // 查询所有子任务
+        LambdaQueryWrapper<Task> subtaskWrapper = new LambdaQueryWrapper<>();
+        subtaskWrapper.eq(Task::getParentId, taskId);
+        List<Task> subtasks = taskMapper.selectList(subtaskWrapper);
+
+        // 递归删除子任务
+        for (Task subtask : subtasks) {
+            deleteTaskWithSubtasks(subtask.getId());
+        }
+
+        // 删除当前任务（软删除）
+        int result = taskMapper.deleteById(taskId);
         if (result <= 0) {
             throw new BusinessException(TaskErrorCode.TASK_DELETE_FAILED);
         }
 
-        logger.info("任务删除成功: {}", id);
+        logger.debug("任务删除成功: {}", taskId);
     }
 
     @Override
