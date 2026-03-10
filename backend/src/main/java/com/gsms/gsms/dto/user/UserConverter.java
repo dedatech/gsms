@@ -37,6 +37,7 @@ public class UserConverter {
         user.setEmail(req.getEmail());
         user.setPhone(req.getPhone());
         user.setDepartmentId(req.getDepartmentId());
+        user.setPosition(req.getPosition());
         user.setStatus(req.getStatus());
         return user;
     }
@@ -67,6 +68,7 @@ public class UserConverter {
         user.setEmail(req.getEmail());
         user.setPhone(req.getPhone());
         user.setDepartmentId(req.getDepartmentId());
+        user.setPosition(req.getPosition());
         user.setStatus(req.getStatus());
         return user;
     }

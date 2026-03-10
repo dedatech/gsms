@@ -1,5 +1,6 @@
 package com.gsms.gsms.dto.user;
 
+import com.gsms.gsms.model.enums.Position;
 import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Email;
@@ -59,6 +60,9 @@ public class UserUpdateReq {
     @Schema(description = "部门ID", example = "1")
     private Long departmentId;
 
+    @Schema(description = "岗位", example = "FULL_STACK")
+    private Position position;
+
     public Long getId() {
         return id;
     }
@@ -113,5 +117,13 @@ public class UserUpdateReq {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
     }
 }

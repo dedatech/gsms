@@ -24,6 +24,21 @@
           @clear="handleSearch"
           @keyup.enter="handleSearch"
         />
+        <el-select
+          v-model="searchForm.position"
+          placeholder="岗位筛选"
+          clearable
+          style="width: 150px; margin-right: 16px"
+          @clear="handleSearch"
+          @change="handleSearch"
+        >
+          <el-option
+            v-for="item in POSITION_OPTIONS"
+            :key="item.name"
+            :label="item.label"
+            :value="item.name"
+          />
+        </el-select>
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
@@ -37,6 +52,14 @@
         <el-table-column prop="nickname" label="姓名" min-width="100" />
         <el-table-column prop="email" label="邮箱" min-width="180" />
         <el-table-column prop="departmentName" label="部门" min-width="120" />
+        <el-table-column prop="positionName" label="岗位" width="120">
+          <template #default="{ row }">
+            <el-tag v-if="row.positionName" type="info" size="small">
+              {{ row.positionName }}
+            </el-tag>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
             <el-tag :type="row.status === 'NORMAL' ? 'success' : 'danger'" size="small">
@@ -160,6 +183,21 @@
             style="width: 100%"
           />
         </el-form-item>
+        <el-form-item label="岗位" prop="position">
+          <el-select
+            v-model="editForm.position"
+            placeholder="请选择岗位"
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in POSITION_OPTIONS"
+              :key="item.name"
+              :label="item.label"
+              :value="item.name"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="editForm.email" placeholder="请输入邮箱" />
         </el-form-item>
@@ -231,6 +269,7 @@ import { Search, Plus } from '@element-plus/icons-vue'
 import { getUserList, assignUserRoles, getUserRoles, createUser, updateUser, deleteUser, resetPassword, type UserInfo, type UserQuery } from '@/api/user'
 import { getRoleList, type RoleInfo } from '@/api/role'
 import { getAllDepartments, type DepartmentInfo } from '@/api/department'
+import { POSITION_OPTIONS, getPositionLabel } from '@/config/position'
 
 // 状态定义
 const list = ref<UserInfo[]>([])
@@ -303,6 +342,7 @@ const editForm = reactive({
   email: '',
   phone: '',
   departmentId: undefined as number | undefined,
+  position: undefined as string | undefined,
   status: 'NORMAL' as 'NORMAL' | 'DISABLED'
 })
 
@@ -396,6 +436,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.username = ''
   searchForm.nickname = ''
+  searchForm.position = undefined
   searchForm.pageNum = 1
   fetchData()
 }
@@ -453,6 +494,7 @@ const handleCreate = () => {
   editForm.email = ''
   editForm.phone = ''
   editForm.departmentId = undefined
+  editForm.position = undefined
   editForm.status = 'NORMAL'
   editDialogVisible.value = true
 }
@@ -466,6 +508,7 @@ const handleEdit = (row: UserInfo) => {
   editForm.email = row.email || ''
   editForm.phone = row.phone || ''
   editForm.departmentId = row.departmentId
+  editForm.position = row.position
   editForm.status = row.status
   editDialogVisible.value = true
 }
@@ -517,6 +560,7 @@ const handleSubmitEdit = async () => {
         email: editForm.email || undefined,
         phone: editForm.phone || undefined,
         departmentId: editForm.departmentId,
+        position: editForm.position,
         status: editForm.status
       })
       ElMessage.success('用户更新成功')
@@ -529,6 +573,7 @@ const handleSubmitEdit = async () => {
         email: editForm.email || undefined,
         phone: editForm.phone || undefined,
         departmentId: editForm.departmentId,
+        position: editForm.position,
         status: editForm.status
       })
       ElMessage.success('用户创建成功')
@@ -582,6 +627,7 @@ const handleEditDialogClose = () => {
   editForm.email = ''
   editForm.phone = ''
   editForm.departmentId = undefined
+  editForm.position = undefined
   editForm.status = 'NORMAL'
 }
 
@@ -641,5 +687,11 @@ const formatDate = (dateStr: string) => {
 /* 树形选择器下拉框样式优化 */
 :deep(.el-tree-select__popper) {
   z-index: 9999 !important;
+}
+
+/* 文本 muted 样式 */
+.text-muted {
+  color: #999;
+  font-size: 13px;
 }
 </style>

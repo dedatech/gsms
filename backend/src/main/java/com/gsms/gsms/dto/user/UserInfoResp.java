@@ -2,6 +2,7 @@ package com.gsms.gsms.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.entity.User;
+import com.gsms.gsms.model.enums.Position;
 import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,6 +40,12 @@ public class UserInfoResp {
 
     @Schema(description = "部门名称")
     private String departmentName;
+
+    @Schema(description = "岗位")
+    private Position position;
+
+    @Schema(description = "岗位名称")
+    private String positionName;
 
     @Schema(description = "创建人ID")
     private Long createUserId;
@@ -143,6 +150,22 @@ public class UserInfoResp {
         this.departmentName = departmentName;
     }
 
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public String getPositionName() {
+        return positionName;
+    }
+
+    public void setPositionName(String positionName) {
+        this.positionName = positionName;
+    }
+
     public Long getCreateUserId() {
         return createUserId;
     }
@@ -191,6 +214,10 @@ public class UserInfoResp {
         resp.setPhone(user.getPhone());
         resp.setStatus(user.getStatus());
         resp.setDepartmentId(user.getDepartmentId());
+        resp.setPosition(user.getPosition());
+        if (user.getPosition() != null) {
+            resp.setPositionName(user.getPosition().getDesc());
+        }
         resp.setCreateUserId(user.getCreateUserId());
         resp.setUpdateUserId(user.getUpdateUserId());
         resp.setCreateTime(user.getCreateTime());

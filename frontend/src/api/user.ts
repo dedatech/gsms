@@ -6,6 +6,7 @@ export interface UserQuery {
   nickname?: string
   departmentId?: number
   status?: number
+  position?: string // 岗位枚举名称
   pageNum?: number
   pageSize?: number
 }
@@ -18,6 +19,8 @@ export interface UserInfo {
   phone?: string
   departmentId?: number
   departmentName?: string
+  position?: string // 岗位枚举名称
+  positionName?: string // 岗位显示名称
   status: string // 'NORMAL' | 'DISABLED'
   createTime?: string
   roles?: RoleInfo[]
@@ -77,6 +80,7 @@ export const createUser = (data: {
   email?: string
   phone?: string
   departmentId?: number
+  position?: string // 岗位枚举名称
   status?: string // 'NORMAL' | 'DISABLED'
 }) => {
   return request.post('/users', data)
@@ -91,6 +95,7 @@ export const updateUser = (data: {
   email?: string
   phone?: string
   departmentId?: number
+  position?: string // 岗位枚举名称
   status?: string // 'NORMAL' | 'DISABLED'
 }) => {
   return request.put('/users', data)

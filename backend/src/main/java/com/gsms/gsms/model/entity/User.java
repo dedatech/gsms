@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.model.enums.Position;
 import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -59,6 +60,13 @@ public class User {
     @Schema(description = "部门ID")
     @TableField("department_id")
     private Long departmentId;
+
+    /**
+     * 岗位
+     */
+    @Schema(description = "岗位")
+    @TableField(typeHandler = com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler.class)
+    private Position position;
 
     /**
      * 状态
@@ -168,6 +176,14 @@ public class User {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public UserStatus getStatus() {

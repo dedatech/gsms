@@ -1,6 +1,7 @@
 package com.gsms.gsms.dto.user;
 
 import com.gsms.gsms.dto.BasePageQuery;
+import com.gsms.gsms.model.enums.Position;
 import com.gsms.gsms.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -16,6 +17,9 @@ public class UserQueryReq extends BasePageQuery {
     @Schema(description = "用户状态", example = "NORMAL")
     private UserStatus status;
 
+    @Schema(description = "岗位", example = "FULL_STACK")
+    private Position position;
+
     public String getUsername() {
         return username;
     }
@@ -30,5 +34,13 @@ public class UserQueryReq extends BasePageQuery {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
     }
 }
