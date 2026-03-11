@@ -102,6 +102,15 @@
           </template>
         </el-table-column>
 
+        <el-table-column label="计划开始时间" width="120">
+          <template #default="{ row }">
+            <template v-if="row.type === 'task'">
+              <span v-if="row.planStartDate">{{ row.planStartDate }}</span>
+              <span v-else>-</span>
+            </template>
+          </template>
+        </el-table-column>
+
         <el-table-column label="计划结束时间" width="120">
           <template #default="{ row }">
             <template v-if="row.type === 'task'">
@@ -359,6 +368,7 @@ const taskToTreeNode = (task: TaskInfo, level: number = 0): TreeNode => {
     status: task.status,
     priority: task.priority,
     assigneeName: task.assigneeName || undefined,
+    planStartDate: task.planStartDate || undefined,
     planEndDate: task.planEndDate || undefined,
     estimateHours: task.estimateHours || undefined,
     iterationId: task.iterationId,
@@ -388,16 +398,16 @@ const handleExpandChange = (row: TreeNode, expanded: boolean) => {
 const handleSpanMethod = ({ row, columnIndex }: { row: TreeNode; columnIndex: number }) => {
   if (row.type === 'iteration') {
     // 迭代行合并逻辑
-    // 列索引：0=箭头, 1=ID, 2=任务名称, 3=优先级, 4=负责人, 5=时间, 6=工时, 7=操作
+    // 列索引：0=箭头, 1=ID, 2=任务名称, 3=优先级, 4=负责人, 5=开始时间, 6=结束时间, 7=工时, 8=操作
     if (columnIndex === 0) {
       return [1, 1] // 箭头列独立
     } else if (columnIndex === 1) {
       return [1, 1] // ID列独立
     } else if (columnIndex === 2) {
-      return [1, 5] // 任务名称列合并5列（优先级、负责人、时间、工时）
-    } else if (columnIndex >= 3 && columnIndex <= 6) {
+      return [1, 6] // 任务名称列合并6列（优先级、负责人、开始时间、结束时间、工时）
+    } else if (columnIndex >= 3 && columnIndex <= 7) {
       return [0, 0] // 被合并的列不显示
-    } else if (columnIndex === 7) {
+    } else if (columnIndex === 8) {
       return [1, 1] // 操作列独立
     }
   }

@@ -356,6 +356,93 @@
       </template>
     </el-dialog>
 
+    <!-- 编辑任务对话框 -->
+    <el-dialog
+      v-model="editTaskDialogVisible"
+      title="编辑任务"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="editTaskFormRef" :model="editTaskFormData" :rules="editTaskFormRules" label-width="100px">
+        <el-form-item label="任务标题" prop="title">
+          <el-input v-model="editTaskFormData.title" placeholder="请输入任务标题" />
+        </el-form-item>
+        <el-form-item label="任务描述">
+          <el-input
+            v-model="editTaskFormData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入任务描述"
+          />
+        </el-form-item>
+        <el-form-item label="优先级">
+          <el-radio-group v-model="editTaskFormData.priority">
+            <el-radio value="LOW">低</el-radio>
+            <el-radio value="MEDIUM">中</el-radio>
+            <el-radio value="HIGH">高</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="任务状态">
+          <el-radio-group v-model="editTaskFormData.status">
+            <el-radio value="TODO">待办</el-radio>
+            <el-radio value="IN_PROGRESS">进行中</el-radio>
+            <el-radio value="DONE">已完成</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="负责人">
+          <el-select
+            v-model="editTaskFormData.assigneeId"
+            placeholder="请选择负责人"
+            filterable
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="user in availableUsers"
+              :key="user.id"
+              :label="user.nickname"
+              :value="user.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="计划开始时间">
+          <el-date-picker
+            v-model="editTaskFormData.planStartDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="计划结束时间">
+          <el-date-picker
+            v-model="editTaskFormData.planEndDate"
+            type="date"
+            placeholder="选择日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="预估工时">
+          <el-input-number
+            v-model="editTaskFormData.estimateHours"
+            :min="0"
+            :max="999"
+            :precision="1"
+            placeholder="请输入预估工时"
+            style="width: 100%"
+          />
+          <span style="margin-left: 10px; color: #999">小时</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editTaskDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleEditTaskSubmit" :loading="editTaskLoading">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 项目信息侧边栏 -->
     <ProjectInfoSidebar
       v-model:visible="showProjectInfo"
@@ -399,7 +486,7 @@ import {
   Upload
 } from '@element-plus/icons-vue'
 import { getProjectDetail, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/project'
-import { getTaskList, getTasksByProjectId, createTask, updateTask, deleteTask } from '@/api/task'
+import { getTaskList, getTasksByProjectId, createTask, updateTask, deleteTask, getTaskDetail } from '@/api/task'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getProjectStatusInfo } from '@/utils/statusMapping'
 import { getIterationList, createIteration, updateIteration, deleteIteration, type IterationInfo } from '@/api/iteration'
@@ -868,10 +955,89 @@ const handleEditIteration = (iteration: any) => {
   iterationDialogVisible.value = true
 }
 
+// 编辑任务对话框
+const editTaskDialogVisible = ref(false)
+const editTaskFormRef = ref<FormInstance>()
+const editTaskLoading = ref(false)
+const editTaskFormData = reactive({
+  id: 0,
+  title: '',
+  description: '',
+  priority: 'MEDIUM',
+  assigneeId: undefined as number | undefined,
+  status: 'TODO',
+  planStartDate: '',
+  planEndDate: '',
+  estimateHours: undefined as number | undefined
+})
+const editTaskFormRules: FormRules = {
+  title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }]
+}
+
 // 编辑任务
-const handleEditTask = (task: any) => {
-  // TODO: 打开编辑任务对话框或跳转到任务详情页
-  ElMessage.info('编辑任务功能待实现（可以跳转到任务详情页）')
+const handleEditTask = async (task: any) => {
+  try {
+    // 先获取任务详情，确保数据完整
+    const taskDetail = await getTaskDetail(task.id)
+
+    // 使用详情数据回填表单
+    editTaskFormData.id = taskDetail.id
+    editTaskFormData.title = taskDetail.title
+    editTaskFormData.description = taskDetail.description || ''
+    editTaskFormData.priority = taskDetail.priority || 'MEDIUM'
+    editTaskFormData.assigneeId = taskDetail.assigneeId
+    editTaskFormData.status = taskDetail.status || 'TODO'
+    editTaskFormData.planStartDate = taskDetail.planStartDate || ''
+    editTaskFormData.planEndDate = taskDetail.planEndDate || ''
+    editTaskFormData.estimateHours = taskDetail.estimateHours
+
+    editTaskDialogVisible.value = true
+  } catch (error) {
+    console.error('获取任务详情失败:', error)
+    ElMessage.error('获取任务详情失败')
+  }
+}
+
+// 提交编辑任务
+const handleEditTaskSubmit = async () => {
+  if (!editTaskFormRef.value) return
+
+  await editTaskFormRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    editTaskLoading.value = true
+    try {
+      await updateTask({
+        id: editTaskFormData.id,
+        projectId: projectId.value,  // 传递当前项目ID
+        title: editTaskFormData.title,
+        description: editTaskFormData.description,
+        priority: editTaskFormData.priority,
+        assigneeId: editTaskFormData.assigneeId,
+        status: editTaskFormData.status,
+        planStartDate: editTaskFormData.planStartDate || undefined,
+        planEndDate: editTaskFormData.planEndDate || undefined,
+        estimateHours: editTaskFormData.estimateHours
+      })
+      ElMessage.success('更新成功')
+      editTaskDialogVisible.value = false
+      // 刷新任务列表
+      fetchTasks()
+      // 刷新需求视图
+      if (requirementsViewRef.value) {
+        requirementsViewRef.value.refresh()
+      }
+      // 刷新规划视图
+      if (planningViewRef.value) {
+        planningViewRef.value.refresh()
+      }
+    } catch (error) {
+      console.error('更新任务失败:', error)
+      ElMessage.error('更新任务失败')
+    } finally {
+      editTaskLoading.value = false
+    }
+  })
 }
 
 // 查看任务

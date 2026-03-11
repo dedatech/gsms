@@ -79,12 +79,14 @@ export interface TaskUpdateReq {
   iterationId?: number
   parentId?: number
   assigneeId?: number
-  priority?: number
-  status?: number
+  type?: string  // 任务类型：TASK, REQUIREMENT, BUG
+  priority?: string  // 优先级：LOW, MEDIUM, HIGH
+  status?: string  // 状态：TODO, IN_PROGRESS, DONE
   planStartDate?: string
   planEndDate?: string
   actualStartDate?: string
   actualEndDate?: string
+  estimateHours?: number
 }
 
 export const updateTask = (data: TaskUpdateReq) => {
