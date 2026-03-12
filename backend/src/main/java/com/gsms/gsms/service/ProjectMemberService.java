@@ -31,6 +31,15 @@ public interface ProjectMemberService {
     List<ProjectMemberResp> listMembersRespByProjectId(Long projectId);
 
     /**
+     * 查询指定项目的成员列表（包含用户信息）
+     *
+     * @param projectId 项目ID
+     * @param excludeReadOnly 是否排除只读访客（true=排除，false=包含，默认true）
+     * @return 项目成员响应列表（包含用户名、角色名等）
+     */
+    List<ProjectMemberResp> listMembersRespByProjectId(Long projectId, Boolean excludeReadOnly);
+
+    /**
      * 为项目批量添加成员
      *
      * 将多个用户添加到项目中，并指定角色类型。自动过滤已存在的成员

@@ -48,8 +48,8 @@ export const deleteProject = (id: number) => {
 }
 
 // 获取项目成员列表
-export const getProjectMembers = (projectId: number) => {
-  return request.get(`/projects/${projectId}/members`)
+export const getProjectMembers = (projectId: number, excludeReadOnly = true) => {
+  return request.get(`/projects/${projectId}/members`, { params: { excludeReadOnly } })
 }
 
 // 添加项目成员

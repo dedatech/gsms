@@ -67,8 +67,22 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public List<ProjectMemberResp> listMembersRespByProjectId(Long projectId) {
-        logger.info("查询项目成员响应列表: projectId={}", projectId);
+        // 默认排除只读访客
+        return listMembersRespByProjectId(projectId, true);
+    }
+
+    @Override
+    public List<ProjectMemberResp> listMembersRespByProjectId(Long projectId, Boolean excludeReadOnly) {
+        logger.info("查询项目成员响应列表: projectId={}, excludeReadOnly={}", projectId, excludeReadOnly);
         List<ProjectMember> members = listMembersByProjectId(projectId);
+
+        // 如果需要排除只读访客，进行过滤
+        if (excludeReadOnly != null && excludeReadOnly) {
+            members = members.stream()
+                .filter(m -> !ProjectMemberRole.READ_ONLY.getCode().equals(m.getRoleType()))
+                .collect(Collectors.toList());
+            logger.debug("已过滤只读访客，剩余{}个成员", members.size());
+        }
 
         // 转换为响应DTO并填充用户名和角色名
         List<ProjectMemberResp> respList = members.stream().map(member -> {
