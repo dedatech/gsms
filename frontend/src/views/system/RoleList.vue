@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h2 class="page-title">角色管理</h2>
-        <el-button type="primary" :icon="Plus" @click="handleCreate">新建角色</el-button>
+        <el-button v-permission="'ROLE_CREATE'" type="primary" :icon="Plus" @click="handleCreate">新建角色</el-button>
       </div>
       <div class="header-right">
         <el-input
@@ -52,10 +52,10 @@
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleAssignPermissions(row)">
+            <el-button v-permission="'ROLE_EDIT'" link type="primary" size="small" @click="handleAssignPermissions(row)">
               分配权限
             </el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">
+            <el-button v-permission="'ROLE_EDIT'" link type="primary" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
             <el-button link type="primary" size="small" @click="handleViewUsers(row)">

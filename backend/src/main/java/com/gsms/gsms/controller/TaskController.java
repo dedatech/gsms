@@ -6,6 +6,7 @@ import com.gsms.gsms.dto.task.TaskUpdateReq;
 import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.model.entity.Task;
 import com.gsms.gsms.dto.task.TaskInfoResp;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.TaskService;
@@ -40,6 +41,7 @@ public class TaskController {
      */
     @GetMapping("/search")
     @Operation(summary = "根据条件分页查询任务")
+    @RequiresPermission("TASK_VIEW")
     public PageResult<TaskInfoResp> search(@Valid TaskQueryReq req) {
         logger.info("根据条件分页查询任务: projectId={}, assigneeId={}, status={}, pageNum={}, pageSize={}",
                     req.getProjectId(), req.getAssigneeId(), req.getStatus(), req.getPageNum(), req.getPageSize());
@@ -61,6 +63,7 @@ public class TaskController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询任务")
+    @RequiresPermission("TASK_VIEW")
     public Result<TaskInfoResp> getById(@PathVariable Long id) {
         logger.info("根据ID查询任务: {}", id);
         Task task = taskService.getById(id);
@@ -77,6 +80,7 @@ public class TaskController {
      */
     @PostMapping
     @Operation(summary = "创建任务")
+    @RequiresPermission("TASK_CREATE")
     public Result<TaskInfoResp> create(@RequestBody @Valid TaskCreateReq req) {
         logger.info("创建任务: title={}, projectId={}, iterationId={}, parentId={}",
                 req.getTitle(), req.getProjectId(), req.getIterationId(), req.getParentId());
@@ -95,6 +99,7 @@ public class TaskController {
      */
     @PutMapping
     @Operation(summary = "更新任务")
+    @RequiresPermission("TASK_EDIT")
     public Result<TaskInfoResp> update(@RequestBody @Valid TaskUpdateReq req) {
         logger.info("更新任务: id={}, title={}, projectId={}, iterationId={}, parentId={}",
                 req.getId(), req.getTitle(), req.getProjectId(), req.getIterationId(), req.getParentId());
@@ -112,6 +117,7 @@ public class TaskController {
      */
     @PutMapping("/status")
     @Operation(summary = "更新任务状态")
+    @RequiresPermission("TASK_EDIT")
     public Result<TaskInfoResp> updateStatus(@RequestBody @Valid TaskStatusUpdateReq req) {
         logger.info("更新任务状态: taskId={}, status={}", req.getId(), req.getStatus());
         Task updatedTask = taskService.updateStatus(req);
@@ -129,6 +135,7 @@ public class TaskController {
      */
     @PutMapping("/{taskId}/iteration")
     @Operation(summary = "更新任务迭代ID")
+    @RequiresPermission("TASK_EDIT")
     public Result<TaskInfoResp> updateIterationId(
             @PathVariable Long taskId,
             @RequestParam(required = false) Long iterationId) {
@@ -147,6 +154,7 @@ public class TaskController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除任务")
+    @RequiresPermission("TASK_DELETE")
     public Result<String> delete(@PathVariable Long id) {
         logger.info("删除任务: {}", id);
         taskService.delete(id);
@@ -162,6 +170,7 @@ public class TaskController {
      */
     @GetMapping("/{id}/subtasks")
     @Operation(summary = "获取子任务列表")
+    @RequiresPermission("TASK_VIEW")
     public Result<java.util.List<TaskInfoResp>> getSubtasks(@PathVariable Long id) {
         logger.info("获取子任务列表: parentId={}", id);
         java.util.List<TaskInfoResp> subtasks = taskService.getSubtasks(id);

@@ -89,9 +89,9 @@
                     <el-icon class="more-icon" @click.stop><MoreFilled /></el-icon>
                     <template #dropdown>
                       <el-dropdown-menu>
-                        <el-dropdown-item command="addSubtask" :icon="Plus">添加子任务</el-dropdown-item>
-                        <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
-                        <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
+                        <el-dropdown-item v-permission="'TASK_CREATE'" command="addSubtask" :icon="Plus">添加子任务</el-dropdown-item>
+                        <el-dropdown-item v-permission="'TASK_EDIT'" command="edit" :icon="Edit">编辑</el-dropdown-item>
+                        <el-dropdown-item v-permission="'TASK_DELETE'" command="delete" :icon="Delete" divided>删除</el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
@@ -186,6 +186,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button
+              v-permission="'TASK_CREATE'"
               link
               type="primary"
               :icon="Plus"

@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.role.RoleInfoResp;
 import com.gsms.gsms.dto.role.RolePermissionAssignReq;
 import com.gsms.gsms.dto.role.RoleQueryReq;
 import com.gsms.gsms.dto.role.RoleUpdateReq;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.service.RoleService;
@@ -43,6 +44,7 @@ public class RoleController {
      */
     @Operation(summary = "根据ID获取角色")
     @GetMapping("/{id}")
+    @RequiresPermission("ROLE_VIEW")
     public Result<RoleInfoResp> getById(
             @Parameter(description = "角色ID", required = true) @PathVariable Long id) {
         logger.info("根据ID查询角色: {}", id);
@@ -59,6 +61,7 @@ public class RoleController {
      */
     @Operation(summary = "根据条件分页查询角色")
     @GetMapping
+    @RequiresPermission("ROLE_VIEW")
     public PageResult<RoleInfoResp> findAll(@Valid RoleQueryReq req) {
         logger.info("根据条件分页查询角色: name={}, code={}, roleType={}, pageNum={}, pageSize={}",
                 req.getName(), req.getCode(), req.getRoleType(), req.getPageNum(), req.getPageSize());
@@ -73,6 +76,7 @@ public class RoleController {
      */
     @Operation(summary = "创建角色")
     @PostMapping
+    @RequiresPermission("ROLE_CREATE")
     public Result<RoleInfoResp> create(@Validated @RequestBody RoleCreateReq req) {
         logger.info("创建角色: {}", req.getName());
         RoleInfoResp createdRole = roleService.create(req);
@@ -88,6 +92,7 @@ public class RoleController {
      */
     @Operation(summary = "更新角色")
     @PutMapping
+    @RequiresPermission("ROLE_EDIT")
     public Result<RoleInfoResp> update(@Validated @RequestBody RoleUpdateReq req) {
         logger.info("更新角色: {}", req.getId());
         RoleInfoResp updatedRole = roleService.update(req);
@@ -103,6 +108,7 @@ public class RoleController {
      */
     @Operation(summary = "删除角色")
     @DeleteMapping("/{id}")
+    @RequiresPermission("ROLE_DELETE")
     public Result<String> delete(
             @Parameter(description = "角色ID", required = true) @PathVariable Long id) {
         logger.info("删除角色: {}", id);
@@ -119,6 +125,7 @@ public class RoleController {
      */
     @Operation(summary = "查询角色权限列表")
     @GetMapping("/{id}/permissions")
+    @RequiresPermission("ROLE_VIEW")
     public Result<List<Long>> getPermissions(
             @Parameter(description = "角色ID", required = true) @PathVariable Long id) {
         logger.info("查询角色权限列表: roleId={}", id);
@@ -135,6 +142,7 @@ public class RoleController {
      */
     @Operation(summary = "为角色分配权限")
     @PostMapping("/{id}/permissions")
+    @RequiresPermission("ROLE_EDIT")
     public Result<String> assignPermissions(
             @Parameter(description = "角色ID", required = true) @PathVariable Long id,
             @Validated @RequestBody RolePermissionAssignReq req) {
@@ -154,6 +162,7 @@ public class RoleController {
      */
     @Operation(summary = "移除角色权限")
     @DeleteMapping("/{roleId}/permissions/{permissionId}")
+    @RequiresPermission("ROLE_EDIT")
     public Result<String> removePermission(
             @Parameter(description = "角色ID", required = true) @PathVariable Long roleId,
             @Parameter(description = "权限ID", required = true) @PathVariable Long permissionId) {

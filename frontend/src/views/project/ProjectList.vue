@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h2 class="page-title">项目管理</h2>
-        <el-button type="primary" :icon="Plus" @click="handleCreate">新建项目</el-button>
+        <el-button v-permission="'PROJECT_CREATE'" type="primary" :icon="Plus" @click="handleCreate">新建项目</el-button>
       </div>
       <div class="header-right">
         <el-input
@@ -84,8 +84,8 @@
                       <el-dropdown-menu>
                         <el-dropdown-item command="view" :icon="View">查看</el-dropdown-item>
                         <el-dropdown-item command="gantt" :icon="View">甘特图</el-dropdown-item>
-                        <el-dropdown-item command="edit" :icon="Edit">编辑</el-dropdown-item>
-                        <el-dropdown-item command="delete" :icon="Delete" divided>删除</el-dropdown-item>
+                        <el-dropdown-item v-permission="'PROJECT_EDIT'" command="edit" :icon="Edit">编辑</el-dropdown-item>
+                        <el-dropdown-item v-permission="'PROJECT_DELETE'" command="delete" :icon="Delete" divided>删除</el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
@@ -172,8 +172,8 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :icon="View" @click.native="handleView(row)">查看详情</el-dropdown-item>
-                  <el-dropdown-item :icon="Edit" @click.native="handleEdit(row)">编辑项目</el-dropdown-item>
-                  <el-dropdown-item :icon="Delete" divided @click.native="handleDelete(row)">删除项目</el-dropdown-item>
+                  <el-dropdown-item v-permission="'PROJECT_EDIT'" :icon="Edit" @click.native="handleEdit(row)">编辑项目</el-dropdown-item>
+                  <el-dropdown-item v-permission="'PROJECT_DELETE'" :icon="Delete" divided @click.native="handleDelete(row)">删除项目</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>

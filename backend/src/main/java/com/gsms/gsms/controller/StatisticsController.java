@@ -1,6 +1,12 @@
 package com.gsms.gsms.controller;
 
 import com.gsms.gsms.infra.common.Result;
+import com.gsms.gsms.infra.exception.BusinessException;
+import com.gsms.gsms.infra.exception.CommonErrorCode;
+import com.gsms.gsms.infra.utils.UserContext;
+import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.repository.TaskMapper;
+import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,9 +32,16 @@ public class StatisticsController {
     private static final Logger logger = LoggerFactory.getLogger(StatisticsController.class);
 
     private final StatisticsService statisticsService;
+    private final AuthService authService;
+    private final TaskMapper taskMapper;
 
-    public StatisticsController(StatisticsService statisticsService) {
+    public StatisticsController(
+            StatisticsService statisticsService,
+            AuthService authService,
+            TaskMapper taskMapper) {
         this.statisticsService = statisticsService;
+        this.authService = authService;
+        this.taskMapper = taskMapper;
     }
 
     /**
@@ -48,6 +61,14 @@ public class StatisticsController {
             @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询项目工时统计: projectId={}, startDate={}, endDate={}", projectId, startDate, endDate);
+
+        // 权限检查：检查用户是否有该项目的访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+        authService.checkProjectAccess(currentUserId, projectId);
+
         Map<String, Object> statistics = statisticsService.getProjectWorkHourStatistics(projectId, startDate, endDate);
         logger.info("项目工时统计查询成功: projectId={}, totalHours={}", projectId, statistics.get("totalHours"));
         return Result.success(statistics);
@@ -70,6 +91,18 @@ public class StatisticsController {
             @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询用户工时统计: userId={}, startDate={}, endDate={}", userId, startDate, endDate);
+
+        // 权限检查：只能查看自己的工时统计，或者有全局查看权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        // 如果查询的不是自己的数据，需要有全局查看权限
+        if (!currentUserId.equals(userId)) {
+            authService.checkWorkHourAccess(currentUserId, userId);
+        }
+
         Map<String, Object> statistics = statisticsService.getUserWorkHourStatistics(userId, startDate, endDate);
         logger.info("用户工时统计查询成功: userId={}, totalHours={}", userId, statistics.get("totalHours"));
         return Result.success(statistics);
@@ -92,6 +125,18 @@ public class StatisticsController {
             @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询部门工时统计: departmentId={}, startDate={}, endDate={}", departmentId, startDate, endDate);
+
+        // 权限检查：需要有全局查看权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        // 部门统计数据需要管理员权限才能查看
+        if (!authService.canViewAllProjects(currentUserId)) {
+            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+        }
+
         Map<String, Object> statistics = statisticsService.getDepartmentWorkHourStatistics(departmentId, startDate, endDate);
         logger.info("部门工时统计查询成功: departmentId={}, totalHours={}", departmentId, statistics.get("totalHours"));
         return Result.success(statistics);
@@ -110,6 +155,22 @@ public class StatisticsController {
     public Result<Map<String, Object>> getTaskWorkHourStatistics(
             @Parameter(description = "任务ID", required = true) @PathVariable Long taskId) {
         logger.info("查询任务工时统计: taskId={}", taskId);
+
+        // 权限检查：需要能访问该任务所属的项目
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        // 获取任务信息以检查项目权限
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+        }
+
+        // 检查是否有访问任务所属项目的权限
+        authService.checkProjectAccess(currentUserId, task.getProjectId());
+
         Map<String, Object> statistics = statisticsService.getTaskWorkHourStatistics(taskId);
         logger.info("任务工时统计查询成功: taskId={}, totalHours={}", taskId, statistics.get("totalHours"));
         return Result.success(statistics);
@@ -128,6 +189,14 @@ public class StatisticsController {
     public Result<Map<String, Object>> getProjectTaskCompletionStatistics(
             @Parameter(description = "项目ID", required = true) @PathVariable Long projectId) {
         logger.info("查询项目任务完成度统计: projectId={}", projectId);
+
+        // 权限检查：检查用户是否有该项目的访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+        authService.checkProjectAccess(currentUserId, projectId);
+
         Map<String, Object> statistics = statisticsService.getProjectTaskCompletionStatistics(projectId);
         logger.info("项目任务完成度统计查询成功: projectId={}, completionRate={}", projectId, statistics.get("completionRate"));
         return Result.success(statistics);
@@ -152,6 +221,30 @@ public class StatisticsController {
             @Parameter(description = "开始日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @Parameter(description = "结束日期", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         logger.info("查询工时趋势统计: projectId={}, userId={}, startDate={}, endDate={}", projectId, userId, startDate, endDate);
+
+        // 权限检查：根据参数动态检查权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        // 如果指定了项目，检查项目访问权限
+        if (projectId != null) {
+            authService.checkProjectAccess(currentUserId, projectId);
+        }
+
+        // 如果指定了用户（且不是自己），需要全局权限
+        if (userId != null && !currentUserId.equals(userId)) {
+            authService.checkWorkHourAccess(currentUserId, userId);
+        }
+
+        // 如果既没有指定项目也没有指定用户，需要全局权限
+        if (projectId == null && userId == null) {
+            if (!authService.canViewAllProjects(currentUserId)) {
+                throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            }
+        }
+
         Map<String, Object> statistics = statisticsService.getWorkHourTrendStatistics(projectId, userId, startDate, endDate);
         logger.info("工时趋势统计查询成功: totalHours={}", statistics.get("totalHours"));
         return Result.success(statistics);
@@ -168,6 +261,13 @@ public class StatisticsController {
     @GetMapping("/dashboard")
     public Result<Map<String, Object>> getDashboardData() {
         logger.info("查询首页看板数据");
+
+        // 确保用户已登录（Service 层已有此检查，这里只是防御性编程）
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED);
+        }
+
         Map<String, Object> dashboardData = statisticsService.getDashboardData();
         logger.info("首页看板数据查询成功: {}", dashboardData.keySet());
         return Result.success(dashboardData);

@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.workhour.WorkHourCreateReq;
 import com.gsms.gsms.dto.workhour.WorkHourQueryReq;
 import com.gsms.gsms.dto.workhour.WorkHourUpdateReq;
 import com.gsms.gsms.model.entity.WorkHour;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.WorkHourService;
@@ -42,6 +43,7 @@ public class WorkHourController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询工时记录")
+    @RequiresPermission("WORKHOUR_VIEW")
     public Result<WorkHour> getWorkHourById(@PathVariable Long id) {
         logger.info("根据ID查询工时记录: {}", id);
         WorkHour workHour = workHourService.getWorkHourById(id);
@@ -57,6 +59,7 @@ public class WorkHourController {
      */
     @GetMapping("/user/{userId}")
     @Operation(summary = "根据用户ID分页查询工时记录")
+    @RequiresPermission("WORKHOUR_VIEW")
     public PageResult<WorkHour> getWorkHoursByUserId(@PathVariable Long userId) {
         logger.info("根据用户ID分页查询工时记录: {}", userId);
         List<WorkHour> workHours = workHourService.getWorkHoursByUserId(userId);
@@ -72,6 +75,7 @@ public class WorkHourController {
      */
     @GetMapping("/project/{projectId}")
     @Operation(summary = "根据项目ID分页查询工时记录")
+    @RequiresPermission("WORKHOUR_VIEW")
     public PageResult<WorkHour> getWorkHoursByProjectId(@PathVariable Long projectId) {
         logger.info("根据项目ID分页查询工时记录: {}", projectId);
         List<WorkHour> workHours = workHourService.getWorkHoursByProjectId(projectId);
@@ -87,6 +91,7 @@ public class WorkHourController {
      */
     @PostMapping("/query")
     @Operation(summary = "根据条件查询工时记录")
+    @RequiresPermission("WORKHOUR_VIEW")
     public PageResult<WorkHour> getWorkHoursByCondition(@Valid @RequestBody WorkHourQueryReq req) {
         logger.info("根据条件查询工时记录: {}", req);
         PageHelper.startPage(req.getPageNum(), req.getPageSize());
@@ -104,6 +109,7 @@ public class WorkHourController {
      */
     @PostMapping
     @Operation(summary = "创建工时记录")
+    @RequiresPermission("WORKHOUR_CREATE")
     public Result<WorkHour> createWorkHour(@Valid @RequestBody WorkHourCreateReq req) {
         logger.info("创建工时记录: {}", req);
         WorkHour workHour = WorkHourConverter.toWorkHour(req);
@@ -120,6 +126,7 @@ public class WorkHourController {
      */
     @PostMapping("/batch")
     @Operation(summary = "批量创建工时记录")
+    @RequiresPermission("WORKHOUR_CREATE")
     public Result<List<WorkHour>> createWorkHoursBatch(@Valid @RequestBody List<WorkHourCreateReq> reqs) {
         logger.info("批量创建工时记录，数量: {}", reqs.size());
         List<WorkHour> workHours = reqs.stream()
@@ -138,6 +145,7 @@ public class WorkHourController {
      */
     @PutMapping
     @Operation(summary = "更新工时记录")
+    @RequiresPermission("WORKHOUR_EDIT")
     public Result<WorkHour> updateWorkHour(@Valid @RequestBody WorkHourUpdateReq req) {
         logger.info("更新工时记录: {}", req);
         WorkHour workHour = WorkHourConverter.toWorkHour(req);
@@ -154,6 +162,7 @@ public class WorkHourController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除工时记录")
+    @RequiresPermission("WORKHOUR_DELETE")
     public Result<Void> deleteWorkHour(@PathVariable Long id) {
         logger.info("删除工时记录: {}", id);
         workHourService.deleteWorkHour(id);

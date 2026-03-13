@@ -10,6 +10,7 @@ import com.gsms.gsms.dto.user.UserUpdateReq;
 import com.gsms.gsms.dto.user.UserProfileUpdateReq;
 import com.gsms.gsms.dto.user.PasswordChangeReq;
 import com.gsms.gsms.dto.user.PasswordResetReq;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.utils.JwtUtil;
@@ -46,6 +47,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询用户")
+    @RequiresPermission("USER_VIEW")
     public Result<UserInfoResp> getById(@PathVariable Long id) {
         logger.info("查询用户: {}", id);
         return Result.success(userService.getById(id));
@@ -56,6 +58,7 @@ public class UserController {
      */
     @GetMapping
     @Operation(summary = "分页查询用户列表")
+    @RequiresPermission("USER_VIEW")
     public PageResult<UserInfoResp> findAll(UserQueryReq userQueryReq) {
         logger.info("查询用户列表: {}", userQueryReq);
         return userService.findAll(userQueryReq);
@@ -66,6 +69,7 @@ public class UserController {
      */
     @PostMapping
     @Operation(summary = "创建用户")
+    @RequiresPermission("USER_CREATE")
     public Result<UserInfoResp> create(@Valid @RequestBody UserCreateReq createReq) {
         logger.info("创建用户: {}", createReq.getUsername());
         UserInfoResp resp = userService.create(createReq);
@@ -77,6 +81,7 @@ public class UserController {
      */
     @PostMapping("/batch")
     @Operation(summary = "批量创建用户")
+    @RequiresPermission("USER_CREATE")
     public Result<java.util.List<UserInfoResp>> batchCreate(@Valid @RequestBody java.util.List<UserCreateReq> createReqList) {
         logger.info("批量创建用户: 总数={}", createReqList == null ? 0 : createReqList.size());
         java.util.List<UserInfoResp> respList = userService.batchCreate(createReqList);
@@ -92,6 +97,7 @@ public class UserController {
      */
     @PutMapping
     @Operation(summary = "更新用户")
+    @RequiresPermission("USER_EDIT")
     public Result<UserInfoResp> update(@Valid @RequestBody UserUpdateReq updateReq) {
         logger.info("更新用户: {}", updateReq.getId());
         UserInfoResp resp = userService.update(updateReq);
@@ -103,6 +109,7 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除用户")
+    @RequiresPermission("USER_DELETE")
     public Result<String> delete(@PathVariable Long id) {
         logger.info("删除用户: {}", id);
         userService.delete(id);
@@ -186,6 +193,7 @@ public class UserController {
      */
     @PutMapping("/password")
     @Operation(summary = "修改密码")
+    @RequiresPermission("USER_EDIT")
     public Result<String> changePassword(@Valid @RequestBody PasswordChangeReq req) {
         logger.info("用户修改密码");
         userService.changePassword(req);
@@ -197,6 +205,7 @@ public class UserController {
      */
     @PutMapping("/password/reset")
     @Operation(summary = "重置密码（管理员）")
+    @RequiresPermission("USER_EDIT")
     public Result<String> resetPassword(@Valid @RequestBody PasswordResetReq req) {
         logger.info("管理员重置密码: userId={}", req.getUserId());
         userService.resetPassword(req);
@@ -208,6 +217,7 @@ public class UserController {
      */
     @GetMapping("/{id}/roles")
     @Operation(summary = "查询用户的角色列表")
+    @RequiresPermission("USER_VIEW")
     public Result<java.util.List<Long>> getRoles(@PathVariable Long id) {
         logger.info("查询用户角色列表: userId={}", id);
         return Result.success(userService.getRoleIds(id));
@@ -218,6 +228,7 @@ public class UserController {
      */
     @PostMapping("/{id}/roles")
     @Operation(summary = "为用户分配角色")
+    @RequiresPermission("USER_EDIT")
     public Result<String> assignRoles(
             @PathVariable Long id,
             @RequestBody java.util.Map<String, Object> payload) {
@@ -233,6 +244,7 @@ public class UserController {
      */
     @DeleteMapping("/{userId}/roles/{roleId}")
     @Operation(summary = "移除用户角色")
+    @RequiresPermission("USER_EDIT")
     public Result<String> removeRole(
             @PathVariable Long userId,
             @PathVariable Long roleId) {

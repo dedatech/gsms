@@ -6,7 +6,7 @@
         <h2 class="page-title">我的工时</h2>
       </div>
       <div class="header-right">
-        <el-button type="primary" :icon="Plus" @click="handleCreate">登记工时</el-button>
+        <el-button v-permission="'WORKHOUR_CREATE'" type="primary" :icon="Plus" @click="handleCreate">登记工时</el-button>
       </div>
     </div>
 
@@ -132,8 +132,8 @@
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
+            <el-button v-permission="'WORKHOUR_EDIT'" link type="primary" :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+            <el-button v-permission="'WORKHOUR_DELETE'" link type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -4,6 +4,7 @@ import com.gsms.gsms.dto.iteration.IterationCreateReq;
 import com.gsms.gsms.dto.iteration.IterationQueryReq;
 import com.gsms.gsms.dto.iteration.IterationUpdateReq;
 import com.gsms.gsms.dto.iteration.IterationInfoResp;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.IterationService;
@@ -37,6 +38,7 @@ public class IterationController {
      */
     @Operation(summary = "根据ID获取迭代")
     @GetMapping("/{id}")
+    @RequiresPermission("ITERATION_VIEW")
     public Result<IterationInfoResp> getById(
             @Parameter(description = "迭代ID", required = true) @PathVariable Long id) {
         logger.info("根据ID查询迭代: {}", id);
@@ -53,6 +55,7 @@ public class IterationController {
      */
     @Operation(summary = "根据条件分页查询迭代")
     @PostMapping("/query")
+    @RequiresPermission("ITERATION_VIEW")
     public PageResult<IterationInfoResp> findAll(@Valid @RequestBody IterationQueryReq req) {
         logger.info("根据条件分页查询迭代: projectId={}, status={}, pageNum={}, pageSize={}",
                 req.getProjectId(), req.getStatus(), req.getPageNum(), req.getPageSize());
@@ -67,6 +70,7 @@ public class IterationController {
      */
     @Operation(summary = "创建迭代")
     @PostMapping
+    @RequiresPermission("ITERATION_CREATE")
     public Result<IterationInfoResp> create(@Validated @RequestBody IterationCreateReq req) {
         logger.info("创建迭代: {}", req.getName());
         IterationInfoResp createdIteration = iterationService.create(req);
@@ -82,6 +86,7 @@ public class IterationController {
      */
     @Operation(summary = "更新迭代")
     @PutMapping
+    @RequiresPermission("ITERATION_EDIT")
     public Result<IterationInfoResp> update(@Validated @RequestBody IterationUpdateReq req) {
         logger.info("更新迭代: {}", req.getId());
         IterationInfoResp updatedIteration = iterationService.update(req);
@@ -97,6 +102,7 @@ public class IterationController {
      */
     @Operation(summary = "删除迭代")
     @DeleteMapping("/{id}")
+    @RequiresPermission("ITERATION_DELETE")
     public Result<String> delete(
             @Parameter(description = "迭代ID", required = true) @PathVariable Long id) {
         logger.info("删除迭代: {}", id);

@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.project.ProjectQueryReq;
 import com.gsms.gsms.dto.project.ProjectUpdateReq;
 import com.gsms.gsms.dto.project.ProjectInfoResp;
 import com.gsms.gsms.model.entity.ProjectMember;
+import com.gsms.gsms.infra.annotation.RequiresPermission;
 import com.gsms.gsms.infra.common.Result;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.service.ProjectMemberService;
@@ -40,6 +41,7 @@ public class ProjectController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询项目")
+    @RequiresPermission("PROJECT_VIEW")
     public Result<ProjectInfoResp> getProjectById(@PathVariable Long id) {
         logger.info("根据ID查询项目: {}", id);
         ProjectInfoResp project = projectService.getById(id);
@@ -55,6 +57,7 @@ public class ProjectController {
      */
     @GetMapping
     @Operation(summary = "根据条件分页查询项目")
+    @RequiresPermission("PROJECT_VIEW")
     public PageResult<ProjectInfoResp> getProjects(@Valid ProjectQueryReq req) {
         logger.info("根据条件分页查询项目: name={}, status={}, pageNum={}, pageSize={}",
                 req.getName(), req.getStatus(), req.getPageNum(), req.getPageSize());
@@ -66,6 +69,7 @@ public class ProjectController {
      */
     @PostMapping
     @Operation(summary = "创建项目")
+    @RequiresPermission("PROJECT_CREATE")
     public Result<ProjectInfoResp> createProject(@Valid @RequestBody ProjectCreateReq req) {
         logger.info("创建项目: {}", req.getName());
         ProjectInfoResp createdProject = projectService.create(req);
@@ -78,6 +82,7 @@ public class ProjectController {
      */
     @PutMapping
     @Operation(summary = "更新项目")
+    @RequiresPermission("PROJECT_EDIT")
     public Result<ProjectInfoResp> updateProject(@Valid @RequestBody ProjectUpdateReq req) {
         logger.info("更新项目: {}", req.getId());
         ProjectInfoResp updatedProject = projectService.update(req);
@@ -90,6 +95,7 @@ public class ProjectController {
      */
     @DeleteMapping("/{id}")
     @Operation(summary = "删除项目")
+    @RequiresPermission("PROJECT_DELETE")
     public Result<String> deleteProject(@PathVariable Long id) {
         logger.info("删除项目: {}", id);
         projectService.delete(id);
@@ -102,6 +108,7 @@ public class ProjectController {
      */
     @GetMapping("/{projectId}/members")
     @Operation(summary = "查询项目成员列表")
+    @RequiresPermission("PROJECT_VIEW")
     public Result<List<com.gsms.gsms.dto.project.ProjectMemberResp>> listProjectMembers(
             @PathVariable Long projectId,
             @RequestParam(name = "excludeReadOnly", defaultValue = "true") Boolean excludeReadOnly) {
@@ -119,6 +126,7 @@ public class ProjectController {
      */
     @PostMapping("/{projectId}/members")
     @Operation(summary = "为项目批量添加成员")
+    @RequiresPermission("PROJECT_EDIT")
     public Result<String> addProjectMembers(@PathVariable Long projectId,
                                             @Valid @RequestBody List<Long> userIds,
                                             @RequestParam(name = "roleType", defaultValue = "2") Integer roleType) {
@@ -131,6 +139,7 @@ public class ProjectController {
      */
     @PutMapping("/{projectId}/members/{userId}")
     @Operation(summary = "更新项目成员角色")
+    @RequiresPermission("PROJECT_EDIT")
     public Result<String> updateProjectMemberRole(@PathVariable Long projectId,
                                                   @PathVariable Long userId,
                                                   @RequestParam("roleType") Integer roleType) {
@@ -143,6 +152,7 @@ public class ProjectController {
      */
     @DeleteMapping("/{projectId}/members/{userId}")
     @Operation(summary = "从项目中移除成员")
+    @RequiresPermission("PROJECT_EDIT")
     public Result<String> removeProjectMember(@PathVariable Long projectId,
                                               @PathVariable Long userId) {
         projectMemberService.removeMember(projectId, userId);
@@ -158,6 +168,7 @@ public class ProjectController {
      */
     @DeleteMapping("/{projectId}/members/batch")
     @Operation(summary = "批量从项目中移除成员")
+    @RequiresPermission("PROJECT_EDIT")
     public Result<String> batchRemoveProjectMembers(@PathVariable Long projectId,
                                                     @Valid @RequestBody List<Long> userIds) {
         int successCount = 0;

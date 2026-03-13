@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-left">
         <h2 class="page-title">用户管理</h2>
-        <el-button type="primary" :icon="Plus" @click="handleCreate">新建用户</el-button>
+        <el-button v-permission="'USER_CREATE'" type="primary" :icon="Plus" @click="handleCreate">新建用户</el-button>
       </div>
       <div class="header-right">
         <el-input
@@ -74,13 +74,13 @@
         </el-table-column>
         <el-table-column label="操作" width="350" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleAssignRoles(row)">
+            <el-button v-permission="'USER_EDIT'" link type="primary" size="small" @click="handleAssignRoles(row)">
               分配角色
             </el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">
+            <el-button v-permission="'USER_EDIT'" link type="primary" size="small" @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button link type="warning" size="small" @click="handleResetPassword(row)">
+            <el-button v-permission="'USER_EDIT'" link type="warning" size="small" @click="handleResetPassword(row)">
               重置密码
             </el-button>
             <el-button
@@ -91,7 +91,7 @@
             >
               {{ row.status === 'NORMAL' ? '禁用' : '启用' }}
             </el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">
+            <el-button v-permission="'USER_DELETE'" link type="danger" size="small" @click="handleDelete(row)">
               删除
             </el-button>
           </template>
