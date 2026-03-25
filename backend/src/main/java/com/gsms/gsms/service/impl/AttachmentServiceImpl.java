@@ -29,7 +29,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,14 +95,13 @@ public class AttachmentServiceImpl implements AttachmentService {
     private UserMapper userMapper;
 
     @Autowired
-    @Qualifier("localStorageProvider")
-    private StorageService storageService;
+    private StorageService storageService;  // 使用 @Primary 标注的动态存储服务
 
     @Autowired
     private TaskService taskService;
 
-    @Value("${attachment.storage.local.url-prefix:/api/attachments/file}")
-    private String urlPrefix;
+    @Value("${attachment.storage.type:local}")
+    private String storageType;  // 当前存储类型配置
 
     @Override
     @Transactional
@@ -134,7 +132,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachment.setFileSize(file.getSize());
         attachment.setFileType(FilenameUtils.getExtension(file.getOriginalFilename()));
         attachment.setMimeType(file.getContentType());
-        attachment.setStorageType("local");
+        attachment.setStorageType(storageType);  // 使用配置的存储类型
         attachment.setTargetType(req.getTargetType());
         attachment.setTargetId(req.getTargetId());
         attachment.setUploaderId(currentUserId);
@@ -484,7 +482,8 @@ public class AttachmentServiceImpl implements AttachmentService {
         resp.setTargetId(attachment.getTargetId());
         resp.setUploaderId(attachment.getUploaderId());
         resp.setUploaderName(attachment.getUploaderName());
-        resp.setUrl("/" + urlPrefix + "/" + attachment.getFilePath());
+        // 使用存储服务生成 URL（支持本地存储和 RustFS）
+        resp.setUrl(storageService.getUrl(attachment.getFilePath()));
         resp.setCanPreview(canPreview(attachment.getFileType()));
         resp.setCreateTime(attachment.getCreateTime());
 

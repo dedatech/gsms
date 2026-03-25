@@ -113,10 +113,19 @@ cors:
 # 附件存储配置
 attachment:
   storage:
-    type: local  # 存储类型: local, oss, cos, minio
+    type: rustfs  # 存储类型: local, rustfs
     local:
       upload-dir: ./uploads  # 本地存储目录
       url-prefix: /api/attachments/file  # 访问URL前缀
+    rustfs:
+      endpoint: http://49.235.153.206:31210  # RustFS 服务地址
+      access-key: eyYXRWlsmHD1nco3T45I  # 访问密钥 ID
+      secret-key: ZDi2BU8KQYGSLXeau5cynIHkprVPCxjfmhMd1sN7  # 访问密钥
+      bucket-name: teammanagement  # 存储桶名称
+      region: us-east-1  # 区域（RustFS 不验证，随意填写）
+      public-url:  # 公网访问地址（可选，用于直接访问文件）
+      presigned-url-expire-seconds: 3600  # 预签名 URL 过期时间（秒）
+      use-presigned-url: false  # 是否使用预签名 URL（true=临时链接，false=永久链接）
 
 # DeepSeek API 配置
 deepseek:
