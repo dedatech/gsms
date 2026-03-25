@@ -348,7 +348,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -366,8 +366,10 @@ import { getProjectList, getProjectMembers } from '@/api/project'
 import { getIterationList } from '@/api/iteration'
 import { getAllUsers, type UserInfo } from '@/api/user'
 import { getTaskStatusInfo, getTaskPriorityInfo, getTaskStatusOptions } from '@/utils/statusMapping'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 视图模式（默认列表）
 const viewMode = ref<'kanban' | 'table'>('table')
@@ -570,8 +572,10 @@ const fetchProjects = async () => {
   try {
     const res = await getProjectList({ pageNum: 1, pageSize: 100 })
     projectList.value = res.list || []
+    return projectList.value  // 返回项目列表供后续使用
   } catch (error) {
     console.error('获取项目列表失败:', error)
+    return []
   }
 }
 
@@ -815,8 +819,53 @@ const formatDateTime = (date: string) => {
 
 onMounted(() => {
   fetchUsers()
-  fetchProjects()
-  fetchTasks()
+  fetchProjects().then((projects) => {
+    // 如果没有可用项目，直接返回
+    if (projects.length === 0) {
+      return
+    }
+
+    // 如果已经选择了项目（从路由参数或其他地方），不覆盖
+    if (searchForm.projectId) {
+      fetchTasks()
+      return
+    }
+
+    const currentUserId = authStore.getCurrentUserId()
+
+    // 策略1：优先使用上次选择的项目
+    const lastProjectId = localStorage.getItem('lastSelectedProjectId')
+    if (lastProjectId) {
+      const lastProject = projects.find(p => p.id === parseInt(lastProjectId))
+      if (lastProject) {
+        searchForm.projectId = lastProject.id
+        fetchTasks()
+        return
+      }
+    }
+
+    // 策略2：优先选择用户参与的项目
+    const userProject = projects.find(p =>
+      p.members?.some((m: any) => m.userId === currentUserId)
+    )
+
+    if (userProject) {
+      searchForm.projectId = userProject.id
+      fetchTasks()
+      return
+    }
+
+    // 策略3：选择第一个项目
+    searchForm.projectId = projects[0].id
+    fetchTasks()
+  })
+})
+
+// 监听项目选择变化，保存到 localStorage
+watch(() => searchForm.projectId, (newProjectId) => {
+  if (newProjectId) {
+    localStorage.setItem('lastSelectedProjectId', newProjectId.toString())
+  }
 })
 </script>
 

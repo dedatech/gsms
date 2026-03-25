@@ -82,6 +82,9 @@ spring:
 **启动后端（端口 8080）：**
 ```bash
 cd backend
+# 配置 DeepSeek API Key（可选，AI 功能需要）
+export DEEPSEEK_API_KEY=your_api_key_here
+# 启动后端
 mvn spring-boot:run
 # 或使用环境变量:
 DB_USERNAME=root DB_PASSWORD=your_password mvn spring-boot:run
@@ -122,6 +125,17 @@ TeamMaster（统领工时管理平台）是一个面向研发团队的轻量级�
    - 三级权限控制（路由级 + 按钮级 + 数据级）
    - 用户注册流程（默认禁用，需管理员审核）
 3. **统计报表** - 首页看板、项目统计、用户统计、部门统计
+4. **AI 智能辅助** - DeepSeek API 集成，需求拆分和工时估算 🤖
+   - 智能需求拆分：将复杂需求自动拆分为可执行子任务
+   - 工时估算：为每个子任务预估人天
+   - 任务分类和优先级设置
+   - 依赖关系识别和风险评估
+5. **项目管理增强** - 甘特图、操作日志、菜单管理 📊
+   - 甘特图：任务时间轴展示和依赖关系可视化
+   - 操作日志：完整的数据变更追踪（old_value/new_value）
+   - 动态菜单：基于角色的菜单显示控制
+   - 附件管理：文件上传和管理功能
+   - 验证码：用户注册和登录安全验证
 
 **项目结构（Monorepo）：**
 
@@ -146,6 +160,7 @@ gsms/
 - Flyway 数据库版本管理
 - PageHelper 分页插件
 - Java 8 Time API (LocalDateTime, LocalDate)
+- **AI 集成**：DeepSeek API + OkHttp 4.12.0（需求拆分和工时估算）
 
 **前端：**
 
@@ -172,6 +187,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 # 使用环境变量覆盖数据库配置
 DB_USERNAME=root DB_PASSWORD=your_password mvn spring-boot:run
+
+# 启动后端并启用 AI 功能（需要配置 DEEPSEEK_API_KEY）
+DEEPSEEK_API_KEY=your_api_key_here mvn spring-boot:run
 
 # 打包
 mvn clean package
@@ -478,6 +496,8 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 - GET `/api/tasks/search` - 按条件搜索任务
 - POST `/api/work-hours` - 创建工时记录
 - GET `/api/statistics/dashboard` - 首页看板统计数据
+- POST `/api/ai/breakdown-requirement` - AI 需求拆分和工时估算（需要配置 DEEPSEEK_API_KEY）
+- GET `/api/ai/status` - 检查 AI 服务状态
 
 **认证：**
 - 除 `/api/users/login` 外，所有接口需要 `Authorization: Bearer <token>` 请求头
@@ -494,6 +514,10 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 **环境变量：**
 - `DB_USERNAME` - 数据库用户名（默认：root）
 - `DB_PASSWORD` - 数据库密码（默认：root）
+- `DEEPSEEK_API_KEY` - DeepSeek API 密钥（AI 功能必需）
+  - 获取方式：访问 https://platform.deepseek.com/ 注册并创建 API Key
+  - 配置示例：`export DEEPSEEK_API_KEY=your_api_key_here`
+  - 注意：不要将 API Key 提交到代码仓库
 
 ## 常见陷阱
 
@@ -546,16 +570,38 @@ Swagger UI地址：`http://localhost:8080/swagger-ui.html`
 
     - JWT拦截器需要在 `preHandle` 方法开头放行 OPTIONS 请求
 
+12. **AI 功能未配置**：
+    - DeepSeek API 需要设置 `DEEPSEEK_API_KEY` 环境变量
+    - 如果未配置，AI 相关接口将返回错误：`DeepSeek API 调用失败: HTTP 401`
+    - AI 响应时间通常在 3-10 秒之间，需要在前端添加 loading 状态
+    - 详见：`docs/DEEPSEEK_INTEGRATION.md`
+
 ## 参考文档
 
+### 核心功能文档
 - **RBAC 权限系统**：`docs/RBAC_IMPLEMENTATION.md` - 用户、角色、权限管理系统完整实现文档（2026-01-12）
+- **RBAC 开发指南**：`docs/RBAC_DEVELOPMENT_GUIDE.md` - RBAC 权限系统开发功能最佳实践
+- **RBAC 权限审计**：`docs/RBAC_PERMISSION_AUDIT.md` - RBAC 权限审计文档
+- **AI 集成**：`docs/DEEPSEEK_INTEGRATION.md` - DeepSeek API 集成使用说明
+- **AI 测试指南**：`docs/DEEPSEEK_TEST_GUIDE.md` - DeepSeek AI 功能测试指南
+
+### 技术架构文档
 - **缓存技术决策**：`docs/caching-technical-decisions.md` - 缓存方案对比（ConcurrentHashMap vs Caffeine vs Redis）、Spring 单例原理
 - **数据库优化**：`docs/DATABASE_OPTIMIZATION.md` - 表分类、审计字段、外键约束设计
+- **甘特图实现**：`docs/gantt-chart-implementation-plan.md` - 甘特图功能实现计划
+- **项目迭代任务重构**：`docs/project-iteration-task-redesign.md` - 项目-迭代-任务关系重构方案
+
+### 开发指南
 - **调试指南**：`docs/DEBUG_PROCESS_WALKTHROUGH.md` - 远程调试、断点、变量查看
+- **Debug 模式问题**：`docs/DEBUG_MODE_HANG_ISSUE.md` - Spring Boot Debug 模式启动卡住问题修复
 - **前后端联调**：`docs/development/frontend-backend-setup.md` - CORS、代理、认证配置
+- **前端架构**：`docs/development/frontend-architecture.md` - 前端架构文档
+- **模块联动分析**：`docs/frontend-module-linkage-analysis.md` - 前端模块联动分析
+
+### 其他文档
 - **API 文档**：`docs/api-docs.md` - REST API 接口文档
-- **重构原则**：`docs/refactoring-principles.md` - 代码重构最佳实践
-- **待办事项**：`TODO.md` - API 文档优化、枚举类型标准化、后续扩展功能
+- **待办事项**：`TODO.md` - 项目待办事项和完成度统计（当前完成度：92%）
+- **项目状态和计划**：`docs/PROJECT_STATUS_AND_PLAN.md` - 项目状态和开发计划
 
 ## 文件命名规范
 
