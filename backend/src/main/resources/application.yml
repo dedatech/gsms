@@ -47,7 +47,7 @@ spring:
     # 校验迁移脚本（线上未使用Flyway，首次引入时设为false）
     validate-on-migrate: true
     # 允许乱序迁移（生产环境建议false）
-    out-of-order: false
+    out-of-order: true
     # 清理模式（生产环境必须false）
     clean-disabled: true
 
@@ -102,3 +102,5 @@ cors:
   allowed-origins:
     - http://localhost:3000
     - http://127.0.0.1:3000
+    - http://localhost:3002
+    - http://127.0.0.1:3002

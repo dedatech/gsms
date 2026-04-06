@@ -10,18 +10,22 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    component: () => import('@/views/auth/LoginView.vue').catch(() => import('@/views/error/ErrorView.vue')),
     meta: { title: '登录', requiresAuth: false },
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/auth/RegisterView.vue'),
+    component: () => import('@/views/auth/RegisterView.vue').catch(() => import('@/views/error/ErrorView.vue')),
     meta: { title: '注册', requiresAuth: false },
   },
   {
     path: '/',
-    component: () => import('@/components/Layout.vue'),
+    component: () => import('@/components/Layout.vue').catch(() => {
+      // 如果Layout加载失败，返回一个简单的fallback组件
+      console.error('Layout组件加载失败')
+      return import('@/views/error/LayoutFallback.vue')
+    }),
     meta: { requiresAuth: true },
     children: [
       {
@@ -41,6 +45,12 @@ const routes: RouteRecordRaw[] = [
         name: 'ProjectDetail',
         component: () => import('@/views/project/ProjectDetail.vue'),
         meta: { title: '项目详情', requiresAuth: true },
+      },
+      {
+        path: 'projects/:projectId/work-items/:workItemId',
+        name: 'WorkItemDetail',
+        component: () => import('@/views/project/WorkItemDetail.vue'),
+        meta: { title: '工作项详情', requiresAuth: true },
       },
       {
         path: 'projects/:id/gantt',

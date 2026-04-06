@@ -98,4 +98,24 @@
         UPDATE gsms_iteration SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
 
+    <!-- 查询迭代进度统计 -->
+    <select id="getIterationStats" resultType="com.gsms.gsms.dto.project.IterationStatsResp">
+        SELECT
+            i.id as iterationId,
+            i.name as iterationName,
+            i.status as iterationStatus,
+            i.plan_start_date as planStartDate,
+            i.plan_end_date as planEndDate,
+            COUNT(t.id) as totalTasks,
+            SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END) as completedTasks,
+            COALESCE(SUM(t.estimate_hours), 0) as totalEstimatedHours,
+            COALESCE(SUM(CASE WHEN t.status = 'DONE' THEN t.estimate_hours ELSE 0 END), 0) as completedHours
+        FROM gsms_iteration i
+        LEFT JOIN gsms_task t ON i.id = t.iteration_id AND t.is_deleted = 0
+        WHERE i.project_id = #{projectId}
+          AND i.is_deleted = 0
+        GROUP BY i.id, i.name, i.status, i.plan_start_date, i.plan_end_date
+        ORDER BY i.plan_start_date DESC
+    </select>
+
 </mapper>

@@ -163,7 +163,8 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('用户权限加载成功:', permissions.value)
     } catch (error) {
       console.error('获取用户权限失败:', error)
-      permissions.value.clear()
+      // 不清空现有权限，保持已有权限
+      // permissions.value.clear()
     }
   }
 
@@ -187,7 +188,8 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('用户角色加载成功:', roleCodes)
     } catch (error) {
       console.error('获取用户角色失败:', error)
-      userRoles.value = []
+      // 不清空现有角色，保持已有角色
+      // userRoles.value = []
     }
   }
 
@@ -209,10 +211,26 @@ export const useAuthStore = defineStore('auth', () => {
    * 刷新权限和角色信息
    */
   const refreshAuth = async () => {
-    await Promise.all([
-      fetchUserPermissions(),
-      fetchUserRoles()
-    ])
+    try {
+      // 使用 Promise.allSettled 而不是 Promise.all，确保一个失败不影响另一个
+      const results = await Promise.allSettled([
+        fetchUserPermissions(),
+        fetchUserRoles()
+      ])
+
+      // 检查是否有失败的情况
+      const failedPermissions = results[0].status === 'rejected'
+      const failedRoles = results[1].status === 'rejected'
+
+      if (failedPermissions || failedRoles) {
+        console.warn('权限信息加载部分失败，但继续流程')
+      }
+
+      // 即使有失败也不抛出错误，允许用户继续使用
+    } catch (error) {
+      console.error('刷新认证信息失败:', error)
+      // 不抛出错误，允许用户继续使用系统
+    }
   }
 
   return {

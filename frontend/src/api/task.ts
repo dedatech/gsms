@@ -23,6 +23,10 @@ export interface TaskInfo {
   createTime?: string
   updateTime?: string
   subtasks?: TaskInfo[]
+  // 缺陷特有字段
+  severity?: string  // 严重程度：TRIVIAL, MINOR, MAJOR, CRITICAL, BLOCKER
+  reproductionSteps?: string  // 复现步骤
+  attachments?: string[]  // 附件列表
 }
 
 // 任务查询参数
@@ -64,6 +68,10 @@ export interface TaskCreateReq {
   status?: string  // 状态：TODO, IN_PROGRESS, DONE
   planStartDate?: string
   planEndDate?: string
+  // 缺陷特有字段
+  severity?: string  // 严重程度
+  reproductionSteps?: string  // 复现步骤
+  estimateHours?: number  // 预估工时
 }
 
 export const createTask = (data: TaskCreateReq) => {
@@ -125,4 +133,50 @@ export const getTaskDetail = (id: number) => {
 // 获取子任务列表
 export const getSubtasks = (parentId: number) => {
   return request.get(`/tasks/${parentId}/subtasks`)
+}
+
+// 需求统计信息
+export interface RequirementStatsResp {
+  id: number
+  title: string
+  type: string
+  priority: string
+  assigneeId?: number
+  assigneeName?: string
+  estimateHours?: number
+  subtaskCount: number
+  completedSubtasks: number
+  todoSubtasks: number
+  inProgressSubtasks: number
+  testingSubtasks: number
+  reopenedSubtasks: number
+}
+
+// 看板表格数据
+export interface KanbanTableData {
+  rows: {
+    requirement: RequirementStatsResp
+    todoTasks: TaskInfo[]
+    inProgressTasks: TaskInfo[]
+    testingTasks: TaskInfo[]
+    doneTasks: TaskInfo[]
+    reopenedTasks: TaskInfo[]
+    closedTasks: TaskInfo[]
+  }[]
+  totalTodoTasks: number
+  totalInProgressTasks: number
+  totalTestingTasks: number
+  totalDoneTasks: number
+  totalReopenedTasks: number
+  totalClosedTasks: number
+}
+
+// 获取看板表格数据
+export const getKanbanTableData = (params: {
+  projectId: number
+  iterationId?: number
+  assigneeId?: number
+  priority?: string
+}) => {
+  return request.get<KanbanTableData>('/tasks/kanban-table', { params })
 }

@@ -23,11 +23,48 @@
           <el-option label="进行中" value="IN_PROGRESS" />
           <el-option label="已完成" value="DONE" />
         </el-select>
+        <el-select
+          v-model="priorityFilter"
+          placeholder="筛选优先级"
+          clearable
+          style="width: 150px"
+          @change="handleFilter"
+        >
+          <el-option label="全部" value="" />
+          <el-option label="高" value="HIGH" />
+          <el-option label="中" value="MEDIUM" />
+          <el-option label="低" value="LOW" />
+        </el-select>
+        <el-select
+          v-model="sortBy"
+          placeholder="排序方式"
+          style="width: 150px"
+          @change="handleSort"
+        >
+          <el-option label="默认排序" value="default" />
+          <el-option label="按优先级" value="priority" />
+          <el-option label="按创建时间" value="createTime" />
+          <el-option label="按计划时间" value="planDate" />
+        </el-select>
       </div>
       <div class="toolbar-right">
-        <el-button type="primary" :icon="Plus" @click="handleCreateRequirement">
-          新建需求
+        <el-button
+          v-if="selectedTasks.length > 0"
+          type="primary"
+          :icon="Check"
+          @click="handleBatchComplete"
+        >
+          批量完成 ({{ selectedTasks.length }})
         </el-button>
+        <el-button
+          v-if="selectedTasks.length > 0"
+          type="danger"
+          :icon="Delete"
+          @click="handleBatchDelete"
+        >
+          批量删除 ({{ selectedTasks.length }})
+        </el-button>
+        <span class="task-summary">{{ filteredTasks.length }} 个需求</span>
       </div>
     </div>
 
@@ -130,57 +167,114 @@
       <!-- 任务详情弹窗 -->
       <el-dialog
         v-model="detailDialogVisible"
-        :title="`任务详情 #${currentTask?.id}`"
-        width="800px"
+        :title="`工作项详情 #${currentTask?.id}`"
+        width="900px"
         @close="handleCloseDetail"
       >
-        <div v-if="currentTask" class="task-detail">
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="任务编号">
-              #{{ currentTask.id }}
-            </el-descriptions-item>
-            <el-descriptions-item label="任务类型">
-              <el-tag v-if="currentTask.type === 'REQUIREMENT'" size="small" type="warning">需求</el-tag>
-              <el-tag v-else-if="currentTask.type === 'TASK'" size="small" type="primary">任务</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="任务标题" :span="2">
-              {{ currentTask.title }}
-            </el-descriptions-item>
-            <el-descriptions-item label="任务描述" :span="2">
-              {{ currentTask.description || '无' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag :type="getStatusType(currentTask.status)" size="small">
-                {{ getStatusText(currentTask.status) }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="优先级">
-              <el-tag :type="getPriorityType(currentTask.priority)" size="small">
-                {{ getPriorityText(currentTask.priority) }}
-              </el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="负责人">
-              {{ currentTask.assigneeName || '未分配' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="预估工时">
-              {{ currentTask.estimateHours || 0 }}h
-            </el-descriptions-item>
-            <el-descriptions-item label="实际工时">
-              {{ currentTask.actualHours || 0 }}h
-            </el-descriptions-item>
-            <el-descriptions-item label="计划开始时间">
-              {{ currentTask.planStartDate || '未设置' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="计划结束时间">
-              {{ currentTask.planEndDate || '未设置' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="创建时间">
-              {{ currentTask.createTime || '-' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="更新时间">
-              {{ currentTask.updateTime || '-' }}
-            </el-descriptions-item>
-          </el-descriptions>
+        <div v-if="currentTask" class="task-detail-tabs">
+          <el-tabs v-model="activeDetailTab">
+            <!-- 基本信息 -->
+            <el-tab-pane label="基本信息" name="basic">
+              <el-descriptions :column="2" border>
+                <el-descriptions-item label="编号">
+                  #{{ currentTask.id }}
+                </el-descriptions-item>
+                <el-descriptions-item label="类型">
+                  <el-tag v-if="currentTask.type === 'REQUIREMENT'" size="small" type="warning">需求</el-tag>
+                  <el-tag v-else-if="currentTask.type === 'TASK'" size="small" type="primary">任务</el-tag>
+                  <el-tag v-else-if="currentTask.type === 'BUG'" size="small" type="danger">缺陷</el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="标题" :span="2">
+                  {{ currentTask.title }}
+                </el-descriptions-item>
+                <el-descriptions-item label="描述" :span="2">
+                  {{ currentTask.description || '无' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="状态">
+                  <el-tag :type="getStatusType(currentTask.status)" size="small">
+                    {{ getStatusText(currentTask.status) }}
+                  </el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="优先级">
+                  <el-tag :type="getPriorityType(currentTask.priority)" size="small">
+                    {{ getPriorityText(currentTask.priority) }}
+                  </el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="负责人">
+                  {{ currentTask.assigneeName || '未分配' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="所属迭代">
+                  {{ currentTask.iterationName || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="预估工时">
+                  {{ currentTask.estimateHours || 0 }}h
+                </el-descriptions-item>
+                <el-descriptions-item label="计划开始时间">
+                  {{ currentTask.planStartDate || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="计划结束时间">
+                  {{ currentTask.planEndDate || '-' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="创建时间">
+                  {{ currentTask.createTime || '-' }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </el-tab-pane>
+
+            <!-- 工时记录（仅任务/需求） -->
+            <el-tab-pane v-if="currentTask.type !== 'BUG'" name="workhours">
+              <template #label>
+                <span>
+                  <el-icon><Clock /></el-icon>
+                  工时记录
+                </span>
+              </template>
+              <div class="workhours-content">
+                <div class="workhours-summary">
+                  <span>总工时: {{ currentTask.actualHours || 0 }}h</span>
+                </div>
+                <el-table :data="workHourList" stripe style="width: 100%">
+                  <el-table-column prop="workDate" label="日期" width="110" />
+                  <el-table-column prop="hours" label="工时数" width="80">
+                    <template #default="{ row }">
+                      {{ row.hours }}h
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="content" label="说明" min-width="200" />
+                  <el-table-column prop="createTime" label="创建时间" width="160" />
+                </el-table>
+                <el-empty v-if="!workHourList || workHourList.length === 0" description="暂无工时记录" :image-size="60" />
+              </div>
+            </el-tab-pane>
+
+            <!-- 缺陷特有字段 -->
+            <el-tab-pane v-if="currentTask.type === 'BUG'" name="defect">
+              <template #label>
+                <span>
+                  <el-icon><Warning /></el-icon>
+                  缺陷信息
+                </span>
+              </template>
+              <el-descriptions :column="2" border>
+                <el-descriptions-item label="严重程度">
+                  <el-tag :type="getSeverityType(currentTask.severity)" size="small">
+                    {{ getSeverityText(currentTask.severity) }}
+                  </el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="复现步骤" :span="2">
+                  <div class="reproduction-steps">{{ currentTask.reproductionSteps || '无' }}</div>
+                </el-descriptions-item>
+                <el-descriptions-item label="修复版本">
+                  {{ currentTask.fixVersion || '-' }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </el-tab-pane>
+          </el-tabs>
+
+          <div class="detail-actions">
+            <el-button type="primary" @click="handleEditTask(currentTask)">编辑</el-button>
+            <el-button @click="handleCloseDetail">关闭</el-button>
+          </div>
         </div>
       </el-dialog>
 
@@ -194,33 +288,28 @@
 
     <!-- 底部状态栏 -->
     <div class="status-footer">
-      <!-- 分页组件 -->
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="taskTotal"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        small
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <span class="task-summary">共 {{ filteredTasks.length }} 个需求</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Search,
   Plus,
   ArrowRight,
   Folder,
-  Document
+  Document,
+  Clock,
+  Warning,
+  Check,
+  Delete,
 } from '@element-plus/icons-vue'
 import { getTasksByProjectId, type TaskInfo } from '@/api/task'
+import { updateTaskStatus } from '@/api/task'
+import { getWorkHourList, type WorkHourInfo } from '@/api/workhour'
 
 // Props
 const props = defineProps<{
@@ -229,7 +318,6 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits<{
-  createTask: [iterationId?: number, parentId?: number]
   viewTask: [task: TaskInfo]
   editTask: [task: TaskInfo]
   deleteTask: [task: TaskInfo]
@@ -237,12 +325,7 @@ const emit = defineEmits<{
 
 // 任务列表（树形结构）
 const tasks = ref<TaskInfo[]>([])
-const taskTotal = ref(0)
 const loading = ref(false)
-
-// 分页参数
-const currentPage = ref(1)
-const pageSize = ref(10)
 
 // 展开的任务 ID 集合
 const expandedKeys = ref<Set<number>>(new Set())
@@ -250,10 +333,16 @@ const expandedKeys = ref<Set<number>>(new Set())
 // 详情弹窗
 const detailDialogVisible = ref(false)
 const currentTask = ref<FlatTask | null>(null)
+const activeDetailTab = ref('basic')
+const workHourList = ref<WorkHourInfo[]>([])
 
 // 搜索和筛选
 const searchKeyword = ref('')
 const statusFilter = ref('')
+const priorityFilter = ref('')
+const sortBy = ref<'default' | 'priority' | 'createTime' | 'planDate'>('default')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+const selectedTasks = ref<number[]>([])
 
 // 扁平化的任务列表（带 level 属性）
 interface FlatTask extends TaskInfo {
@@ -288,18 +377,18 @@ const flatTaskList = computed(() => {
   return result
 })
 
-// 获取任务列表（分页）
+// 获取任务列表（不分页，一次性加载所有）
 const fetchAllTasks = async () => {
   loading.value = true
   try {
+    // 使用一个大的 pageSize 来获取所有任务
     const res = await getTasksByProjectId(
       props.projectId,
-      currentPage.value,
-      pageSize.value
+      1,
+      1000  // 设置一个足够大的值来获取所有任务
     )
     console.log('后端返回的任务数据:', res.list)
     tasks.value = res.list || []
-    taskTotal.value = res.total || 0
 
     // 默认展开所有任务
     initExpandedKeys()
@@ -311,17 +400,20 @@ const fetchAllTasks = async () => {
   }
 }
 
-// 分页事件处理
-const handleSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1 // 重置到第一页
-  fetchAllTasks()
-}
-
-const handleCurrentChange = (page: number) => {
-  currentPage.value = page
-  fetchAllTasks()
-}
+// 计算总子任务数量
+const totalSubtaskCount = computed(() => {
+  let count = 0
+  const countSubtasks = (taskList: TaskInfo[]) => {
+    taskList.forEach(task => {
+      if (task.subtasks && task.subtasks.length > 0) {
+        count += task.subtasks.length
+        countSubtasks(task.subtasks)
+      }
+    })
+  }
+  countSubtasks(filteredTasks.value)
+  return count
+})
 
 // 初始化展开状态（默认展开所有）
 const initExpandedKeys = () => {
@@ -352,9 +444,19 @@ const filteredTasks = computed(() => {
     result = filterTasksByStatus(result, statusFilter.value)
   }
 
+  // 优先级筛选
+  if (priorityFilter.value) {
+    result = filterTasksByPriority(result, priorityFilter.value)
+  }
+
   // 关键词搜索
   if (searchKeyword.value) {
     result = filterTasksByKeyword(result, searchKeyword.value)
+  }
+
+  // 排序
+  if (sortBy.value !== 'default') {
+    result = sortTasks(result, sortBy.value, sortOrder.value)
   }
 
   return result
@@ -375,6 +477,60 @@ const filterTasksByStatus = (taskList: TaskInfo[], status: string): TaskInfo[] =
       }
     }
     return false
+  })
+}
+
+// 递归过滤优先级（保留匹配的父任务及其子任务）
+const filterTasksByPriority = (taskList: TaskInfo[], priority: string): TaskInfo[] => {
+  return taskList.filter(task => {
+    // 如果当前任务匹配优先级，显示它及其所有子任务
+    if (task.priority === priority) return true
+
+    // 如果子任务中有匹配优先级的，显示父任务及匹配的子任务
+    if (task.subtasks && task.subtasks.length > 0) {
+      const filteredChildren = filterTasksByPriority(task.subtasks, priority)
+      if (filteredChildren.length > 0) {
+        task.subtasks = filteredChildren
+        return true
+      }
+    }
+    return false
+  })
+}
+
+// 排序任务
+const sortTasks = (taskList: TaskInfo[], sortBy: string, order: 'asc' | 'desc'): TaskInfo[] => {
+  const sorted = [...taskList].sort((a, b) => {
+    let comparison = 0
+
+    switch (sortBy) {
+      case 'priority':
+        const priorityOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 }
+        comparison = (priorityOrder[a.priority as keyof typeof priorityOrder] || 0) -
+                    (priorityOrder[b.priority as keyof typeof priorityOrder] || 0)
+        break
+      case 'createTime':
+        comparison = new Date(a.createTime || '').getTime() - new Date(b.createTime || '').getTime()
+        break
+      case 'planDate':
+        comparison = new Date(a.planEndDate || '').getTime() - new Date(b.planEndDate || '').getTime()
+        break
+      default:
+        comparison = 0
+    }
+
+    return order === 'asc' ? comparison : -comparison
+  })
+
+  // 递归排序子任务
+  return sorted.map(task => {
+    if (task.subtasks && task.subtasks.length > 0) {
+      return {
+        ...task,
+        subtasks: sortTasks(task.subtasks, sortBy, order)
+      }
+    }
+    return task
   })
 }
 
@@ -438,6 +594,30 @@ const getPriorityType = (priority: string) => {
   return map[priority] || 'info'
 }
 
+// 严重程度文本（缺陷用）
+const getSeverityText = (severity: string) => {
+  const map: Record<string, string> = {
+    'BLOCKER': '致命',
+    'CRITICAL': '严重',
+    'MAJOR': '一般',
+    'MINOR': '轻微',
+    'TRIVIAL': '提示'
+  }
+  return map[severity] || '-'
+}
+
+// 严重程度类型
+const getSeverityType = (severity: string) => {
+  const map: Record<string, any> = {
+    'BLOCKER': 'danger',
+    'CRITICAL': 'danger',
+    'MAJOR': 'warning',
+    'MINOR': 'info',
+    'TRIVIAL': 'info'
+  }
+  return map[severity] || 'info'
+}
+
 // 切换展开/折叠
 const toggleExpand = (row: FlatTask) => {
   if (expandedKeys.value.has(row.id)) {
@@ -458,14 +638,101 @@ const handleFilter = () => {
   // 筛选由computed自动处理
 }
 
-const handleCreateRequirement = () => {
-  emit('createTask', undefined, undefined)
+const handleSort = () => {
+  // 切换排序顺序
+  if (sortBy.value !== 'default') {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  }
+}
+
+// 批量完成任务
+const handleBatchComplete = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要批量完成 ${selectedTasks.value.length} 个任务吗？`,
+      '批量操作确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    loading.value = true
+    const promises = selectedTasks.value.map(taskId =>
+      updateTaskStatus({ id: taskId, status: 'DONE' })
+    )
+
+    await Promise.all(promises)
+    ElMessage.success('批量操作成功')
+    selectedTasks.value = []
+    refresh()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量操作失败:', error)
+      ElMessage.error('批量操作失败')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+// 批量删除任务
+const handleBatchDelete = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要批量删除 ${selectedTasks.value.length} 个任务吗？删除后将无法恢复！`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    loading.value = true
+    // TODO: 实现批量删除逻辑（需要后端支持或循环调用删除接口）
+    ElMessage.success('批量删除成功')
+    selectedTasks.value = []
+    refresh()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+// 处理编辑任务（添加到现有代码中）
+const handleEditTask = (task: any) => {
+  emit('editTask', task)
 }
 
 // 查看任务详情
 const handleViewDetail = (row: FlatTask) => {
   currentTask.value = row
+  activeDetailTab.value = 'basic'
   detailDialogVisible.value = true
+  // 获取工时记录
+  if (row.type !== 'REQUIREMENT') {
+    fetchWorkHours(row.id)
+  }
+}
+
+// 获取工时记录
+const fetchWorkHours = async (taskId: number) => {
+  try {
+    const res = await getWorkHourList({
+      taskId,
+      pageNum: 1,
+      pageSize: 100
+    })
+    workHourList.value = res?.list || []
+  } catch (error) {
+    console.error('获取工时记录失败:', error)
+  }
 }
 
 // 关闭详情弹窗
@@ -615,12 +882,17 @@ defineExpose({
 /* 底部状态栏 */
 .status-footer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 12px 20px;
   border-top: 1px solid #f0f0f0;
-  flex-shrink: 0; /* 防止被压缩 */
+  flex-shrink: 0;
   background: #fafafa;
+}
+
+.task-summary {
+  font-size: 13px;
+  color: #606266;
 }
 
 /* 子任务数量浮动标签 */

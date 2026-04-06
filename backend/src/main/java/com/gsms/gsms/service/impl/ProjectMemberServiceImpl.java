@@ -1,6 +1,7 @@
 package com.gsms.gsms.service.impl;
 
 import com.gsms.gsms.dto.project.ProjectMemberResp;
+import com.gsms.gsms.dto.project.ProjectMemberStatsResp;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
 import com.gsms.gsms.infra.exception.BusinessException;
@@ -8,7 +9,9 @@ import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.infra.utils.UserContext;
 import com.gsms.gsms.repository.ProjectMemberMapper;
 import com.gsms.gsms.repository.ProjectMapper;
+import com.gsms.gsms.repository.TaskMapper;
 import com.gsms.gsms.repository.UserMapper;
+import com.gsms.gsms.repository.WorkHourMapper;
 import com.gsms.gsms.service.AuthService;
 import com.gsms.gsms.service.CacheService;
 import com.gsms.gsms.service.ProjectMemberService;
@@ -17,6 +20,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,14 +39,19 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     private final ProjectMemberMapper projectMemberMapper;
     private final ProjectMapper projectMapper;
     private final UserMapper userMapper;
+    private final TaskMapper taskMapper;
+    private final WorkHourMapper workHourMapper;
     private final AuthService authService;
     private final CacheService cacheService;
 
     public ProjectMemberServiceImpl(ProjectMemberMapper projectMemberMapper, ProjectMapper projectMapper,
-                                   UserMapper userMapper, AuthService authService, CacheService cacheService) {
+                                   UserMapper userMapper, TaskMapper taskMapper, WorkHourMapper workHourMapper,
+                                   AuthService authService, CacheService cacheService) {
         this.projectMemberMapper = projectMemberMapper;
         this.projectMapper = projectMapper;
         this.userMapper = userMapper;
+        this.taskMapper = taskMapper;
+        this.workHourMapper = workHourMapper;
         this.authService = authService;
         this.cacheService = cacheService;
     }
@@ -171,6 +183,63 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
         logger.info("项目成员移除成功: projectId={}, userId={}", projectId, userId);
+    }
+
+    @Override
+    public ProjectMemberStatsResp getMemberStats(Long projectId, Long userId) {
+        logger.info("获取项目成员统计信息: projectId={}, userId={}", projectId, userId);
+
+        Long currentUserId = requireLogin();
+        // 校验权限
+        if (!authService.canViewAllProjects(currentUserId)) {
+            List<Long> memberIds = projectMemberMapper.selectUserIdsByProjectId(projectId);
+            if (memberIds == null || !memberIds.contains(currentUserId)) {
+                throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            }
+        }
+
+        ProjectMemberStatsResp stats = new ProjectMemberStatsResp();
+        stats.setUserId(userId);
+
+        // 获取任务统计
+        List<com.gsms.gsms.model.entity.Task> tasks = taskMapper.selectByProjectIdAndAssigneeId(projectId, userId);
+        stats.setTotalTasks(tasks != null ? tasks.size() : 0);
+
+        long completedCount = tasks != null ? tasks.stream()
+                .filter(t -> "DONE".equals(t.getStatus()))
+                .count() : 0;
+        stats.setCompletedTasks((int) completedCount);
+
+        // 获取工时统计
+        LocalDate now = LocalDate.now();
+        LocalDate weekStart = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate monthStart = now.with(TemporalAdjusters.firstDayOfMonth());
+
+        // 总工时
+        Double totalHours = workHourMapper.selectTotalHoursByProjectIdAndUserId(projectId, userId);
+        stats.setTotalHours(totalHours != null ? totalHours : 0.0);
+
+        // 本周工时
+        Double weekHours = workHourMapper.selectTotalHoursByDateRange(
+                projectId, userId,
+                weekStart.atStartOfDay(),
+                now.atTime(23, 59, 59)
+        );
+        stats.setWeekHours(weekHours != null ? weekHours : 0.0);
+
+        // 本月工时
+        Double monthHours = workHourMapper.selectTotalHoursByDateRange(
+                projectId, userId,
+                monthStart.atStartOfDay(),
+                now.atTime(23, 59, 59)
+        );
+        stats.setMonthHours(monthHours != null ? monthHours : 0.0);
+
+        logger.info("成员统计信息: taskId={}, totalTasks={}, completedTasks={}, totalHours={}, weekHours={}, monthHours={}",
+                userId, stats.getTotalTasks(), stats.getCompletedTasks(),
+                stats.getTotalHours(), stats.getWeekHours(), stats.getMonthHours());
+
+        return stats;
     }
 
     private Long requireLogin() {

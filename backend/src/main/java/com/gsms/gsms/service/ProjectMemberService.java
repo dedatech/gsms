@@ -1,6 +1,7 @@
 package com.gsms.gsms.service;
 
 import com.gsms.gsms.dto.project.ProjectMemberResp;
+import com.gsms.gsms.dto.project.ProjectMemberStatsResp;
 import com.gsms.gsms.model.entity.ProjectMember;
 import com.gsms.gsms.model.enums.ProjectMemberRole;
 
@@ -64,4 +65,13 @@ public interface ProjectMemberService {
      * @throws BusinessException 当成员不存在或用户无权限时抛出
      */
     void removeMember(Long projectId, Long userId);
+
+    /**
+     * 获取成员统计信息
+     *
+     * @param projectId 项目ID
+     * @param userId 用户ID
+     * @return 成员统计信息
+     */
+    ProjectMemberStatsResp getMemberStats(Long projectId, Long userId);
 }

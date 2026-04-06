@@ -31,6 +31,19 @@ app.use(ElementPlus, {
 })
 app.use(permissionDirective) // 注册权限指令
 
+// 全局错误处理器
+app.config.errorHandler = (err, instance, info) => {
+  console.error('全局错误:', err)
+  console.error('错误信息:', info)
+  // 可以在这里添加错误上报逻辑
+}
+
+// 捕获未处理的Promise错误
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('未处理的Promise错误:', event.reason)
+  // 可以在这里添加错误上报逻辑
+})
+
 // 在应用挂载前恢复认证信息
 const authStore = useAuthStore()
 authStore.restoreAuth()

@@ -1,6 +1,7 @@
 package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.gsms.gsms.dto.project.IterationStatsResp;
 import com.gsms.gsms.model.entity.Iteration;
 import com.gsms.gsms.model.enums.IterationStatus;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,4 +22,9 @@ public interface IterationMapper extends BaseMapper<Iteration> {
     int update(Iteration iteration);
 
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 查询项目的迭代进度统计
+     */
+    List<IterationStatsResp> getIterationStats(@Param("projectId") Long projectId);
 }

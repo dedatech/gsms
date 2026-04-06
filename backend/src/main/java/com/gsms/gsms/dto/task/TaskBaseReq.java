@@ -1,6 +1,7 @@
 package com.gsms.gsms.dto.task;
 
 import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.enums.DefectSeverity;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
 import com.gsms.gsms.model.enums.TaskType;
@@ -58,6 +59,19 @@ public abstract class TaskBaseReq {
     
     @Schema(description = "预估工时", example = "8.0")
     private BigDecimal estimateHours;
+
+    // 缺陷特有字段
+    @Schema(description = "缺陷严重程度（仅缺陷类型使用）", example = "MAJOR")
+    private DefectSeverity severity;
+
+    @Schema(description = "缺陷复现步骤（仅缺陷类型使用）", example = "1. 打开登录页面\n2. 输入错误的密码\n3. 点击登录")
+    private String reproductionSteps;
+
+    @Schema(description = "附件列表（JSON格式）", example = "[\"file1.png\", \"file2.mp4\"]")
+    private String attachments;
+
+    @Schema(description = "修复版本", example = "v1.0.1")
+    private String fixVersion;
 
     // Getter and Setter
     public Long getProjectId() {
@@ -154,5 +168,37 @@ public abstract class TaskBaseReq {
 
     public void setEstimateHours(BigDecimal estimateHours) {
         this.estimateHours = estimateHours;
+    }
+
+    public DefectSeverity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(DefectSeverity severity) {
+        this.severity = severity;
+    }
+
+    public String getReproductionSteps() {
+        return reproductionSteps;
+    }
+
+    public void setReproductionSteps(String reproductionSteps) {
+        this.reproductionSteps = reproductionSteps;
+    }
+
+    public String getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(String attachments) {
+        this.attachments = attachments;
+    }
+
+    public String getFixVersion() {
+        return fixVersion;
+    }
+
+    public void setFixVersion(String fixVersion) {
+        this.fixVersion = fixVersion;
     }
 }

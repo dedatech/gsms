@@ -3,6 +3,7 @@ package com.gsms.gsms.model.entity;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.gsms.gsms.model.enums.DefectSeverity;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
 import com.gsms.gsms.model.enums.TaskType;
@@ -79,6 +80,30 @@ public class Task {
      */
     @Schema(description = "优先级")
     private TaskPriority priority;
+
+    /**
+     * 缺陷严重程度（仅缺陷类型任务使用）
+     */
+    @Schema(description = "缺陷严重程度")
+    private DefectSeverity severity;
+
+    /**
+     * 缺陷复现步骤（仅缺陷类型任务使用）
+     */
+    @Schema(description = "缺陷复现步骤")
+    private String reproductionSteps;
+
+    /**
+     * 附件列表（JSON格式）
+     */
+    @Schema(description = "附件列表")
+    private String attachments;
+
+    /**
+     * 修复版本
+     */
+    @Schema(description = "修复版本")
+    private String fixVersion;
 
     /**
      * 负责人ID
@@ -245,6 +270,38 @@ public class Task {
 
     public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+
+    public DefectSeverity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(DefectSeverity severity) {
+        this.severity = severity;
+    }
+
+    public String getReproductionSteps() {
+        return reproductionSteps;
+    }
+
+    public void setReproductionSteps(String reproductionSteps) {
+        this.reproductionSteps = reproductionSteps;
+    }
+
+    public String getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(String attachments) {
+        this.attachments = attachments;
+    }
+
+    public String getFixVersion() {
+        return fixVersion;
+    }
+
+    public void setFixVersion(String fixVersion) {
+        this.fixVersion = fixVersion;
     }
 
     public Long getAssigneeId() {

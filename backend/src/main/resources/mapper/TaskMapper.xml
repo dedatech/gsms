@@ -15,6 +15,11 @@
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
         <result column="priority" property="priority"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
+        <result column="severity" property="severity"
+                typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
+        <result column="reproduction_steps" property="reproductionSteps"/>
+        <result column="attachments" property="attachments"/>
+        <result column="fix_version" property="fixVersion"/>
         <result column="assignee_id" property="assigneeId"/>
         <result column="status" property="status"
                 typeHandler="com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler"/>
@@ -31,7 +36,8 @@
 
     <!-- 查询所有字段 -->
     <sql id="selectAllFields">
-        id, project_id, iteration_id, parent_id, title, description, type, priority, assignee_id, status,
+        id, project_id, iteration_id, parent_id, title, description, type, priority, severity,
+        reproduction_steps, attachments, fix_version, assignee_id, status,
         plan_start_date, plan_end_date, actual_start_date, actual_end_date, estimate_hours,
         create_user_id, update_user_id, create_time, update_time, is_deleted
     </sql>
@@ -233,5 +239,104 @@
         LEFT JOIN gsms_iteration i ON t.iteration_id = i.id AND i.is_deleted = 0
         WHERE t.parent_id = #{parentId} AND t.is_deleted = 0 AND pm.user_id = #{userId}
         ORDER BY t.create_time DESC
+    </select>
+
+    <!-- 根据项目ID和负责人ID查询任务 -->
+    <select id="selectByProjectIdAndAssigneeId" resultMap="TaskResultMap">
+        SELECT <include refid="selectAllFields"/>
+        FROM gsms_task
+        WHERE project_id = #{projectId}
+        AND assignee_id = #{assigneeId}
+        AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询迭代下的需求列表 (含任务统计) -->
+    <select id="getRequirementsByIteration" resultType="com.gsms.gsms.dto.task.RequirementStatsResp">
+        SELECT
+            r.id,
+            r.title,
+            r.type,
+            r.priority,
+            r.assignee_id as assigneeId,
+            u.nickname as assigneeName,
+            r.estimate_hours as estimateHours,
+            COUNT(st.id) as subtaskCount,
+            SUM(CASE WHEN st.status = 3 THEN 1 ELSE 0 END) as completedSubtasks,
+            SUM(CASE WHEN st.status IN (1, 2, 4, 5) THEN 1 ELSE 0 END) as todoSubtasks,
+            SUM(CASE WHEN st.status = 2 THEN 1 ELSE 0 END) as inProgressSubtasks,
+            SUM(CASE WHEN st.status = 4 THEN 1 ELSE 0 END) as testingSubtasks,
+            SUM(CASE WHEN st.status = 5 THEN 1 ELSE 0 END) as reopenedSubtasks
+        FROM gsms_task r
+        LEFT JOIN gsms_task st ON r.id = st.parent_id AND st.is_deleted = 0
+        LEFT JOIN sys_user u ON r.assignee_id = u.id AND u.is_deleted = 0
+        WHERE r.iteration_id = #{iterationId}
+          AND r.type = 2
+          AND r.is_deleted = 0
+          AND r.parent_id IS NULL
+        GROUP BY r.id, r.title, r.type, r.priority, r.assignee_id, u.nickname, r.estimate_hours
+        ORDER BY r.priority DESC, r.id DESC
+    </select>
+
+    <!-- 查询项目下的所有需求列表 (含任务统计) -->
+    <select id="getRequirementsByProject" resultType="com.gsms.gsms.dto.task.RequirementStatsResp">
+        SELECT
+            r.id,
+            r.title,
+            r.type,
+            r.priority,
+            r.assignee_id as assigneeId,
+            u.nickname as assigneeName,
+            r.estimate_hours as estimateHours,
+            COUNT(st.id) as subtaskCount,
+            SUM(CASE WHEN st.status = 3 THEN 1 ELSE 0 END) as completedSubtasks,
+            SUM(CASE WHEN st.status IN (1, 2, 4, 5) THEN 1 ELSE 0 END) as todoSubtasks,
+            SUM(CASE WHEN st.status = 2 THEN 1 ELSE 0 END) as inProgressSubtasks,
+            SUM(CASE WHEN st.status = 4 THEN 1 ELSE 0 END) as testingSubtasks,
+            SUM(CASE WHEN st.status = 5 THEN 1 ELSE 0 END) as reopenedSubtasks
+        FROM gsms_task r
+        LEFT JOIN gsms_task st ON r.id = st.parent_id AND st.is_deleted = 0
+        LEFT JOIN sys_user u ON r.assignee_id = u.id AND u.is_deleted = 0
+        WHERE r.project_id = #{projectId}
+          AND r.type = 2
+          AND r.is_deleted = 0
+          AND r.parent_id IS NULL
+        GROUP BY r.id, r.title, r.type, r.priority, r.assignee_id, u.nickname, r.estimate_hours
+        ORDER BY r.priority DESC, r.id DESC
+    </select>
+
+    <!-- 查询需求下的任务 (按状态分类) -->
+    <select id="getTasksByRequirement" resultType="com.gsms.gsms.dto.task.TaskInfoResp">
+        SELECT
+            t.id,
+            t.title,
+            t.type,
+            t.priority,
+            t.status,
+            t.assignee_id as assigneeId,
+            u.nickname as assigneeName,
+            t.estimate_hours as estimateHours,
+            t.parent_id as parentId,
+            t.description,
+            t.plan_start_date as planStartDate,
+            t.plan_end_date as planEndDate,
+            t.actual_start_date as actualStartDate,
+            t.actual_end_date as actualEndDate,
+            t.create_time as createTime,
+            t.update_time as updateTime
+        FROM gsms_task t
+        LEFT JOIN sys_user u ON t.assignee_id = u.id AND u.is_deleted = 0
+        WHERE t.parent_id = #{requirementId}
+          AND t.is_deleted = 0
+        <if test="assigneeId != null">
+          AND t.assignee_id = #{assigneeId}
+        </if>
+        <if test="priority != null">
+          AND t.priority = #{priority, typeHandler=com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler}
+        </if>
+        ORDER BY
+            FIELD(t.status, 'TODO', 'IN_PROGRESS', 'TESTING', 'REOPENED', 'DONE'),
+            t.priority DESC,
+            t.id DESC
     </select>
 </mapper>

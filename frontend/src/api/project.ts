@@ -61,3 +61,8 @@ export const addProjectMember = (projectId: number, userId: number, roleType: nu
 export const removeProjectMember = (projectId: number, userId: number) => {
   return request.delete(`/projects/${projectId}/members/${userId}`)
 }
+
+// 获取项目成员统计信息
+export const getProjectMemberStats = (projectId: number, userId: number) => {
+  return request.get(`/projects/${projectId}/members/${userId}/stats`)
+}

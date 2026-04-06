@@ -146,4 +146,16 @@ public class ProjectController {
         projectMemberService.removeMember(projectId, userId);
         return Result.success("移除项目成员成功");
     }
+
+    /**
+     * 查询项目成员统计信息
+     */
+    @GetMapping("/{projectId}/members/{userId}/stats")
+    @Operation(summary = "查询项目成员统计信息")
+    public Result<com.gsms.gsms.dto.project.ProjectMemberStatsResp> getProjectMemberStats(
+            @PathVariable Long projectId,
+            @PathVariable Long userId) {
+        com.gsms.gsms.dto.project.ProjectMemberStatsResp stats = projectMemberService.getMemberStats(projectId, userId);
+        return Result.success(stats);
+    }
 }

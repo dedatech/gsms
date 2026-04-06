@@ -123,4 +123,24 @@
     <update id="deleteById" parameterType="long">
         UPDATE gsms_work_hour SET is_deleted = 1, update_time = CURRENT_TIMESTAMP WHERE id = #{id}
     </update>
+
+    <!-- 查询项目成员的总工时 -->
+    <select id="selectTotalHoursByProjectIdAndUserId" resultType="java.lang.Double">
+        SELECT COALESCE(SUM(hours), 0.0)
+        FROM gsms_work_hour
+        WHERE project_id = #{projectId}
+        AND user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- 查询项目成员在指定日期范围内的工时 -->
+    <select id="selectTotalHoursByDateRange" resultType="java.lang.Double">
+        SELECT COALESCE(SUM(hours), 0.0)
+        FROM gsms_work_hour
+        WHERE project_id = #{projectId}
+        AND user_id = #{userId}
+        AND work_date >= #{startDate}
+        AND work_date &lt;= #{endDate}
+        AND is_deleted = 0
+    </select>
 </mapper>

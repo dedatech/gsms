@@ -33,73 +33,83 @@
 
     <!-- 内容区域（根据模块标签显示不同内容） -->
     <div class="content-area">
-      <!-- 概览 -->
-      <div v-if="activeModule === 'overview'" class="module-content">
-        <el-alert title="概览视图开发中" type="info" :closable="false" />
-      </div>
+      <transition name="module-fade" mode="out-in">
+        <!-- 项目概览（新增） -->
+        <div v-if="activeModule === 'overview'" key="overview" class="module-content">
+          <ProjectOverview :project-id="projectId" />
+        </div>
 
-      <!-- 需求 -->
-      <div v-else-if="activeModule === 'requirements'" class="module-content">
-        <RequirementsView
-          ref="requirementsViewRef"
-          :project-id="projectId"
-          @create-task="handleCreateTask"
-          @view-task="handleViewTask"
-          @edit-task="handleEditTask"
-          @delete-task="handleDeleteTask"
-        />
-      </div>
+        <!-- 需求管理 -->
+        <div v-else-if="activeModule === 'planning'" key="planning" class="module-content">
+          <PlanningView
+            ref="planningViewRef"
+            :project-id="projectId"
+            @create-iteration="handleCreateIteration"
+            @edit-iteration="handleEditIteration"
+            @delete-iteration="handleDeleteIteration"
+            @create-requirement="handleCreateRequirement"
+            @edit-requirement="handleEditTask"
+            @delete-requirement="handleDeleteTask"
+          />
+        </div>
 
-      <!-- 规划 -->
-      <div v-else-if="activeModule === 'planning'" class="module-content">
-        <PlanningView
-          ref="planningViewRef"
-          :project-id="projectId"
-          @create-iteration="handleCreateIteration"
-          @edit-iteration="handleEditIteration"
-          @delete-iteration="handleDeleteIteration"
-          @create-requirement="handleCreateRequirement"
-          @edit-requirement="handleEditTask"
-          @delete-requirement="handleDeleteTask"
-        />
-      </div>
+        <!-- 任务执行 -->
+        <div v-else-if="activeModule === 'tasks'" key="tasks" class="module-content">
+          <!-- 视图切换器 -->
+          <div class="view-mode-switcher">
+            <el-select
+              v-model="selectedIterationId"
+              placeholder="选择迭代"
+              size="small"
+              style="width: 200px; margin-right: 12px"
+              @change="handleIterationChange"
+            >
+              <el-option
+                v-for="iteration in iterations"
+                :key="iteration.id"
+                :label="iteration.name"
+                :value="iteration.id"
+              />
+            </el-select>
+            <el-radio-group v-model="taskViewMode" size="small">
+              <el-radio-button value="kanban-table">看板表格</el-radio-button>
+              <el-radio-button value="traditional">传统视图</el-radio-button>
+            </el-radio-group>
+          </div>
 
-      <!-- 迭代 -->
-      <div v-else-if="activeModule === 'iteration'" class="module-content">
-        <UnifiedWorkItemView
-          :iterations="iterations"
-          :tasks="tasks"
-          :task-total="taskTotal"
-          :current-page="taskSearchForm.pageNum"
-          :page-size="taskSearchForm.pageSize"
-          @create-task="handleCreateTask"
-          @create-iteration="handleCreateIteration"
-          @view-iteration="handleViewIteration"
-          @edit-iteration="handleEditIteration"
-          @edit-task="handleEditTask"
-          @pagination-change="handlePaginationChange"
-        />
-      </div>
+          <!-- 看板表格视图 -->
+          <transition name="view-fade" mode="out-in">
+            <KanbanTableView
+              v-if="taskViewMode === 'kanban-table'"
+              key="kanban-table"
+              :project-id="projectId"
+              :iteration-id="selectedIterationId"
+            />
 
-      <!-- 缺陷 -->
-      <div v-else-if="activeModule === 'defect'" class="module-content">
-        <el-alert title="缺陷视图开发中" type="info" :closable="false" />
-      </div>
+            <!-- 传统任务视图 -->
+            <TasksView
+              v-else
+              key="traditional"
+              ref="tasksViewRef"
+              :project-id="projectId"
+            />
+          </transition>
+        </div>
 
-      <!-- 报表 -->
-      <div v-else-if="activeModule === 'report'" class="module-content">
-        <el-alert title="报表视图开发中" type="info" :closable="false" />
-      </div>
+        <!-- 工时统计（新增） -->
+        <div v-else-if="activeModule === 'workhours'" key="workhours" class="module-content">
+          <WorkHourStats :project-id="projectId" />
+        </div>
 
-      <!-- 文档 -->
-      <div v-else-if="activeModule === 'document'" class="module-content">
-        <el-alert title="文档视图开发中" type="info" :closable="false" />
-      </div>
-
-      <!-- 成员 -->
-      <div v-else-if="activeModule === 'member'" class="module-content">
-        <el-alert title="成员视图开发中" type="info" :closable="false" />
-      </div>
+        <!-- 团队协作 -->
+        <div v-else-if="activeModule === 'member'" key="member" class="module-content">
+          <MembersView
+            ref="membersViewRef"
+            :project-id="projectId"
+            @refresh="fetchMembers"
+          />
+        </div>
+      </transition>
     </div>
 
     <!-- 编辑项目对话框 -->
@@ -353,11 +363,17 @@ import { getIterationList, createIteration, updateIteration, deleteIteration, ty
 import ProjectGantt from '@/components/ProjectGantt.vue'
 import ProjectInfoSidebar from '@/components/ProjectInfoSidebar.vue'
 import UnifiedWorkItemView from '@/components/UnifiedWorkItemView.vue'
-import RequirementsView from '@/components/RequirementsView.vue'
 import PlanningView from '@/components/PlanningView.vue'
+import DefectsView from '@/views/project/DefectsView.vue'
+import TasksView from '@/views/project/TasksView.vue'
+import KanbanTableView from '@/views/project/KanbanTableView.vue'
+import MembersView from '@/views/project/MembersView.vue'
 import IterationSelector from '@/components/layout/IterationSelector.vue'
 import ViewModeTabs from '@/components/layout/ViewModeTabs.vue'
 import ProjectSelector from '@/components/layout/ProjectSelector.vue'
+import DashboardView from '@/views/project/DashboardView.vue'
+import ProjectOverview from '@/views/project/ProjectOverview.vue'
+import WorkHourStats from '@/views/project/WorkHourStats.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -366,25 +382,34 @@ const projectId = computed(() => Number(route.params.id))
 // 当前激活的标签页（默认显示工作项列表，符合"工作项为核心"理念）
 const activeTab = ref('workItems')
 
-// 当前激活的模块标签
+// 当前激活的模块标签（默认显示项目概览）
 const activeModule = ref('overview')
 
-// RequirementsView 组件引用
-const requirementsViewRef = ref<InstanceType<typeof RequirementsView>>()
+// 任务视图模式（看板表格 / 传统视图）
+const taskViewMode = ref<'kanban-table' | 'traditional'>('kanban-table')
 
-// PlanningView 组件引用
+// 选中的迭代ID（用于筛选看板表格数据）
+const selectedIterationId = ref<number | undefined>(undefined)
+
+// RequirementsView 组件引用
 const planningViewRef = ref<InstanceType<typeof PlanningView>>()
 
-// 模块标签定义
+// 重复声明已删除
+
+
+// DefectsView 组件引用
+const defectsViewRef = ref<InstanceType<typeof DefectsView>>()
+
+// MembersView 组件引用
+const membersViewRef = ref<InstanceType<typeof MembersView>>()
+
+// 模块标签定义（按工作流程顺序）
 const moduleTabs = [
-  { key: 'overview', label: '概览' },
-  { key: 'requirements', label: '需求' },
-  { key: 'planning', label: '规划' },
-  { key: 'iteration', label: '迭代' },
-  { key: 'defect', label: '缺陷' },
-  { key: 'report', label: '报表' },
-  { key: 'document', label: '文档' },
-  { key: 'member', label: '成员' }
+  { key: 'overview', label: '项目概览' },       // 新增：核心指标和进度可视化
+  { key: 'planning', label: '需求管理' },       // 需求列表、状态管理
+  { key: 'tasks', label: '任务执行' },          // 看板表格、传统视图
+  { key: 'workhours', label: '工时统计' },      // 新增：工时数据、效率分析
+  { key: 'member', label: '团队协作' }          // 成员列表、角色分工
 ]
 
 // ONES 风格：当前视图标签
@@ -645,9 +670,19 @@ const fetchIterations = async () => {
   try {
     const res = await getIterationList({ projectId: projectId.value, pageNum: 1, pageSize: 100 })
     iterations.value = res.list || []
+
+    // 自动选择第一个迭代
+    if (iterations.value.length > 0 && !selectedIterationId.value) {
+      selectedIterationId.value = iterations.value[0].id
+    }
   } catch (error) {
     console.error('获取迭代列表失败:', error)
   }
+}
+
+// 处理迭代选择变更
+const handleIterationChange = (iterationId: number) => {
+  selectedIterationId.value = iterationId
 }
 
 // 返回
@@ -783,8 +818,8 @@ const handleEditTask = (task: any) => {
 
 // 查看任务
 const handleViewTask = (task: any) => {
-  // 跳转到任务详情页
-  router.push(`/tasks/${task.id}`)
+  // 跳转到统一工作项详情页
+  router.push(`/projects/${projectId.value}/work-items/${task.id}`)
 }
 
 // 删除任务
@@ -792,11 +827,11 @@ const handleDeleteTask = async (task: any) => {
   try {
     await deleteTask(task.id)
     ElMessage.success('删除成功')
-    // 刷新需求视图
-    if (requirementsViewRef.value) {
-      requirementsViewRef.value.refresh()
+    // 刷新需求管理
+    if (planningViewRef.value) {
+      planningViewRef.value.refresh()
     }
-    // 刷新规划视图
+    // 刷新需求管理
     if (planningViewRef.value) {
       planningViewRef.value.refresh()
     }
@@ -836,9 +871,9 @@ const handleCreateTaskSubmit = async () => {
       ElMessage.success('任务创建成功')
       taskDialogVisible.value = false
       fetchTasks() // 刷新任务列表
-      // 刷新需求视图
-      if (requirementsViewRef.value) {
-        requirementsViewRef.value.refresh()
+      // 刷新需求管理
+      if (planningViewRef.value) {
+        planningViewRef.value.refresh()
       }
       // 刷新规划视图
       if (planningViewRef.value) {
@@ -1055,6 +1090,38 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* 模块切换过渡动画 */
+.module-fade-enter-active,
+.module-fade-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.module-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.module-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* 视图切换过渡动画 */
+.view-fade-enter-active,
+.view-fade-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.view-fade-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.view-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
 /* 内容区域 */
 .content-area {
   flex: 1;
@@ -1067,6 +1134,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* 视图切换器 */
+.view-mode-switcher {
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
 }
 
 

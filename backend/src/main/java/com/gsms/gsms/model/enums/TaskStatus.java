@@ -5,11 +5,20 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 任务状态枚举
+ *
+ * 支持普通任务和缺陷的状态流转
+ * 普通任务：TODO → IN_PROGRESS → DONE → CLOSED
+ * 缺陷工作流：TODO → IN_PROGRESS → TESTING → DONE → CLOSED
+ *            ↑                         ↓
+ *            └─────── REOPENED ─────────┘
  */
 public enum TaskStatus {
     TODO(1, "待处理"),
     IN_PROGRESS(2, "进行中"),
-    DONE(3, "已完成");
+    TESTING(4, "待验证"),
+    REOPENED(5, "重新打开"),
+    DONE(3, "已完成"),
+    CLOSED(6, "已关闭");
 
     @EnumValue  // MyBatis-Plus 标记存储到数据库的值
     private final Integer code;

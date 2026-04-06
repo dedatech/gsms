@@ -2,6 +2,7 @@ package com.gsms.gsms.dto.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gsms.gsms.model.entity.Task;
+import com.gsms.gsms.model.enums.DefectSeverity;
 import com.gsms.gsms.model.enums.TaskPriority;
 import com.gsms.gsms.model.enums.TaskStatus;
 import com.gsms.gsms.model.enums.TaskType;
@@ -41,6 +42,12 @@ public class TaskInfoResp {
     @Schema(description = "预估工时")
     private BigDecimal estimateHours;
 
+    @Schema(description = "实际工时（从工时记录汇总）")
+    private BigDecimal actualHours;
+
+    @Schema(description = "剩余工时（预估工时 - 实际工时）")
+    private BigDecimal remainingHours;
+
     @Schema(description = "子任务列表（嵌套结构）")
     private java.util.List<TaskInfoResp> subtasks;
 
@@ -55,7 +62,20 @@ public class TaskInfoResp {
     
     @Schema(description = "优先级")
     private TaskPriority priority;
-    
+
+    // 缺陷特有字段
+    @Schema(description = "缺陷严重程度（仅缺陷类型使用）")
+    private DefectSeverity severity;
+
+    @Schema(description = "缺陷复现步骤（仅缺陷类型使用）")
+    private String reproductionSteps;
+
+    @Schema(description = "附件列表（JSON格式）")
+    private String attachments;
+
+    @Schema(description = "修复版本")
+    private String fixVersion;
+
     @Schema(description = "负责人ID")
     private Long assigneeId;
 
@@ -164,6 +184,22 @@ public class TaskInfoResp {
         this.estimateHours = estimateHours;
     }
 
+    public BigDecimal getActualHours() {
+        return actualHours;
+    }
+
+    public void setActualHours(BigDecimal actualHours) {
+        this.actualHours = actualHours;
+    }
+
+    public BigDecimal getRemainingHours() {
+        return remainingHours;
+    }
+
+    public void setRemainingHours(BigDecimal remainingHours) {
+        this.remainingHours = remainingHours;
+    }
+
     public java.util.List<TaskInfoResp> getSubtasks() {
         return subtasks;
     }
@@ -202,6 +238,38 @@ public class TaskInfoResp {
 
     public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+
+    public DefectSeverity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(DefectSeverity severity) {
+        this.severity = severity;
+    }
+
+    public String getReproductionSteps() {
+        return reproductionSteps;
+    }
+
+    public void setReproductionSteps(String reproductionSteps) {
+        this.reproductionSteps = reproductionSteps;
+    }
+
+    public String getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(String attachments) {
+        this.attachments = attachments;
+    }
+
+    public String getFixVersion() {
+        return fixVersion;
+    }
+
+    public void setFixVersion(String fixVersion) {
+        this.fixVersion = fixVersion;
     }
 
     public Long getAssigneeId() {
@@ -327,6 +395,10 @@ public class TaskInfoResp {
         resp.setDescription(task.getDescription());
         resp.setType(task.getType());
         resp.setPriority(task.getPriority());
+        resp.setSeverity(task.getSeverity());
+        resp.setReproductionSteps(task.getReproductionSteps());
+        resp.setAttachments(task.getAttachments());
+        resp.setFixVersion(task.getFixVersion());
         resp.setAssigneeId(task.getAssigneeId());
         resp.setStatus(task.getStatus());
         resp.setPlanStartDate(task.getPlanStartDate());

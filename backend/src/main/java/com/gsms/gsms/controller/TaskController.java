@@ -183,4 +183,32 @@ public class TaskController {
         logger.info("成功获取任务剩余工时: taskId={}, remainingHours={}", id, remainingHours);
         return Result.success(remainingHours);
     }
+
+    /**
+     * 获取项目的看板表格数据
+     *
+     * @param projectId 项目ID
+     * @param iterationId 迭代ID（可选）
+     * @param assigneeId 负责人ID（可选筛选）
+     * @param priority 优先级（可选筛选）
+     * @return 看板表格数据
+     */
+    @GetMapping("/kanban-table")
+    @Operation(summary = "获取项目的看板表格数据")
+    public Result<com.gsms.gsms.dto.task.KanbanTableResp> getKanbanTableData(
+            @RequestParam Long projectId,
+            @RequestParam(required = false) Long iterationId,
+            @RequestParam(required = false) Long assigneeId,
+            @RequestParam(required = false) String priority) {
+        logger.info("获取看板表格数据: projectId={}, iterationId={}, assigneeId={}, priority={}",
+                    projectId, iterationId, assigneeId, priority);
+        com.gsms.gsms.dto.task.KanbanTableResp data = taskService.getKanbanTableData(
+                projectId, iterationId, assigneeId, priority);
+        logger.info("成功获取看板表格数据: 需求数={}, 任务总数={}",
+                    data.getRows().size(),
+                    data.getTotalTodoTasks() + data.getTotalInProgressTasks() +
+                    data.getTotalTestingTasks() + data.getTotalDoneTasks() +
+                    data.getTotalReopenedTasks());
+        return Result.success(data);
+    }
 }

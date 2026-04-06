@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -75,4 +76,24 @@ public interface WorkHourMapper extends BaseMapper<WorkHour> {
      * @return 影响行数
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 查询项目成员的总工时
+     * @param projectId 项目ID
+     * @param userId 用户ID
+     * @return 总工时（小时）
+     */
+    Double selectTotalHoursByProjectIdAndUserId(@Param("projectId") Long projectId, @Param("userId") Long userId);
+
+    /**
+     * 查询项目成员在指定日期范围内的工时
+     * @param projectId 项目ID
+     * @param userId 用户ID
+     * @param startDate 开始日期时间
+     * @param endDate 结束日期时间
+     * @return 总工时（小时）
+     */
+    Double selectTotalHoursByDateRange(@Param("projectId") Long projectId, @Param("userId") Long userId,
+                                       @Param("startDate") LocalDateTime startDate,
+                                       @Param("endDate") LocalDateTime endDate);
 }

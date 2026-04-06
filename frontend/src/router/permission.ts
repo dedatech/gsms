@@ -7,36 +7,52 @@ import { useAuthStore } from '@/stores/auth'
  */
 export const setupPermissionGuard = (router: Router) => {
   router.beforeEach(async (to, from, next) => {
-    const authStore = useAuthStore()
+    try {
+      const authStore = useAuthStore()
 
-    // 不需要认证的页面直接放行
-    if (!to.meta.requiresAuth) {
-      return next()
-    }
-
-    // 需要认证的页面
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-      return next({ name: 'Login', query: { redirect: to.fullPath } })
-    }
-
-    // 已登录用户访问登录页，跳转到首页
-    if (to.name === 'Login' && authStore.isAuthenticated) {
-      return next({ name: 'Dashboard' })
-    }
-
-    // 检查路由权限
-    if (to.meta.permissions) {
-      const permissions = to.meta.permissions as string[]
-      const hasPermission = authStore.hasAnyPermission(permissions)
-
-      if (!hasPermission) {
-        console.warn('没有权限访问该页面:', to.path, '需要的权限:', permissions)
-        // 可以跳转到403页面或者提示无权限
-        return next({ name: 'Dashboard' }) // 暂时跳转到首页
+      // 不需要认证的页面直接放行
+      if (!to.meta.requiresAuth) {
+        return next()
       }
-    }
 
-    next()
+      // 需要认证的页面
+      if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+        return next({ name: 'Login', query: { redirect: to.fullPath } })
+      }
+
+      // 已登录用户访问登录页，跳转到首页
+      if (to.name === 'Login' && authStore.isAuthenticated) {
+        return next({ name: 'Dashboard' })
+      }
+
+      // 检查路由权限（安全地检查）
+      if (to.meta.permissions) {
+        try {
+          const permissions = to.meta.permissions as string[]
+          const hasPermission = authStore.hasAnyPermission(permissions)
+
+          if (!hasPermission) {
+            console.warn('没有权限访问该页面:', to.path, '需要的权限:', permissions)
+            return next({ name: 'Dashboard' })
+          }
+        } catch (permError) {
+          console.error('权限检查失败:', permError)
+          // 权限检查失败时，允许继续访问（避免阻塞用户）
+        }
+      }
+
+      next()
+    } catch (error) {
+      console.error('路由守卫执行错误:', error)
+      // 发生错误时，仍然允许导航继续（避免卡住用户）
+      next()
+    }
+  })
+
+  // 路由错误处理
+  router.onError((error) => {
+    console.error('路由错误:', error)
+    // 可以在这里添加错误上报逻辑
   })
 }
 

@@ -5,6 +5,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Language Preference
 **IMPORTANT: Always respond in Chinese (中文) for this project.** Use Chinese for all explanations, comments, and communications unless specifically requested otherwise.
 
+## gstack 技能集
+
+本项目使用 gstack（由 Y Combinator CEO Garry Tan 开发的 Claude Code 专家技能集）来提升开发效率。
+
+### 网页浏览
+**重要：** 使用 gstack 的 `/browse` 技能进行所有网页浏览任务。不要使用 `mcp__claude-in-chrome__*` 工具。
+
+### 可用技能
+
+#### 产品与规划
+- `/office-hours` - YC 风格产品咨询。在编写代码前重新思考问题
+- `/plan-ceo-review` - CEO/产品策略审查。找到请求中的 10 星产品
+- `/plan-eng-review` - 工程经理审查。架构、数据流、边界情况、测试
+- `/plan-design-review` - 高级设计审查。设计维度 0-10 评分，修复 AI 生成内容
+
+#### 设计
+- `/design-consultation` - 设计伙伴。从零开始构建完整设计系统
+- `/design-review` - 懂代码的设计师。审查并修复设计问题，原子化提交
+
+#### 代码质量
+- `/review` - 高级工程师审查。发现通过 CI 但在生产环境中爆炸的 bug
+- `/investigate` - 系统化调试器。根因分析，无过早修复
+
+#### 测试与 QA
+- `/qa` - QA 负责人。在真实浏览器中测试应用，发现 bug，修复，生成回归测试
+- `/qa-only` - QA 报告员。仅报告问题，无代码更改
+- `/browse` - 无头浏览器。导航、点击、验证、截图。~100ms/命令
+
+#### 发布与文档
+- `/ship` - 发布工程师。同步 main，运行测试，推送，创建 PR
+- `/document-release` - 技术文档。发布后更新所有项目文档
+- `/retro` - 工程经理。每周回顾，统计和成长机会
+
+#### 实用工具
+- `/setup-browser-cookies` - 从 Chrome/Arc/Brave/Edge 导入 cookie 用于认证测试
+- `/gstack-upgrade` - 升级 gstack 到最新版本
+- `/codex` - 对抗性代码审查。代码更改的第二意见
+- `/careful` - 生产系统模式。对实时系统格外谨慎
+- `/freeze` - 将编辑范围限制到特定目录
+- `/guard` - 最大安全模式。警告破坏性操作，限制编辑
+- `/unfreeze` - 移除编辑限制
+
+### 故障排除
+
+如果 gstack 技能不工作，运行：
+```bash
+cd .claude/skills/gstack && ./setup
+```
+
+### 更多信息
+- GitHub: https://github.com/garrytan/gstack
+- 完整文档: https://github.com/garrytan/gstack/blob/master/docs/skills.md
+
 ## Git Commit 约定
 **重要：当用户请求 Git 提交时，必须使用 git-commit-assistant agent**
 
@@ -20,6 +73,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. Agent 会分析变更并生成提交信息
 4. 等待用户确认后再执行提交
 5. **不要自动执行 git push**，除非用户明确要求
+
+## 产品开发约定
+
+### 需求讨论 vs 技术设计阶段区分
+
+**重要：在与用户讨论方案时，必须明确区分讨论阶段：**
+
+#### 1. 产品需求讨论阶段
+**关注点：**
+- 功能定义：做什么、不做什么
+- 用户价值：为什么需要这个功能
+- 交互体验：用户如何使用、操作流程
+- 视觉设计：界面布局、信息层次
+
+**输出内容：**
+- 用户故事和用例
+- 交互流程图
+- 界面原型描述
+- 功能清单
+
+**禁止输出：**
+- ❌ 技术实现细节
+- ❌ 需要修改的文件清单
+- ❌ 组件架构设计
+- ❌ 代码示例
+
+#### 2. 技术设计讨论阶段
+**关注点：**
+- 技术选型：使用什么技术栈
+- 架构设计：如何组织代码
+- 实施计划：分几个步骤、每个步骤做什么
+- 风险评估：可能遇到的问题
+
+**输出内容：**
+- 组件架构图
+- 文件清单和目录结构
+- 数据流和接口设计
+- 实施步骤和验收标准
+
+**判断依据：**
+- 用户明确说"开始技术设计"或"讨论实现方案"
+- 需求讨论已明确完成，用户问"怎么实现"
+- 用户主动询问技术细节
+
+**执行规则：**
+- 默认从**产品需求讨论**开始
+- 主动询问用户："我们现在讨论的是产品需求还是技术设计？"
+- 不得混淆两个阶段的内容
+- 产品阶段完成前，不得主动进入技术设计
 
 ## 开发协作约定
 

@@ -93,12 +93,27 @@ const handleLogin = async () => {
       // 使用 auth store 保存认证信息
       authStore.setAuth(token, loginForm.username)
 
-      // 加载用户权限和角色信息
-      await authStore.refreshAuth()
+      // 加载用户权限和角色信息（非阻塞）
+      try {
+        await Promise.race([
+          authStore.refreshAuth(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('权限加载超时')), 5000))
+        ])
+      } catch (permError) {
+        console.warn('加载权限信息失败，但继续登录流程:', permError)
+        // 不阻塞登录流程，即使权限加载失败也允许用户进入
+      }
 
       ElMessage.success('登录成功')
-      // 跳转到Dashboard首页
-      router.push('/dashboard')
+
+      // 使用 setTimeout 确保状态更新完成后再跳转
+      setTimeout(() => {
+        router.push('/dashboard').catch((err) => {
+          console.error('路由跳转失败:', err)
+          // 如果跳转失败，尝试使用window.location
+          window.location.href = '/dashboard'
+        })
+      }, 100)
     } catch (error: unknown) {
       console.error('登录错误:', error)
       const errorMsg = error instanceof Error ? error.message : '登录失败'

@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ChangeDiffViewer: typeof import('./components/ChangeDiffViewer.vue')['default']
-    ContainerManager: typeof import('./components/ContainerManager.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -58,8 +57,9 @@ declare module 'vue' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
+    ElTimeline: typeof import('element-plus/es')['ElTimeline']
+    ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
-    ElTree: typeof import('element-plus/es')['ElTree']
     ElTreeSelect: typeof import('element-plus/es')['ElTreeSelect']
     IterationSelector: typeof import('./components/layout/IterationSelector.vue')['default']
     Layout: typeof import('./components/Layout.vue')['default']
@@ -78,7 +78,6 @@ declare module 'vue' {
     UnifiedWorkItemView: typeof import('./components/UnifiedWorkItemView.vue')['default']
     ViewModeTabs: typeof import('./components/layout/ViewModeTabs.vue')['default']
     WorkHourBatchDialog: typeof import('./components/WorkHourBatchDialog.vue')['default']
-    WorkItemManager: typeof import('./components/WorkItemManager.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

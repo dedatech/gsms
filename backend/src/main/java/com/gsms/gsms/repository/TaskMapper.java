@@ -1,6 +1,8 @@
 package com.gsms.gsms.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.gsms.gsms.dto.task.RequirementStatsResp;
+import com.gsms.gsms.dto.task.TaskInfoResp;
 import com.gsms.gsms.model.entity.Task;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -42,6 +44,14 @@ public interface TaskMapper extends BaseMapper<Task> {
      * @return 任务列表
      */
     List<Task> selectByCondition(@Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId, @Param("status") Integer status);
+
+    /**
+     * 根据项目ID和负责人ID查询任务
+     * @param projectId 项目ID
+     * @param assigneeId 负责人ID
+     * @return 任务列表
+     */
+    List<Task> selectByProjectIdAndAssigneeId(@Param("projectId") Long projectId, @Param("assigneeId") Long assigneeId);
 
     /**
      * 根据条件查询用户可访问的任务（基于项目成员表）
@@ -109,4 +119,29 @@ public interface TaskMapper extends BaseMapper<Task> {
      * @return 子任务列表
      */
     List<Task> selectSubtasks(@Param("parentId") Long parentId, @Param("userId") Long userId);
+
+    /**
+     * 查询迭代下的需求列表 (含任务统计)
+     * @param iterationId 迭代ID
+     * @return 需求统计列表
+     */
+    List<RequirementStatsResp> getRequirementsByIteration(@Param("iterationId") Long iterationId);
+
+    /**
+     * 查询项目下的所有需求列表 (含任务统计)
+     * @param projectId 项目ID
+     * @return 需求统计列表
+     */
+    List<RequirementStatsResp> getRequirementsByProject(@Param("projectId") Long projectId);
+
+    /**
+     * 查询需求下的任务 (按状态分类)
+     * @param requirementId 需求ID
+     * @param assigneeId 负责人ID (可选筛选条件)
+     * @param priority 优先级 (可选筛选条件)
+     * @return 任务列表
+     */
+    List<TaskInfoResp> getTasksByRequirement(@Param("requirementId") Long requirementId,
+                                             @Param("assigneeId") Long assigneeId,
+                                             @Param("priority") String priority);
 }

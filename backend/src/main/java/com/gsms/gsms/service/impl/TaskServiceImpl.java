@@ -12,6 +12,7 @@ import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
 import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
 import com.gsms.gsms.dto.task.TaskConverter;
+import com.gsms.gsms.dto.task.KanbanTableResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.infra.exception.CommonErrorCode;
 import com.gsms.gsms.model.enums.errorcode.TaskErrorCode;
@@ -168,9 +169,26 @@ public class TaskServiceImpl implements TaskService {
         }
         logger.info("步骤4: 合并后的任务总数（去重后）: {}", allTasks.size());
 
+        // 调试：打印所有任务的 parentId 信息
+        for (Task task : allTasks) {
+            logger.info("任务 #{} ({}) parentId={} assigneeId={} status={}",
+                task.getId(), task.getTitle(), task.getParentId(), task.getAssigneeId(), task.getStatus());
+        }
+
         // 8. 使用后端已有方法构建树形结构
         List<TaskInfoResp> respList = TaskInfoResp.buildTree(allTasks);
         logger.info("步骤5: 构建树形结构，返回{}个根任务", respList.size());
+
+        // 调试：打印每个根任务的子任务数量
+        for (TaskInfoResp root : respList) {
+            int subtaskCount = root.getSubtasks() != null ? root.getSubtasks().size() : 0;
+            logger.info("根任务 #{} ({}) 有 {} 个子任务", root.getId(), root.getTitle(), subtaskCount);
+            if (subtaskCount > 0 && root.getSubtasks() != null) {
+                for (TaskInfoResp subtask : root.getSubtasks()) {
+                    logger.info("  - 子任务 #{} ({}, parentId={})", subtask.getId(), subtask.getTitle(), subtask.getParentId());
+                }
+            }
+        }
 
         // 9. 扁平化树形结构（用于填充用户信息）
         List<TaskInfoResp> flatList = flattenTree(respList);
@@ -179,7 +197,10 @@ public class TaskServiceImpl implements TaskService {
         // 10. 批量填充用户信息
         enrichTaskInfoRespList(flatList);
 
-        // 11. 返回分页结果
+        // 11. 批量填充实际工时和剩余工时
+        enrichActualHours(flatList);
+
+        // 12. 返回分页结果
         logger.info("查询完成: total={}（父任务数）, pageNum={}, pageSize={}, 返回根任务数={}",
                     total, pageNum, pageSize, respList.size());
         return PageResult.success(respList, total, pageNum, Integer.valueOf(respList.size()));
@@ -441,6 +462,9 @@ public class TaskServiceImpl implements TaskService {
         // 批量填充用户信息
         enrichTaskInfoRespList(respList);
 
+        // 批量填充实际工时
+        enrichActualHours(respList);
+
         logger.info("获取子任务列表成功: parentId={}, count={}", parentId, subtasks.size());
         return respList;
     }
@@ -513,6 +537,32 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * 批量填充实际工时和剩余工时
+     * 使用 WorkHourService 批量获取每个任务的实际工时
+     * 递归处理子任务
+     */
+    private void enrichActualHours(List<TaskInfoResp> respList) {
+        if (respList == null || respList.isEmpty()) {
+            return;
+        }
+        for (TaskInfoResp resp : respList) {
+            // 获取实际工时
+            java.math.BigDecimal actualHours = workHourService.getTotalHoursByTaskId(resp.getId());
+            resp.setActualHours(actualHours != null ? actualHours : java.math.BigDecimal.ZERO);
+
+            // 计算剩余工时 = 预估工时 - 实际工时
+            if (resp.getEstimateHours() != null) {
+                resp.setRemainingHours(resp.getEstimateHours().subtract(resp.getActualHours()));
+            }
+
+            // 递归处理子任务
+            if (resp.getSubtasks() != null && !resp.getSubtasks().isEmpty()) {
+                enrichActualHours(resp.getSubtasks());
+            }
+        }
+    }
+
     @Override
     public java.math.BigDecimal getRemainingHours(Long taskId) {
         // 查询任务信息
@@ -534,5 +584,100 @@ public class TaskServiceImpl implements TaskService {
         java.math.BigDecimal usedHours = totalUsedHours != null ? totalUsedHours : java.math.BigDecimal.ZERO;
 
         return estimateHours.subtract(usedHours);
+    }
+
+    @Override
+    public com.gsms.gsms.dto.task.KanbanTableResp getKanbanTableData(Long projectId, Long iterationId, Long assigneeId, String priority) {
+        logger.info("获取看板表格数据: projectId={}, iterationId={}, assigneeId={}, priority={}",
+                    projectId, iterationId, assigneeId, priority);
+
+        // 鉴权 - 检查项目访问权限
+        Long currentUserId = UserContext.getCurrentUserId();
+        authService.checkProjectAccess(currentUserId, projectId);
+
+        // 1. 获取需求列表
+        List<com.gsms.gsms.dto.task.RequirementStatsResp> requirements;
+        if (iterationId != null) {
+            // 查询指定迭代的需求
+            requirements = taskMapper.getRequirementsByIteration(iterationId);
+        } else {
+            // 未指定迭代时，返回空列表
+            requirements = new ArrayList<>();
+            logger.info("未指定迭代ID，返回空需求列表");
+        }
+
+        // 2. 为每个需求构建看板行数据
+        List<com.gsms.gsms.dto.task.KanbanTableResp.RequirementRow> rows = new ArrayList<>();
+        int totalTodo = 0, totalInProgress = 0, totalTesting = 0, totalDone = 0, totalReopened = 0, totalClosed = 0;
+
+        for (com.gsms.gsms.dto.task.RequirementStatsResp requirement : requirements) {
+            // 获取该需求下的所有任务（应用筛选条件）
+            List<TaskInfoResp> tasks = taskMapper.getTasksByRequirement(requirement.getId(), assigneeId, priority);
+
+            // 按状态分类
+            List<TaskInfoResp> todoTasks = new ArrayList<>();
+            List<TaskInfoResp> inProgressTasks = new ArrayList<>();
+            List<TaskInfoResp> testingTasks = new ArrayList<>();
+            List<TaskInfoResp> doneTasks = new ArrayList<>();
+            List<TaskInfoResp> reopenedTasks = new ArrayList<>();
+            List<TaskInfoResp> closedTasks = new ArrayList<>();
+
+            for (TaskInfoResp task : tasks) {
+                // 按状态分组
+                switch (task.getStatus()) {
+                    case TODO:
+                        todoTasks.add(task);
+                        totalTodo++;
+                        break;
+                    case IN_PROGRESS:
+                        inProgressTasks.add(task);
+                        totalInProgress++;
+                        break;
+                    case TESTING:
+                        testingTasks.add(task);
+                        totalTesting++;
+                        break;
+                    case DONE:
+                        doneTasks.add(task);
+                        totalDone++;
+                        break;
+                    case REOPENED:
+                        reopenedTasks.add(task);
+                        totalReopened++;
+                        break;
+                    case CLOSED:
+                        closedTasks.add(task);
+                        totalClosed++;
+                        break;
+                }
+            }
+
+            // 构建行数据
+            com.gsms.gsms.dto.task.KanbanTableResp.RequirementRow row = new com.gsms.gsms.dto.task.KanbanTableResp.RequirementRow();
+            row.setRequirement(requirement);
+            row.setTodoTasks(todoTasks);
+            row.setInProgressTasks(inProgressTasks);
+            row.setTestingTasks(testingTasks);
+            row.setDoneTasks(doneTasks);
+            row.setReopenedTasks(reopenedTasks);
+            row.setClosedTasks(closedTasks);
+
+            rows.add(row);
+        }
+
+        // 3. 构建响应数据
+        com.gsms.gsms.dto.task.KanbanTableResp response = new com.gsms.gsms.dto.task.KanbanTableResp();
+        response.setRows(rows);
+        response.setTotalTodoTasks(totalTodo);
+        response.setTotalInProgressTasks(totalInProgress);
+        response.setTotalTestingTasks(totalTesting);
+        response.setTotalDoneTasks(totalDone);
+        response.setTotalReopenedTasks(totalReopened);
+        response.setTotalClosedTasks(totalClosed);
+
+        logger.info("获取看板表格数据成功: 需求数={}, 任务总数={}", rows.size(),
+                    totalTodo + totalInProgress + totalTesting + totalDone + totalReopened + totalClosed);
+
+        return response;
     }
 }

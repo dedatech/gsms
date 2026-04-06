@@ -5,6 +5,7 @@ import com.gsms.gsms.dto.task.TaskQueryReq;
 import com.gsms.gsms.dto.task.TaskCreateReq;
 import com.gsms.gsms.dto.task.TaskUpdateReq;
 import com.gsms.gsms.dto.task.TaskStatusUpdateReq;
+import com.gsms.gsms.dto.task.KanbanTableResp;
 import com.gsms.gsms.infra.common.PageResult;
 import com.gsms.gsms.dto.task.TaskInfoResp;
 
@@ -73,4 +74,14 @@ public interface TaskService {
      * @return 剩余工时（预估工时 - 已用工时），如果未设置预估工时则返回null
      */
     java.math.BigDecimal getRemainingHours(Long taskId);
+
+    /**
+     * 获取项目的看板表格数据
+     * @param projectId 项目ID
+     * @param iterationId 迭代ID（可选）
+     * @param assigneeId 负责人ID（可选筛选）
+     * @param priority 优先级（可选筛选）
+     * @return 看板表格数据
+     */
+    KanbanTableResp getKanbanTableData(Long projectId, Long iterationId, Long assigneeId, String priority);
 }
